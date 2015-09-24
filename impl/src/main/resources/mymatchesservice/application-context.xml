@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:http="http://www.springframework.org/schema/integration/http"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    ">
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="systemPropertiesMode" value="2" />
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="ignoreUnresolvablePlaceholders" value="false" />
+		<property name="locations">
+			<list>
+				<value>classpath:mymatchesservice/mymatchesservice.global.properties</value>
+				<value>file:${config.overrides.location}</value>
+				<!-- <value>file:${config.secure.location}</value> -->
+			</list>
+		</property>
+	</bean>
+
+	<!-- <import resource="store/mongo-store-context.xml" /> -->
+	<context:annotation-config />
+	<context:component-scan base-package="com.eharmony.services.datastore.mongodb" />
+	<context:component-scan base-package="com.eharmony.services.datastore.cassandra" />
+	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
+	
+
+	<!-- **************** JSON SECTION ****************** -->
+	<bean id="objectMapper"
+		class="com.eharmony.services.datastore.util.CustomObjectMapper" />
+
+	<!-- **************** SERVICES SECTION ****************** -->
+	<bean id="ecvService"
+		class="com.eharmony.services.mymatchesservice.service.EcvService">
+		<constructor-arg index="0" value="${ecvFile}" />
+		<constructor-arg index="1" value="${ecv.wait.timeout.seconds}" />
+	</bean>
+
+</beans>

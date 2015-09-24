@@ -1,0 +1,682 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.eharmony.services.mymatches-service</groupId>
+	<artifactId>mymatches-service</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>MyMatches Service</name>
+	<description>Provides the API's to manage the user matches feed </description>
+	<modules>
+		<module>api</module>
+		<module>impl</module>
+		<module>datastore</module>
+	</modules>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jersey.eh.version>2.16-eh-1</jersey.eh.version>
+		<jersey.version>2.16</jersey.version>
+		<jetty.version>9.2.10.v20150310</jetty.version>
+		<spring.version>4.1.5.RELEASE</spring.version>
+		<slf4j.version>1.7.12</slf4j.version>
+		<log4j.version>1.2.15</log4j.version>
+		<logback-version>1.1.2</logback-version>
+		<hornetq.version>2.2.19.Final</hornetq.version>
+		<maven.build.timestamp.format>dd/MM/yyyy hh:mm:ss a</maven.build.timestamp.format>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven-extra-enforcer-rules.version>1.0-alpha-3</maven-extra-enforcer-rules.version>
+		<metrics.version>3.1.0</metrics.version>
+		<java.persistence.version>1.0</java.persistence.version>
+		<jackson.version>1.9.13</jackson.version>
+		<commons-lang-version>2.4</commons-lang-version>
+		<commons-lang3-version>3.3.2</commons-lang3-version>
+		<protostuff-version>1.0.7-eh-8</protostuff-version>
+		<protobuf-version>2.4.1</protobuf-version>
+		<google.guava.version>16.0.1</google.guava.version>
+		<commons.collections.version>3.2</commons.collections.version>
+		<commons.validator.version>1.3.1</commons.validator.version>
+		<commons.io.version>2.1</commons.io.version>
+		<oro.version>2.0.8</oro.version>
+		<commons.beanutils.version>1.8.3</commons.beanutils.version>
+		<!-- <jsr311.api.version>1.1</jsr311.api.version> -->
+		<joda.time.version>1.6</joda.time.version>
+		<mockito.all.version>1.8.5</mockito.all.version>
+		<easymock.version>3.0</easymock.version>
+		<httpunit.version>1.6.2</httpunit.version>
+		<junit.version>4.10</junit.version>
+		<jboss.jms.api.version>1.1.0.GA</jboss.jms.api.version>
+		<jboss.netty.version>3.2.0.Final</jboss.netty.version>
+		<asm.version>3.3.1</asm.version>  
+		<asm.attrs.version>2.2.3</asm.attrs.version>
+		<cglib.version>2.2.2</cglib.version>
+		<stop.port>7911</stop.port>
+		<oracle.jdbc.version>11.2.0.3.0</oracle.jdbc.version>
+		<hibernate.commons.annotations.version>3.5.6-Final</hibernate.commons.annotations.version>
+		<hibernate.version>4.3.10.Final</hibernate.version>
+		<c3p0.version>0.9.1.2</c3p0.version>
+		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
+		<java-version>1.8</java-version>
+		<singles-protobuf-version>2.4</singles-protobuf-version>
+		<profile.service.version>2</profile.service.version>
+        <singles.business.version>5</singles.business.version>
+        <proto-rest.version>2.0.0</proto-rest.version>
+	</properties>
+
+	<dependencyManagement>
+		<!-- Please keep this list in sorted order by groupId/artifactId -->
+		<dependencies>
+		    <!--  Jersey and Jackson Start -->
+			<!-- <dependency>
+				<groupId>com.sun.jersey</groupId>
+				<artifactId>jersey-json</artifactId>
+				<version>${jersey.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.codehaus.jackson</groupId>
+						<artifactId>jackson-core-asl</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency> -->
+			
+			<dependency>
+                <groupId>com.eharmony.singles</groupId>
+                <artifactId>singles-protobuf</artifactId>
+                <version>${singles-protobuf-version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>guava</artifactId>
+                        <groupId>com.google.guava</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.eharmony</groupId>
+                <artifactId>proto-rest</artifactId>
+                <version>${proto-rest.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>guava</artifactId>
+                        <groupId>com.google.guava</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            
+            <dependency>
+         		<groupId>com.eharmony.services.profile</groupId>
+         		<artifactId>profile-service-client</artifactId>
+         		<version>${profile.service.version}</version>
+         		<exclusions>
+                    <exclusion>
+                        <groupId>com.google.collections</groupId>
+                        <artifactId>google-collections</artifactId>
+                    </exclusion>
+                </exclusions>
+         		
+         	</dependency>
+         	
+         	<dependency>
+        		<groupId>com.eharmony.singles</groupId>
+				<artifactId>singles-business</artifactId>
+				<version>${singles.business.version}</version>
+			</dependency>
+            
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-mapper-asl</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-jaxrs</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-core-lgpl</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-mapper-lgpl</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-xc</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<!--  Jersey and Jackson End -->
+			
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>${protobuf-version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.dyuproject.protostuff</groupId>
+				<artifactId>protostuff-api</artifactId>
+				<version>${protostuff-version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.dyuproject.protostuff</groupId>
+				<artifactId>protostuff-json</artifactId>
+				<version>${protostuff-version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>jackson-core-asl</artifactId>
+						<groupId>org.codehaus.jackson</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.dyuproject.protostuff</groupId>
+				<artifactId>protostuff-core</artifactId>
+				<version>${protostuff-version}</version>
+			</dependency>
+			<!-- Graphite dependencies -->
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-core</artifactId>
+				<version>${metrics.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-jersey2</artifactId>
+				<version>${metrics.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-graphite</artifactId>
+				<version>${metrics.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-jvm</artifactId>
+				<version>${metrics.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${google.guava.version}</version>
+			</dependency>
+			<!-- End of Graphite dependencies -->
+
+			<dependency>
+				<groupId>commons-collections</groupId>
+				<artifactId>commons-collections</artifactId>
+				<version>${commons.collections.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>${commons-lang-version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3-version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-validator</groupId>
+				<artifactId>commons-validator</artifactId>
+				<version>${commons.validator.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons.io.version}</version>
+			</dependency>
+			
+			<dependency> 
+				<!-- required by commons-validator -->
+				<groupId>oro</groupId>
+				<artifactId>oro</artifactId>
+				<version>${oro.version}</version>
+			</dependency>
+
+			<dependency>
+				<artifactId>commons-beanutils</artifactId>
+				<groupId>commons-beanutils</groupId>
+				<version>${commons.beanutils.version}</version>
+			</dependency>
+
+			<!-- <dependency>
+				<groupId>javax.ws.rs</groupId>
+				<artifactId>jsr311-api</artifactId>
+				<version>${jsr311.api.version}</version>
+			</dependency> -->
+
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${joda.time.version}</version>
+			</dependency>
+			
+			<!-- LOGGING START -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jul-to-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>runtime</scope>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${logback-version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback-version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-access</artifactId>
+				<version>${logback-version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${log4j.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.sun.jmx</groupId>
+						<artifactId>jmxri</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			
+			<!-- LOGGING END -->
+
+            <!-- TEST SCOPE START-->
+            <dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-all</artifactId>
+				<version>${mockito.all.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.easymock</groupId>
+				<artifactId>easymock</artifactId>
+				<version>${easymock.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>httpunit</groupId>
+				<artifactId>httpunit</artifactId>
+				<version>${httpunit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<scope>test</scope>
+				<version>${junit.version}</version>
+			</dependency>
+			<!-- TEST SCOPE END-->
+			
+			<!-- New Spring artifact naming convention, use these for new development -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context-support</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aop</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-orm</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-asm</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jms</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-webmvc</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aspects</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-expression</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			
+			<!-- Spring Framework END -->
+			
+			<!-- Misc Start -->
+			<dependency>
+				<groupId>org.jboss.javaee</groupId>
+				<artifactId>jboss-jms-api</artifactId>
+				<version>${jboss.jms.api.version}</version>
+				<scope>compile</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.jboss.netty</groupId>
+				<artifactId>netty</artifactId>
+				<version>${jboss.netty.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>asm</groupId>
+				<artifactId>asm</artifactId>
+				<version>${asm.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>asm</groupId>
+				<artifactId>asm-attrs</artifactId>
+				<version>${asm.attrs.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>${cglib.version}</version>
+			</dependency>
+
+			<!-- Hibernate dependencies -->
+        
+	      <dependency>
+	        <groupId>javax.persistence</groupId>
+	        <artifactId>persistence-api</artifactId>
+	        <version>${java.persistence.version}</version>
+	        <scope>provided</scope>
+	      </dependency>
+		
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+		    <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>${java-version}</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+			</plugin>
+			
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-resources-plugin</artifactId>
+		        <version>2.7</version>
+		        <configuration>
+		          <encoding>UTF-8</encoding>
+		        </configuration>
+		    </plugin>
+		    
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<!-- Enforcer plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.1.1</version>
+				<executions>
+					<execution>
+						<id>enforce-ban-duplicate-classes</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<banDuplicateClasses>
+									<ignoreClasses>
+										<!-- mockito and junit share no issue -->
+										<ignoreClass>org.hamcrest.*</ignoreClass>
+
+										<!-- Objenesis is stored within Mockito-all, which is test scope. -->
+										<ignoreClass>org.objenesis.*</ignoreClass>
+
+										<!--commons-beanutils and commons-collections co-existence problem -->
+										<ignoreClass>org.apache.commons.collections.*</ignoreClass>
+
+										<!-- spring-context, spring-context-support possible issue -->
+										<ignoreClass>org.springframework.cache.ehcache.*</ignoreClass>
+
+										<!-- aspectj no issue -->
+										<ignoreClass>org.aspectj.*</ignoreClass>
+										<ignoreClass>org.w3c.dom.*</ignoreClass>
+										<ignoreClass>org.xml.sax.*</ignoreClass>
+
+										<!-- Java web servce spec interfaces -->
+										<!-- <ignoreClass>javax.ws.*</ignoreClass> -->
+
+										<!-- servlet spec interfaces are shared across implementation libraries -->
+										<ignoreClass>javax.servlet.*</ignoreClass>
+
+										<!-- Possible conflict in future -->
+										<ignoreClass>net.sf.ehcache.*</ignoreClass>
+
+										<!--possible conflict in future -->
+										<ignoreClass>org.springframework.oxm.*</ignoreClass>
+
+										<ignoreClass>org.xmlpull.v1.*</ignoreClass>
+										<ignoreClass>org.objectweb.asm.*</ignoreClass>
+										<ignoreClass>org.junit.*</ignoreClass>
+										<ignoreClass>org.powermock.api.*</ignoreClass>
+										<ignoreClass>org.powermock.modules.*</ignoreClass>
+										<ignoreClass>org.hornetq.api.jms.management.*</ignoreClass>
+										<ignoreClass>com.google.common.*</ignoreClass>
+										<ignoreClass>javax.xml.stream.*</ignoreClass>
+										<ignoreClass>org.apache.log4j.*</ignoreClass>
+										<ignoreClass>org.slf4j.*</ignoreClass>
+										<ignoreClass>org.apache.commons.logging.*</ignoreClass>
+
+									</ignoreClasses>
+									<findAllDuplicates>true</findAllDuplicates>
+								</banDuplicateClasses>
+							</rules>
+							<fail>true</fail>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>extra-enforcer-rules</artifactId>
+						<version>${maven-extra-enforcer-rules.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+		</plugins>
+		<pluginManagement>
+		  <plugins>
+		    <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+		    <plugin>
+		      <groupId>org.eclipse.m2e</groupId>
+		      <artifactId>lifecycle-mapping</artifactId>
+		      <version>1.0.0</version>
+		      <configuration>
+		        <lifecycleMappingMetadata>
+		          <pluginExecutions>
+		            <pluginExecution>
+		              <pluginExecutionFilter>
+		                <groupId>org.apache.maven.plugins</groupId>
+		                <artifactId>maven-jar-plugin</artifactId>
+		                <versionRange>[2.4,)</versionRange>
+		                <goals>
+		                  <goal>jar</goal>
+		                </goals>
+		              </pluginExecutionFilter>
+		              <action>
+		                <ignore></ignore>
+		              </action>
+		            </pluginExecution>
+		          </pluginExecutions>
+		        </lifecycleMappingMetadata>
+		      </configuration>
+		    </plugin>
+		  </plugins>
+		</pluginManagement>
+	</build>
+
+	<reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <show>private</show>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.8</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>internal-releases</id>
+			<name>Internal Releases</name>
+			<url>http://tools03.dc1.eharmony.com:8081/nexus/content/repositories/internal-releases</url>
+			<layout>default</layout>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>internal-snapshots</id>
+			<name>Internal Snapshots</name>
+			<url>http://tools03.dc1.eharmony.com:8081/nexus/content/repositories/internal-snapshots</url>
+			<layout>default</layout>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<scm>
+		<connection>scm:git:git@github.corp.eharmony.com:singles/mymatches-service.git</connection>
+		<url>git@github.corp.eharmony.com:singles/mymatches-service.git</url>
+		<developerConnection>scm:git:git@github.corp.eharmony.com:singles/mymatches-service.git</developerConnection>
+	</scm>
+
+</project>

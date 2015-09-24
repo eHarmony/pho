@@ -1,0 +1,815 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.eharmony.services.mymatches-service</groupId>
+		<artifactId>mymatches-service</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	<name>MyMatches Service Datastore</name>
+	<artifactId>mymatches-service-datastore</artifactId>
+	<description>mymatches service datastore</description>
+	<packaging>jar</packaging>
+
+	<properties>
+		<service.port>9002</service.port>
+		<cglib.version>2.2.2</cglib.version>
+		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+		<commons.logging.version>1.2</commons.logging.version>
+		<!-- <spring.hadoop.version>2.2.0.RELEASE</spring.hadoop.version>
+		<hadoop.version>1.0.1</hadoop.version>
+		<hbase.version>0.92.1</hbase.version> -->
+		<!-- <hbase.version>0.94.6</hbase.version> -->
+		<spring.hadoop.version>2.2.0.RELEASE</spring.hadoop.version>
+		<hadoop.version>2.6.0</hadoop.version>
+		<hbase.version>0.98.5-hadoop2</hbase.version>
+		<!-- <hbase.version>1.0.1.1</hbase.version> -->
+	</properties>
+
+	<dependencies>
+		<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<exclusions>
+					<exclusion>
+						<groupId>com.sun.jmx</groupId>
+						<artifactId>jmxri</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+		<!-- <dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-hadoop</artifactId>
+			<version>${spring.hadoop.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context-support</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-core</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>${hadoop.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-client</artifactId>
+			<version>${hbase.version}</version>
+			<scope>compile</scope>
+		</dependency> -->
+
+		<!-- <dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase</artifactId>
+			<version>${hbase.version}</version>
+			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-lang</artifactId>
+					<groupId>commons-lang</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-digester</artifactId>
+					<groupId>commons-digester</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty</artifactId>
+					<groupId>org.jboss.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-core-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jaxb-api</artifactId>
+					<groupId>javax.xml.bind</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-core</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-json</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-server</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency> -->
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-cassandra</artifactId>
+			<version>1.2.1.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>metrics-core</artifactId>
+					<groupId>com.codahale.metrics</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-expression</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>1.7.1.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-expression</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+			<version>1.7.2.RELEASE</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>1.10.1.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+			<version>4.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.eharmony.services.match-feed-service</groupId>
+			<artifactId>match-feed-service-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${commons.logging.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlets</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<!-- Jersey and Jackson Start -->
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-rxjava</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-rxjava</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.cdi</groupId>
+			<artifactId>jersey-cdi1x</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.ext</groupId>
+			<artifactId>jersey-spring3</artifactId>
+			<version>${jersey.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>tiger-types</artifactId>
+					<groupId>org.jvnet</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>validation-api</artifactId>
+					<groupId>javax.validation</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>javax.inject</artifactId>
+					<groupId>javax.inject</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-common</artifactId>
+					<groupId>org.glassfish.jersey.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jersey-common</artifactId>
+					<groupId>org.glassfish.jersey.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>${jersey.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jersey-common</artifactId>
+					<groupId>org.glassfish.jersey.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax.servlet-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>javax.inject</artifactId>
+					<groupId>org.glassfish.hk2.external</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-common</artifactId>
+					<groupId>org.glassfish.jersey.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-common</artifactId>
+			<version>${jersey.eh.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.bundles.repackaged</groupId>
+			<artifactId>jersey-guava</artifactId>
+			<version>${jersey.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-java8</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-guava</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-core-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-jaxrs</artifactId>
+			<!-- <exclusions> <exclusion> <artifactId>jackson-core-asl</artifactId> 
+				<groupId>org.codehaus.jackson</groupId> </exclusion> </exclusions> -->
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-xc</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-core-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- Jersey and Jackson End -->
+
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.dyuproject.protostuff</groupId>
+			<artifactId>protostuff-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.dyuproject.protostuff</groupId>
+			<artifactId>protostuff-json</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-core-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.dyuproject.protostuff</groupId>
+			<artifactId>protostuff-core</artifactId>
+		</dependency>
+
+		<!-- Graphite dependencies -->
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-jersey2</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>validation-api</artifactId>
+					<groupId>javax.validation</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>javax.inject</artifactId>
+					<groupId>org.glassfish.hk2.external</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-graphite</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-jvm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<!-- End of Graphite dependencies -->
+
+
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-digester</artifactId>
+					<groupId>commons-digester</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
+		<dependency>
+			<!-- required by commons-validator -->
+			<groupId>oro</groupId>
+			<artifactId>oro</artifactId>
+		</dependency>
+
+		<dependency>
+			<artifactId>commons-beanutils</artifactId>
+			<groupId>commons-beanutils</groupId>
+		</dependency>
+
+		<!-- <dependency> <groupId>javax.ws.rs</groupId> <artifactId>jsr311-api</artifactId> 
+			</dependency> -->
+
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+
+		<!-- LOGGING START -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<scope>runtime</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- LOGGING END -->
+
+		<!-- TEST SCOPE START -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>cglib</groupId>
+					<artifactId>cglib-nodep</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>httpunit</groupId>
+			<artifactId>httpunit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- TEST SCOPE END -->
+
+		<!-- New Spring artifact naming convention, use these for new development -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>aopalliance</artifactId>
+					<groupId>aopalliance</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-expression</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>aopalliance</artifactId>
+					<groupId>aopalliance</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>aopalliance</artifactId>
+					<groupId>aopalliance</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-expression</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+		</dependency>
+
+		<!-- Spring Framework END -->
+
+		<!-- Misc Start -->
+		<dependency>
+			<groupId>org.jboss.javaee</groupId>
+			<artifactId>jboss-jms-api</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.jboss.netty</groupId> <artifactId>netty</artifactId> 
+			</dependency> -->
+
+		<dependency>
+			<groupId>asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>${asm.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>asm</groupId>
+			<artifactId>asm-attrs</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>${c3p0.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6_g</artifactId>
+			<version>${oracle.jdbc.version}</version>
+		</dependency>
+
+		<!-- Hibernate-redis -->
+		<dependency>
+			<groupId>com.github.debop</groupId>
+			<artifactId>hibernate-redis</artifactId>
+			<version>${hibernate.redis.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+	</dependencies>
+
+	<scm>
+		<connection>scm:git:git@github.corp.eharmony.com:foundation/match-feed-service.git</connection>
+		<url>git@github.corp.eharmony.com:foundation/match-feed-service.git</url>
+		<developerConnection>scm:git:git@github.corp.eharmony.com:foundation/match-feed-service.git</developerConnection>
+	</scm>
+
+	<build>
+		<plugins>
+
+			<!-- this is to fix a bug in the jetty 9.2.X maven plugin, this can be 
+				removed in 9.3 -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>set-system-properties</goal>
+						</goals>
+						<configuration>
+							<properties>
+								<property>
+									<name>logback.configurationFile</name>
+									<value>jetty/logback.xml</value>
+								</property>
+								<property>
+									<name>hibernate.cache.provider_configuration_file_resource_path</name>
+									<value>${basedir}/jetty/override.properties</value>
+								</property>
+							</properties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>enforce-ban-version-downgrades</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireUpperBoundDeps />
+							</rules>
+						</configuration>
+					</execution>
+					<execution>
+						<id>enforce-ban-duplicate-classes</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<banDuplicateClasses>
+									<findAllDuplicates>true</findAllDuplicates>
+								</banDuplicateClasses>
+							</rules>
+							<fail>true</fail>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>extra-enforcer-rules</artifactId>
+						<version>1.0-alpha-3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-a-jar</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<packaging>jar</packaging>
+							<artifactId>${project.artifactId}</artifactId>
+							<groupId>${project.groupId}</groupId>
+							<version>${project.version}</version>
+							<file>
+								${project.build.directory}/${project.artifactId}-${project.version}.jar
+							</file>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>properties-maven-plugin</artifactId>
+										<versionRange>[1.0-alpha-2,)</versionRange>
+										<goals>
+											<goal>set-system-properties</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>
