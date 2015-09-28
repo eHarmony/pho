@@ -1,7 +1,7 @@
-mymatches-service
+match-query-service
 =================
 
-MyMatches service provides API's to serve the user matches feed information.
+Match Query Service provides API's to serve the user matches feed information.
 
 1. Service will handle the requests to serve the feed data
 	API's: http://locahost:9002/mymatches/ecv
