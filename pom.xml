@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.eharmony.services.mymatches-service</groupId>
-	<artifactId>mymatches-service</artifactId>
+	<groupId>com.eharmony.services.match-query-service</groupId>
+	<artifactId>match-query-service</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>MyMatches Service</name>
+	<name>Match Query Service</name>
 	<description>Provides the API's to manage the user matches feed </description>
 	<modules>
 		<module>api</module>
@@ -66,19 +66,7 @@
 	<dependencyManagement>
 		<!-- Please keep this list in sorted order by groupId/artifactId -->
 		<dependencies>
-		    <!--  Jersey and Jackson Start -->
-			<!-- <dependency>
-				<groupId>com.sun.jersey</groupId>
-				<artifactId>jersey-json</artifactId>
-				<version>${jersey.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.codehaus.jackson</groupId>
-						<artifactId>jackson-core-asl</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency> -->
-			
+		    			
 			<dependency>
                 <groupId>com.eharmony.singles</groupId>
                 <artifactId>singles-protobuf</artifactId>

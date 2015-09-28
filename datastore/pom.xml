@@ -2,13 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.eharmony.services.mymatches-service</groupId>
-		<artifactId>mymatches-service</artifactId>
+		<groupId>com.eharmony.services.match-query-service</groupId>
+		<artifactId>match-query-service</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
-	<name>MyMatches Service Datastore</name>
-	<artifactId>mymatches-service-datastore</artifactId>
-	<description>mymatches service datastore</description>
+	<name>match query service Datastore</name>
+	<artifactId>match-query-service-datastore</artifactId>
+	<description>match query service datastore</description>
 	<packaging>jar</packaging>
 
 	<properties>
