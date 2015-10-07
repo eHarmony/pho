@@ -41,7 +41,7 @@ public class MatchfeedResource {
     /**
      * Returns user match feed by userId. filters the results by distance query parameter
      * @param userId   Integer
-     * @param distance Integer, distance query param
+     * @param distance Integer, distance query parameter
      * @return List of MatchFeedItem
      */
     @GET
