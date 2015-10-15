@@ -15,7 +15,13 @@
 		<service.port>9002</service.port>
 		<cglib.version>2.2.2</cglib.version>
 		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+		<proto-rest.version>2.0.2</proto-rest.version>
 		<commons.logging.version>1.2</commons.logging.version>
+		<singles.business.version>5</singles.business.version>
+		<singles-protobuf-version>2.4</singles-protobuf-version>
+		<opencsv-version>2.3</opencsv-version>
+		<singles-business.version>20</singles-business.version>
+		<crypto-library.version>15</crypto-library.version>
 	</properties>
 
 	<dependencies>
@@ -24,85 +30,73 @@
 			<artifactId>match-query-service-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
-			<groupId>com.eharmony.services.match-query-service</groupId>
-			<artifactId>match-query-service-datastore</artifactId>
+			<groupId>com.eharmony.services.singles.match-profile-service</groupId>
+			<artifactId>match-profile-service-api</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-beanutils</artifactId>
-					<groupId>commons-beanutils</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		
-		<!-- <dependency>
-			<groupId>com.eharmony.singles</groupId>
-			<artifactId>singles-protobuf</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>guava</artifactId>
-					<groupId>com.google.guava</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency> -->
-
-		<!-- <dependency>
-			<groupId>com.eharmony</groupId>
-			<artifactId>proto-rest</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>guava</artifactId>
-					<groupId>com.google.guava</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jersey-client</artifactId>
-					<groupId>com.sun.jersey</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jersey-core</artifactId>
-					<groupId>com.sun.jersey</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.eharmony.services.profile</groupId>
-			<artifactId>profile-service-client</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.collections</groupId>
-					<artifactId>google-collections</artifactId>
-				</exclusion>
-				<exclusion>
-					<artifactId>foundation-commons-library</artifactId>
-					<groupId>com.eharmony.commons</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jersey-client</artifactId>
-					<groupId>com.sun.jersey</groupId>
-				</exclusion>
-			</exclusions>
-
-		</dependency> -->
-
-		<!-- <dependency>
+			<groupId>com.eharmony.crypto</groupId>
+			<artifactId>crypto-library</artifactId>
+			<version>${crypto-library.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.eharmony.singles</groupId>
 			<artifactId>singles-business</artifactId>
+			<version>${singles-business.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>hibernate-validator</artifactId>
+					<groupId>org.hibernate</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsr250-api</artifactId>
+					<groupId>javax.annotation</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		 -->
-		
+
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
+			<groupId>com.eharmony.singles</groupId>
+			<artifactId>singles-protobuf</artifactId>
+			<version>${singles-protobuf-version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>${opencsv-version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>${commons.logging.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
@@ -111,14 +105,19 @@
 		<dependency>
 			<groupId>com.eharmony</groupId>
 			<artifactId>proto-rest</artifactId>
+			<version>${proto-rest.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jersey-common</artifactId>
 					<groupId>org.glassfish.jersey.core</groupId>
 				</exclusion>
 				<exclusion>
-					<artifactId>commons-beanutils</artifactId>
-					<groupId>commons-beanutils</groupId>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -275,6 +274,12 @@
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
 			<artifactId>metrics-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
@@ -288,15 +293,31 @@
 					<artifactId>javax.inject</artifactId>
 					<groupId>org.glassfish.hk2.external</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
 			<artifactId>metrics-graphite</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.dropwizard.metrics</groupId>
 			<artifactId>metrics-jvm</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -323,12 +344,6 @@
 		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-beanutils</artifactId>
-					<groupId>commons-beanutils</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -342,6 +357,10 @@
 			<artifactId>oro</artifactId>
 		</dependency>
 
+		<dependency>
+			<artifactId>commons-beanutils</artifactId>
+			<groupId>commons-beanutils</groupId>
+		</dependency>
 
 		<!-- <dependency> <groupId>javax.ws.rs</groupId> <artifactId>jsr311-api</artifactId> 
 			</dependency> -->
@@ -390,6 +409,16 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<!-- LOGGING END -->
 
 		<!-- TEST SCOPE START -->
@@ -432,10 +461,6 @@
 					<artifactId>aopalliance</artifactId>
 					<groupId>aopalliance</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>spring-expression</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -474,10 +499,6 @@
 			<artifactId>spring-tx</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jms</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -487,17 +508,12 @@
 					<artifactId>aopalliance</artifactId>
 					<groupId>aopalliance</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>spring-expression</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -511,27 +527,18 @@
 			<artifactId>spring-aspects</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-expression</artifactId>
-		</dependency>
-
 		<!-- Spring Framework END -->
 
 		<!-- Misc Start -->
-		<dependency>
-			<groupId>org.jboss.javaee</groupId>
-			<artifactId>jboss-jms-api</artifactId>
-			<scope>compile</scope>
-		</dependency>
 
-		<!-- <dependency> <groupId>org.jboss.netty</groupId> <artifactId>netty</artifactId> 
-			</dependency> -->
+		<dependency>
+			<groupId>org.jboss.netty</groupId>
+			<artifactId>netty</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
-			<version>${asm.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>asm</groupId>
@@ -542,42 +549,12 @@
 			<artifactId>cglib</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>c3p0</groupId>
-			<artifactId>c3p0</artifactId>
-			<version>${c3p0.version}</version>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6_g</artifactId>
-			<version>${oracle.jdbc.version}</version>
-		</dependency>
-
-		<!-- Hibernate-redis -->
-		<dependency>
-			<groupId>com.github.debop</groupId>
-			<artifactId>hibernate-redis</artifactId>
-			<version>${hibernate.redis.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
 	</dependencies>
 
 	<scm>
-		<connection>scm:git:git@github.corp.eharmony.com:foundation/match-feed-service.git</connection>
-		<url>git@github.corp.eharmony.com:foundation/match-feed-service.git</url>
-		<developerConnection>scm:git:git@github.corp.eharmony.com:foundation/match-feed-service.git</developerConnection>
+		<connection>scm:git:git@github.corp.eharmony.com:singles/match-query-service.git</connection>
+		<url>git@github.corp.eharmony.com:singles/match-query-service.git</url>
+		<developerConnection>scm:git:git@github.corp.eharmony.com:singles/match-query-service.git</developerConnection>
 	</scm>
 
 	<build>
@@ -598,11 +575,7 @@
 							<properties>
 								<property>
 									<name>logback.configurationFile</name>
-									<value>jetty/logback.xml</value>
-								</property>
-								<property>
-									<name>hibernate.cache.provider_configuration_file_resource_path</name>
-									<value>${basedir}/jetty/override.properties</value>
+									<value>${basedir}/jetty/logback.xml</value>
 								</property>
 							</properties>
 						</configuration>
@@ -612,7 +585,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>1.4</version>
+				<version>1.2</version>
 				<executions>
 					<execution>
 						<id>enforce-ban-version-downgrades</id>
@@ -697,7 +670,6 @@
 							<name>logback.configurationFile</name>
 							<value>jetty/logback.xml</value>
 						</systemProperty>
-						
 						<systemProperty>
 							<name>org.eclipse.jetty.util.log.Log</name>
 							<value>org.eclipse.jetty.util.log.Slf4jLog</value>
@@ -714,21 +686,13 @@
 							<name>com.sun.management.jmxremote.ssl</name>
 							<value>false</value>
 						</systemProperty>
-						<systemProperty>
-							<name>instrumentation.sbus.enabled</name>
-							<value>true</value>
-						</systemProperty>
 					</systemProperties>
 					<scanIntervalSeconds>10000</scanIntervalSeconds>
 					<stopKey>foo</stopKey>
 					<stopPort>${stop.port}</stopPort>
 					<daemon>false</daemon>
 				</configuration>
-				<!-- Uncomment when we add integration tests <executions> <execution> 
-					<id>start-jetty</id> <phase>pre-integration-test</phase> <goals> <goal>run</goal> 
-					</goals> <configuration> <scanIntervalSeconds>0</scanIntervalSeconds> </configuration> 
-					</execution> <execution> <id>stop-jetty</id> <phase>post-integration-test</phase> 
-					<goals> <goal>stop</goal> </goals> </execution> </executions> -->
+
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

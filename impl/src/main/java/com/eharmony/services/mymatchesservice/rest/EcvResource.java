@@ -32,7 +32,7 @@ import com.eharmony.services.mymatchesservice.service.EcvService;
  * determine whether a server hosting this resource should receive http traffic.
  */
 
-@Component @Path("/ecv")
+@Component @Path("/v1/ecv")
 public class EcvResource {
 
     private static final Status STATUS_SERVER_UP = Status.OK;

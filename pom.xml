@@ -10,15 +10,15 @@
 	<modules>
 		<module>api</module>
 		<module>impl</module>
-		<module>datastore</module>
 	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jersey.eh.version>2.16-eh-1</jersey.eh.version>
-		<jersey.version>2.16</jersey.version>
+		<jersey.eh.version>2.18</jersey.eh.version>
+		<jersey.version>2.18</jersey.version>
 		<jetty.version>9.2.10.v20150310</jetty.version>
 		<spring.version>4.1.5.RELEASE</spring.version>
+		<spring.security.version>4.0.0.RC2</spring.security.version>
 		<slf4j.version>1.7.12</slf4j.version>
 		<log4j.version>1.2.15</log4j.version>
 		<logback-version>1.1.2</logback-version>
@@ -31,23 +31,22 @@
 		<jackson.version>1.9.13</jackson.version>
 		<commons-lang-version>2.4</commons-lang-version>
 		<commons-lang3-version>3.3.2</commons-lang3-version>
-		<protostuff-version>1.0.7-eh-8</protostuff-version>
+		<protostuff-version>1.0.7-eh-2</protostuff-version>
 		<protobuf-version>2.4.1</protobuf-version>
-		<google.guava.version>16.0.1</google.guava.version>
+		<google.guava.version>14.0</google.guava.version>
 		<commons.collections.version>3.2</commons.collections.version>
 		<commons.validator.version>1.3.1</commons.validator.version>
-		<commons.io.version>2.1</commons.io.version>
+		<commons.io.version>1.4</commons.io.version>
 		<oro.version>2.0.8</oro.version>
-		<commons.beanutils.version>1.8.3</commons.beanutils.version>
-		<!-- <jsr311.api.version>1.1</jsr311.api.version> -->
+		<commons.beanutils.version>1.8.2</commons.beanutils.version>
 		<joda.time.version>1.6</joda.time.version>
 		<mockito.all.version>1.8.5</mockito.all.version>
 		<easymock.version>3.0</easymock.version>
 		<httpunit.version>1.6.2</httpunit.version>
-		<junit.version>4.10</junit.version>
+		<junit.version>4.7</junit.version>
 		<jboss.jms.api.version>1.1.0.GA</jboss.jms.api.version>
 		<jboss.netty.version>3.2.0.Final</jboss.netty.version>
-		<asm.version>3.3.1</asm.version>  
+		<asm.version>3.1</asm.version>  
 		<asm.attrs.version>2.2.3</asm.attrs.version>
 		<cglib.version>2.2.2</cglib.version>
 		<stop.port>7911</stop.port>
@@ -57,59 +56,24 @@
 		<c3p0.version>0.9.1.2</c3p0.version>
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>
-		<singles-protobuf-version>2.4</singles-protobuf-version>
-		<profile.service.version>2</profile.service.version>
-        <singles.business.version>5</singles.business.version>
-        <proto-rest.version>2.0.0</proto-rest.version>
 	</properties>
 
 	<dependencyManagement>
 		<!-- Please keep this list in sorted order by groupId/artifactId -->
 		<dependencies>
-		    			
+		    <!--  Jersey and Jackson Start -->
 			<dependency>
-                <groupId>com.eharmony.singles</groupId>
-                <artifactId>singles-protobuf</artifactId>
-                <version>${singles-protobuf-version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>guava</artifactId>
-                        <groupId>com.google.guava</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            
-            <dependency>
-                <groupId>com.eharmony</groupId>
-                <artifactId>proto-rest</artifactId>
-                <version>${proto-rest.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>guava</artifactId>
-                        <groupId>com.google.guava</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            
-            <dependency>
-         		<groupId>com.eharmony.services.profile</groupId>
-         		<artifactId>profile-service-client</artifactId>
-         		<version>${profile.service.version}</version>
-         		<exclusions>
-                    <exclusion>
-                        <groupId>com.google.collections</groupId>
-                        <artifactId>google-collections</artifactId>
-                    </exclusion>
-                </exclusions>
-         		
-         	</dependency>
-         	
-         	<dependency>
-        		<groupId>com.eharmony.singles</groupId>
-				<artifactId>singles-business</artifactId>
-				<version>${singles.business.version}</version>
+				<groupId>com.sun.jersey</groupId>
+				<artifactId>jersey-json</artifactId>
+				<version>${jersey.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.codehaus.jackson</groupId>
+						<artifactId>jackson-core-asl</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
-            
+			
 			<dependency>
 				<groupId>org.codehaus.jackson</groupId>
 				<artifactId>jackson-mapper-asl</artifactId>
@@ -238,12 +202,6 @@
 				<groupId>commons-beanutils</groupId>
 				<version>${commons.beanutils.version}</version>
 			</dependency>
-
-			<!-- <dependency>
-				<groupId>javax.ws.rs</groupId>
-				<artifactId>jsr311-api</artifactId>
-				<version>${jsr311.api.version}</version>
-			</dependency> -->
 
 			<dependency>
 				<groupId>joda-time</groupId>
@@ -417,11 +375,6 @@
 				<artifactId>spring-aspects</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-expression</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
 			
 			<!-- Spring Framework END -->
 			
@@ -455,15 +408,6 @@
 				<version>${cglib.version}</version>
 			</dependency>
 
-			<!-- Hibernate dependencies -->
-        
-	      <dependency>
-	        <groupId>javax.persistence</groupId>
-	        <artifactId>persistence-api</artifactId>
-	        <version>${java.persistence.version}</version>
-	        <scope>provided</scope>
-	      </dependency>
-		
 		</dependencies>
 	</dependencyManagement>
 
@@ -662,9 +606,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:git@github.corp.eharmony.com:singles/mymatches-service.git</connection>
-		<url>git@github.corp.eharmony.com:singles/mymatches-service.git</url>
-		<developerConnection>scm:git:git@github.corp.eharmony.com:singles/mymatches-service.git</developerConnection>
+		<connection>scm:git:git@github.corp.eharmony.com:singles/match-query-service.git</connection>
+		<url>git@github.corp.eharmony.com:singles/match-query-service.git</url>
+		<developerConnection>scm:git:git@github.corp.eharmony.com:singles/match-query-service.git</developerConnection>
 	</scm>
 
 </project>

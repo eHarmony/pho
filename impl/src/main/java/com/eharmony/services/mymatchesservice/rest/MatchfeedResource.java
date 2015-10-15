@@ -19,70 +19,53 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.eharmony.services.datastore.cassandra.model.CassandraMatchFeedItem;
-import com.eharmony.services.datastore.mongodb.model.MatchFeedItem;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 
-
-@Component @Path("/matchfeed")
+@Component
+@Path("/matchfeed")
 public class MatchfeedResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    
-    @Resource private UserMatchesFeedService userMatchesFeedService;
 
-    /**
-     * Returns user match feed by userId. filters the results by distance query parameter
-     * @param userId   Integer
-     * @param distance Integer, distance query parameter
-     * @return List of MatchFeedItem
-     */
-    @GET
+    @Resource
+    private UserMatchesFeedService userMatchesFeedService;
+
+    /*@GET
     @Path("/users/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<MatchFeedItem> getMatchfeed(@PathParam("userId") Integer userId,
-    		@QueryParam("distance") Integer distance) {
+    public List<MatchDataFeedItemDto> getMatchfeed(@PathParam("userId") Integer userId) {
 
         log.info("fetching match feed for user ={}", userId);
 
-        return userMatchesFeedService.getUserMatches(userId, distance);
+        return userMatchesFeedService.getUserMatches(userId);
 
-    }
-    
-    @GET
-    @Path("/users/{userId}/cassandra")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<CassandraMatchFeedItem> getCassandraMatchfeed(@PathParam("userId") Integer userId,
-    		@QueryParam("distance") Integer distance) {
+    }*/
 
-        log.info("fetching match feed for user ={}", userId);
-         
-        return userMatchesFeedService.getUserMatchesFromCassandra(userId);
-
-    }
-    
-    /**
-     * Returns user match feed by userId. filters the results by distance query parameter
-     * @param userId   Integer
-     * @param matchId  Long
-     * @return MatchFeedItem
-     */
-    @GET
+    /*@GET
     @Path("/users/{userId}/matches/{matchId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public MatchFeedItem getMatch(@PathParam("userId") Integer userId,
-    		@PathParam("matchId") Long matchId) {
+    public MatchDataFeedItemDto getMatch(@PathParam("userId") Integer userId, @PathParam("matchId") Long matchId) {
 
         log.info("fetching match feed for user ={} and match ={}", userId, matchId);
 
         return userMatchesFeedService.getUserMatch(userId, matchId);
+
+    }*/
+    
+    @GET
+    @Path("/users/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Object> getMatchfeed(@PathParam("userId") Integer userId) {
+
+        log.info("fetching match feed for user ={}", userId);
+
+        return userMatchesFeedService.getUserMatches(userId);
 
     }
 

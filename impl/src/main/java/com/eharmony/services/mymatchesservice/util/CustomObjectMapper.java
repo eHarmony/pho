@@ -21,7 +21,6 @@ import org.codehaus.jackson.map.SerializationConfig;
  * Custom version of Jackson ObjectMapper that configures serialization of dates
  * as timestamps and ignores unknown properties on JSON deserialization.
  *
- * @author  adenissov
  */
 public class CustomObjectMapper
           extends ObjectMapper {
