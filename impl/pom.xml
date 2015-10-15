@@ -32,11 +32,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.eharmony.services.singles.match-profile-service</groupId>
-			<artifactId>match-profile-service-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.eharmony.crypto</groupId>
 			<artifactId>crypto-library</artifactId>
 			<version>${crypto-library.version}</version>
