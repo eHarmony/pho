@@ -23,6 +23,8 @@
 		<spring.hadoop.version>2.2.0.RELEASE</spring.hadoop.version>
 		<hadoop.version>2.6.0</hadoop.version>
 		<hbase.version>0.98.5-hadoop2</hbase.version>
+		<spring.data.commons.version>1.10.1.RELEASE</spring.data.commons.version>
+		<spring-data-jpa.version>1.7.2.RELEASE</spring-data-jpa.version>		
 		<!-- <hbase.version>1.0.1.1</hbase.version> -->
 	</properties>
 
@@ -159,17 +161,18 @@
 			</exclusions>
 		</dependency>
 
+<!--  
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>1.7.2.RELEASE</version>
+			<version>${spring-data-jpa.version}</version>
 		</dependency>
-
+-->
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-commons</artifactId>
-			<version>1.10.1.RELEASE</version>
+			<version>${spring.data.commons.version}</version>
 		</dependency>
 
 		<dependency>
@@ -178,12 +181,14 @@
 			<scope>test</scope>
 			<version>4.10</version>
 		</dependency>
-
+		
+		<!-- 
 		<dependency>
 			<groupId>com.eharmony.services.match-feed-service</groupId>
 			<artifactId>match-feed-service-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
