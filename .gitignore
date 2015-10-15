@@ -1,0 +1,11 @@
+.project
+.settings
+/api/.project
+api/target/
+api/.settings
+impl/target/
+impl/settings
+api/.classpath
+datastore/.classpath
+datastore/target/
+impl/.classpath
