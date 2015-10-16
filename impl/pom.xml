@@ -36,7 +36,7 @@
         <dependency>
 			<groupId>com.eharmony.matchdata.datastore</groupId>
 			<artifactId>matchdata-datastore-api</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.1.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-beanutils</artifactId>
@@ -537,18 +537,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 		</dependency>
-
-
-		<!-- <dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>aopalliance</artifactId>
-					<groupId>aopalliance</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework</groupId>
