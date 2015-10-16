@@ -29,9 +29,8 @@
 	</bean>
 
 	<!-- <import resource="store/mongo-store-context.xml" /> -->
+	<import resource="data-mapping-context.xml"/>
 	<context:annotation-config />
-	<!-- <context:component-scan base-package="com.eharmony.services.datastore.mongodb" />
-	<context:component-scan base-package="com.eharmony.services.datastore.cassandra" /> -->
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
 	
 
