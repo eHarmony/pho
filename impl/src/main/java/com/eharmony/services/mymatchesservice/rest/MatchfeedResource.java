@@ -29,7 +29,7 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 
 @Component
-@Path("/matchfeed")
+@Path("/v1")
 public class MatchfeedResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -37,30 +37,19 @@ public class MatchfeedResource {
     @Resource
     private UserMatchesFeedService userMatchesFeedService;
 
-    /*@GET
-    @Path("/users/{userId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<MatchDataFeedItemDto> getMatchfeed(@PathParam("userId") Integer userId) {
-
-        log.info("fetching match feed for user ={}", userId);
-
-        return userMatchesFeedService.getUserMatches(userId);
-
-    }*/
-
-    /*@GET
+    @GET
     @Path("/users/{userId}/matches/{matchId}")
     @Produces(MediaType.APPLICATION_JSON)
     public MatchDataFeedItemDto getMatch(@PathParam("userId") Integer userId, @PathParam("matchId") Long matchId) {
 
-        log.info("fetching match feed for user ={} and match ={}", userId, matchId);
+        log.info("fetching match for user ={} and match ={}", userId, matchId);
 
         return userMatchesFeedService.getUserMatch(userId, matchId);
 
-    }*/
-    
+    }
+
     @GET
-    @Path("/users/{userId}")
+    @Path("/users/{userId}/matches")
     @Produces(MediaType.APPLICATION_JSON)
     public List<MatchDataFeedItemDto> getMatchfeed(@PathParam("userId") Integer userId) {
 

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 
@@ -24,7 +25,6 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     
     @Override
     public List<MatchDataFeedItemDto> getUserMatches(Integer userId) {
-        // TODO Auto-generated method stub
         MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
         request.setUserId(userId);
         try {
@@ -41,18 +41,22 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         return new ArrayList<MatchDataFeedItemDto>();
     }
 
-    /*@Override
-    public List<MatchDataFeedItemDto> getUserMatches(Integer userId) {
-        // TODO Auto-generated method stub
-        return new ArrayList<MatchDataFeedItemDto>();
-    }
-
     @Override
     public MatchDataFeedItemDto getUserMatch(Integer userId, Long matchId) {
-        // TODO Auto-generated method stub
-        return new MatchDataFeedItemDto();
-    }*/
-
-	
+        MatchDataFeedItemQueryRequest request = new MatchDataFeedItemQueryRequest();
+        request.setUserId(userId);
+        request.setMatchId(matchId);
+        try {
+            MatchDataFeedItemDto matchDataFeeditem = repository.getMatchDataFeedItemDto(request);
+            if(matchDataFeeditem != null) {
+                logger.debug("found match for user {} and matchid {}", userId, matchId);
+                return matchDataFeeditem;
+            }
+        } catch(Exception ex) {
+            logger.warn("exception while fetching matches", ex);
+            throw new RuntimeException(ex);
+        }
+        return null;
+    }
 
 }
