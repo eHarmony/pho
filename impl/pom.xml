@@ -31,11 +31,56 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.eharmony.crypto</groupId>
-			<artifactId>crypto-library</artifactId>
-			<version>${crypto-library.version}</version>
+        <!-- HBASE DEPS START -->
+        
+        <dependency>
+			<groupId>com.eharmony.matchdata.datastore</groupId>
+			<artifactId>matchdata-datastore-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-beanutils</artifactId>
+					<groupId>commons-beanutils</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>singles-business</artifactId>
+					<groupId>com.eharmony.singles</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-core</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-server</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-digester</artifactId>
+					<groupId>commons-digester</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-client</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>
+						microsoft-windowsazure-storage-sdk
+					</artifactId>
+					<groupId>
+						com.microsoft.windowsazure.storage
+					</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-hdfs</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+        <!--  HBASE DEPS END -->
 		<dependency>
 			<groupId>com.eharmony.singles</groupId>
 			<artifactId>singles-business</artifactId>
@@ -81,12 +126,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>net.sf.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-			<version>${opencsv-version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>${commons.logging.version}</version>
@@ -113,6 +152,10 @@
 				<exclusion>
 					<artifactId>jcl-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -339,6 +382,12 @@
 		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-digester</artifactId>
+					<groupId>commons-digester</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -376,17 +425,6 @@
 			<artifactId>jul-to-slf4j</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>runtime</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -438,6 +476,12 @@
 			<groupId>httpunit</groupId>
 			<artifactId>httpunit</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>servlet-api</artifactId>
+					<groupId>javax.servlet</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -495,7 +539,7 @@
 		</dependency>
 
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<exclusions>
@@ -504,7 +548,7 @@
 					<groupId>aopalliance</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -526,10 +570,6 @@
 
 		<!-- Misc Start -->
 
-		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>asm</groupId>
@@ -601,6 +641,46 @@
 						<configuration>
 							<rules>
 								<banDuplicateClasses>
+									<ignoreClasses>
+										<!-- mockito and junit share no issue -->
+										<ignoreClass>org.hamcrest.*</ignoreClass>
+
+										<!-- Objenesis is stored within Mockito-all, which is test scope. -->
+										<ignoreClass>org.objenesis.*</ignoreClass>
+
+										<!--commons-beanutils and commons-collections co-existence problem -->
+										<ignoreClass>org.apache.commons.collections.*</ignoreClass>
+
+										<!-- spring-context, spring-context-support possible issue -->
+										<ignoreClass>org.springframework.cache.ehcache.*</ignoreClass>
+
+										<!-- aspectj no issue -->
+										<ignoreClass>org.aspectj.*</ignoreClass>
+										<ignoreClass>org.w3c.dom.*</ignoreClass>
+										<ignoreClass>org.xml.sax.*</ignoreClass>
+
+										<!-- Java web servce spec interfaces -->
+										<!-- <ignoreClass>javax.ws.*</ignoreClass> -->
+
+										<!-- servlet spec interfaces are shared across implementation libraries -->
+										<ignoreClass>javax.servlet.*</ignoreClass>
+
+										<!-- Possible conflict in future -->
+										<ignoreClass>net.sf.ehcache.*</ignoreClass>
+
+										<!--possible conflict in future -->
+										<ignoreClass>org.springframework.oxm.*</ignoreClass>
+
+										<ignoreClass>org.xmlpull.v1.*</ignoreClass>
+										<ignoreClass>org.objectweb.asm.*</ignoreClass>
+										<ignoreClass>org.junit.*</ignoreClass>
+										<ignoreClass>org.powermock.api.*</ignoreClass>
+										<ignoreClass>org.powermock.modules.*</ignoreClass>
+										<ignoreClass>org.hornetq.api.jms.management.*</ignoreClass>
+
+										<ignoreClass>org.apache.hadoop.yarn.*</ignoreClass>
+										<ignoreClass>org.apache.jasper.*</ignoreClass>
+									</ignoreClasses>
 									<findAllDuplicates>true</findAllDuplicates>
 								</banDuplicateClasses>
 							</rules>
