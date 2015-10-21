@@ -59,4 +59,14 @@ public class MatchfeedResource {
 
     }
 
+    @GET
+    @Path("/internal/users/{userId}/matches")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MatchDataFeedItemDto> getMatchfeedInternal(@PathParam("userId") Integer userId) {
+
+        log.info("fetching match feed for user ={}", userId);
+
+        return userMatchesFeedService.getUserMatches(userId);
+
+    }
 }

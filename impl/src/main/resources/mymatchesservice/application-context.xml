@@ -22,11 +22,14 @@
 		<property name="locations">
 			<list>
 				<value>classpath:mymatchesservice/mymatchesservice.global.properties</value>
+				<value>classpath:mymatchesservice/mymatches.voldemort.properties</value>
 				<value>file:${config.overrides.location}</value>
 				<!-- <value>file:${config.secure.location}</value> -->
 			</list>
 		</property>
 	</bean>
+	
+
 
 	<!-- <import resource="store/mongo-store-context.xml" /> -->
 	<import resource="data-mapping-context.xml"/>

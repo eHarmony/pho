@@ -7,6 +7,9 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 public interface UserMatchesFeedService {
 
     public List<MatchDataFeedItemDto> getUserMatches(Integer userId);
+    
+    public List<MatchDataFeedItemDto> getUserMatchesInternal(Integer userId);
+    
     public MatchDataFeedItemDto getUserMatch(Integer userId, Long matchId);
 	
 }
