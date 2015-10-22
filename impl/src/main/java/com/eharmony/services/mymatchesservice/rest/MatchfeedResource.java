@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 @Component
 @Path("/v1")
@@ -51,7 +52,7 @@ public class MatchfeedResource {
     @GET
     @Path("/users/{userId}/matches")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<MatchDataFeedItemDto> getMatchfeed(@PathParam("userId") Integer userId) {
+    public LegacyMatchDataFeedDto getMatchfeed(@PathParam("userId") Integer userId) {
 
         log.info("fetching match feed for user ={}", userId);
 
@@ -66,7 +67,7 @@ public class MatchfeedResource {
 
         log.info("fetching match feed for user ={}", userId);
 
-        return userMatchesFeedService.getUserMatches(userId);
+        return userMatchesFeedService.getUserMatchesInternal(userId);
 
     }
 }

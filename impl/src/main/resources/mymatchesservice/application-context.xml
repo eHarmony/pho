@@ -29,7 +29,45 @@
 		</property>
 	</bean>
 	
-
+	<bean class="com.eharmony.configuration.ConfigProperties"></bean>
+	
+	<!-- **************** Voldemort Configuration *************** -->
+	<bean id="matchDataFeedStore" class="com.eharmony.services.mymatchesservice.store.MatchDataFeedStore"
+          init-method="init">
+        <property name="valueStoreName" value="${datastore.name}"/>
+        <property name="maxReadRetries" value="${datastore.max.read.retries}"/>
+        <property name="maxWriteRetries" value="${datastore.max.write.retries}"/>
+        <property name="maxObsoleteRetries" value="${datastore.max.obsolete.retries}"/>
+        <property name="obsoleteRetrySleepMillis" value="${datastore.obsolete.retries.sleep}"/>
+        <property name="factory" ref="storeClientFactory"/>
+        <property name="serializer" ref="matchDtoSerializer"/>
+   </bean>
+    <bean id="matchDtoSerializer" class="com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer"/>
+	<bean id="voldyClientConfig" class="voldemort.client.ClientConfig">
+        <constructor-arg index="0">
+            <props>
+                <prop key="bootstrap_urls">${voldemort.clientfactory.bootstrapUrls}</prop>
+                <prop key="connection_timeout_ms">${voldemort.clientfactory.connection_timeout_ms}</prop>
+                <prop key="enable_jmx">${voldemort.clientfactory.enable_jmx}</prop>
+                <prop key="failuredetector_asyncscan_interval">
+                    ${voldemort.clientfactory.failuredetector_asyncscan_interval}
+                </prop>
+                <prop key="failuredetector_bannage_period">${voldemort.clientfactory.node_bannage_ms}</prop>
+                <prop key="max_bootstrap_retries">${voldemort.clientfactory.max_bootstrap_retries}</prop>
+                <prop key="max_connections">${voldemort.clientfactory.max_connections_per_node}</prop>
+                <prop key="max_queued_requests">${voldemort.clientfactory.max_queued_requests}</prop>
+                <prop key="max_threads">${voldemort.clientfactory.max_threads}</prop>
+                <prop key="max_total_connections">${voldemort.clientfactory.max_total_connections}</prop>
+                <prop key="node_bannage_ms">${voldemort.clientfactory.node_bannage_ms}</prop>
+                <prop key="routing_timeout_ms">${voldemort.clientfactory.routing_timeout_ms}</prop>
+                <prop key="socket_timeout_ms">${voldemort.clientfactory.socket_timeout_ms}</prop>
+                <prop key="thread_idle_ms">${voldemort.clientfactory.thread_idle_ms}</prop>
+            </props>
+        </constructor-arg>
+    </bean>
+    <bean id="storeClientFactory" class="voldemort.client.SocketStoreClientFactory">
+        <constructor-arg ref="voldyClientConfig"/>
+    </bean>
 
 	<!-- <import resource="store/mongo-store-context.xml" /> -->
 	<import resource="data-mapping-context.xml"/>

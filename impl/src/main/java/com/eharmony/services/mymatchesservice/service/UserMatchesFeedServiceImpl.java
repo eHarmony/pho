@@ -18,6 +18,8 @@ import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
 @Service
 public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
@@ -26,6 +28,9 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     
     @Resource
     private MatchStoreQueryRepository repository;
+    
+    @Resource
+    private MatchDataFeedStore voldemortStore;
     
     @Resource 
     private Configuration config;
@@ -52,36 +57,46 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     }
 
     @Override
-    public List<MatchDataFeedItemDto> getUserMatches(Integer userId) {
+    public LegacyMatchDataFeedDto getUserMatches(Integer userId) {
+    	
         MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
         request.setUserId(userId);
         try {
         	
-            Set<MatchDataFeedItemDto> matchDataFeeditems = mergeMatchFeed(request);
+        	LegacyMatchDataFeedDto matchDataFeedItems = mergeMatchFeed(request);
             
-            if(CollectionUtils.isNotEmpty(matchDataFeeditems)) {
-                logger.debug("found {} matches for user {}", matchDataFeeditems.size(), userId);
-                return new ArrayList<MatchDataFeedItemDto>(matchDataFeeditems);
-            }
+        	if(matchDataFeedItems.getMatches().isEmpty()){
+                logger.info("no matches found for user {}", userId);  
+                return null;
+        	}
+        	
+            logger.info("found {} matches for user {}", matchDataFeedItems.getMatches().size(), userId);
+            return matchDataFeedItems;
+            
+            
         } catch(Exception ex) {
             logger.warn("exception while fetching matches", ex);
             throw new RuntimeException(ex);
         }
-        logger.debug("no matches found  for user {}", userId);
-        return new ArrayList<MatchDataFeedItemDto>();
     }
     
-    
-    protected Set<MatchDataFeedItemDto> mergeMatchFeed(MatchDataFeedQueryRequest request){
+    protected LegacyMatchDataFeedDto mergeMatchFeed(MatchDataFeedQueryRequest request){
+    	
+    	LegacyMatchDataFeedDto feed = null;
+    	
+    	logger.info("mode is " + mergeMode);
     	
     	switch(mergeMode){
     		
     		case VOLDEMORT_ONLY:  		
-    		// TODO: fetch feed from voldy.
+    		
+    			String userId = Integer.toString(request.getUserId());
+    			feed = voldemortStore.getMatches(userId);
+    			
     			break;
     		
     		case VOLDEMORT_WITH_HBASE_PROFILE:
-    		// TODO: fetch from voldy, merge profile from HBase
+    			// TODO: fetch from voldy, merge profile from HBase
     			break;
     		
     		case HBASE_ONLY:
@@ -89,7 +104,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     			break;
     	}
     	
-    	return null;
+    	return feed;
     }
 
     @Override

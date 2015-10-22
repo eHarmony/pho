@@ -3,10 +3,11 @@ package com.eharmony.services.mymatchesservice.service;
 import java.util.List;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 public interface UserMatchesFeedService {
 
-    public List<MatchDataFeedItemDto> getUserMatches(Integer userId);
+    public LegacyMatchDataFeedDto getUserMatches(Integer userId);
     
     public List<MatchDataFeedItemDto> getUserMatchesInternal(Integer userId);
     
