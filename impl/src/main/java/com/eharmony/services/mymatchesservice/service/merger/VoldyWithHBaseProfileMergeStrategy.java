@@ -30,7 +30,9 @@ public class VoldyWithHBaseProfileMergeStrategy extends LegacyMatchDataFeedMerge
 
 	@Override
 	public LegacyMatchDataFeedDto merge(MatchDataFeedQueryRequest request) {
-		
+
+		log.info("merging feed for userId {}", request.getUserId());
+
 		Set<MatchDataFeedItemDto> hbaseFeed = null;
 		
 		try{
@@ -75,14 +77,15 @@ public class VoldyWithHBaseProfileMergeStrategy extends LegacyMatchDataFeedMerge
 
 			// overwrite feed with HBase values
 			MatchProfileElement profile = hbaseMatch.getMatchedUser();
-			feedProfile.put("age", profile.getAge());
+			//TODO: derive age.
+			//feedProfile.put("age", profile.getAge());
 			feedProfile.put("city", profile.getCity());
 			feedProfile.put("country", profile.getCountry());
 			feedProfile.put("firstName", profile.getFirstName());
 			feedProfile.put("gender", profile.getGender());
 			feedProfile.put("stateCode", profile.getStateCode());
-			feedProfile.put("userId", profile.getUserId());
-			feedProfile.put("version", profile.getVersion());
+			feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
+			//feedProfile.put("version", profile.getVersion());
 			feedProfile.put("birthdate", profile.getBirthdate());
 
 		}

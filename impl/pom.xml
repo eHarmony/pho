@@ -199,7 +199,7 @@
         <dependency>
 			<groupId>com.eharmony.matchdata.datastore</groupId>
 			<artifactId>matchdata-datastore-api</artifactId>
-			<version>0.1.0</version>
+			<version>0.1.2</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-beanutils</artifactId>

@@ -12,6 +12,6 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
  */
 public abstract class MatchDataFeedListMergeStrategy implements FeedMergeStrategy<List<MatchDataFeedItemDto>> {
 
-	// TODO: create static method for defining Strategy instance.
+	// TODO: create static method for choosing Strategy instance.
 
 }
