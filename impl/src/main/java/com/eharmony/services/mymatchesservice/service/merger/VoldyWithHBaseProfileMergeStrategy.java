@@ -3,6 +3,7 @@ package com.eharmony.services.mymatchesservice.service.merger;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +47,12 @@ public class VoldyWithHBaseProfileMergeStrategy extends LegacyMatchDataFeedMerge
 		String userId = Integer.toString(request.getUserId());		
 		LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(userId);
 		
-		if(hbaseFeed != null){
+		if(CollectionUtils.isNotEmpty(hbaseFeed)){
 			Map<String, Map<String,  Map<String, Object>>> matches = voldyFeed.getMatches();
 			
 			mergeHBaseProfileIntoMatchFeed(matches, hbaseFeed);
+		} else {
+		    log.warn("No records exists to merge in HBase for the user {} ", request.getUserId());
 		}
 		
 		return voldyFeed;

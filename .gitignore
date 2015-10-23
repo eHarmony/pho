@@ -9,3 +9,4 @@ api/.classpath
 datastore/.classpath
 datastore/target/
 impl/.classpath
+impl/logs
