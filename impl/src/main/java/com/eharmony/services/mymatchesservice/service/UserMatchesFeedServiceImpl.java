@@ -18,6 +18,7 @@ import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
+import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -63,7 +64,9 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         request.setUserId(userId);
         try {
         	
-        	LegacyMatchDataFeedDto matchDataFeedItems = mergeMatchFeed(request);
+        	LegacyMatchDataFeedMergeStrategy merger = 
+        				LegacyMatchDataFeedMergeStrategy.getMergeInstance(mergeMode, repository, voldemortStore);
+        	LegacyMatchDataFeedDto matchDataFeedItems = merger.merge(request);
             
         	if(matchDataFeedItems.getMatches().isEmpty()){
                 logger.info("no matches found for user {}", userId);  
@@ -80,32 +83,40 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         }
     }
     
-    protected LegacyMatchDataFeedDto mergeMatchFeed(MatchDataFeedQueryRequest request){
-    	
-    	LegacyMatchDataFeedDto feed = null;
-    	
-    	logger.info("mode is " + mergeMode);
-    	
-    	switch(mergeMode){
-    		
-    		case VOLDEMORT_ONLY:  		
-    		
-    			String userId = Integer.toString(request.getUserId());
-    			feed = voldemortStore.getMatches(userId);
-    			
-    			break;
-    		
-    		case VOLDEMORT_WITH_HBASE_PROFILE:
-    			// TODO: fetch from voldy, merge profile from HBase
-    			break;
-    		
-    		case HBASE_ONLY:
-    			// TODO: fetch from HBase only.
-    			break;
-    	}
-    	
-    	return feed;
-    }
+//    protected LegacyMatchDataFeedDto mergeMatchFeed(MatchDataFeedQueryRequest request){
+//    	
+//    	LegacyMatchDataFeedDto feed = null;
+//    	
+//    	logger.info("mode is " + mergeMode);
+//    	
+//    	switch(mergeMode){
+//    		
+//    		case VOLDEMORT_ONLY:  		
+//    		
+//    			String userId = Integer.toString(request.getUserId());
+//    			feed = voldemortStore.getMatches(userId);
+//    			
+//    			break;
+//    		
+//    		case VOLDEMORT_WITH_HBASE_PROFILE:
+//
+//    			try{
+//    				Set<MatchDataFeedItemDto> hbaseFeed = repository.getMatchDataFeed(request);
+//    				
+//    				
+//    			}catch(Exception ex){
+//    				
+//    			}
+//    			
+//    			break;
+//    		
+//    		case HBASE_ONLY:
+//    			// TODO: fetch from HBase only.
+//    			break;
+//    	}
+//    	
+//    	return feed;
+//    }
 
     @Override
     public MatchDataFeedItemDto getUserMatch(Integer userId, Long matchId) {

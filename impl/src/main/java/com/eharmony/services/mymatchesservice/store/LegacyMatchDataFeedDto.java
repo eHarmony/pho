@@ -32,7 +32,7 @@ public class LegacyMatchDataFeedDto implements Serializable{
     @JsonProperty("maintenanceDate")
     private Date maintenanceDate;
     @JsonProperty("matches")
-    private Map<String, Map<String, Object>> matches;
+    private Map<String, Map<String, Map<String, Object>>> matches;
     @JsonProperty("updatedAt")
     private Date updatedAt = new Date();
     @JsonProperty("version")
@@ -40,7 +40,7 @@ public class LegacyMatchDataFeedDto implements Serializable{
     @JsonProperty("totalMatches")
     private Integer totalMatches = 0;
 
-    public LegacyMatchDataFeedDto(Map<String, Map<String, Object>> feedMap) {
+    public LegacyMatchDataFeedDto(Map<String, Map<String,  Map<String, Object>>> feedMap) {
         if (feedMap != null) {
             this.matches = feedMap;
         } else {
@@ -54,7 +54,7 @@ public class LegacyMatchDataFeedDto implements Serializable{
 
     public LegacyMatchDataFeedDto(@JsonProperty("version") Integer version,
                         @JsonProperty("createdAt") Date createdAt,
-                        @JsonProperty("matches") Map<String, Map<String, Object>> matches) {
+                        @JsonProperty("matches") Map<String, Map<String,  Map<String, Object>>> matches) {
 
         this.version = version;
         this.createdAt = createdAt;
@@ -62,7 +62,7 @@ public class LegacyMatchDataFeedDto implements Serializable{
 
     }
 
-    public Map<String, Map<String, Object>> getMatches() {
+    public Map<String, Map<String,  Map<String, Object>>> getMatches() {
         return matches;
     }
 
@@ -126,7 +126,7 @@ public class LegacyMatchDataFeedDto implements Serializable{
         this.version = version;
     }
 
-    public void setMatches(Map<String, Map<String, Object>> matches) {
+    public void setMatches(Map<String, Map<String,  Map<String, Object>>> matches) {
         this.matches = matches;
     }
 
