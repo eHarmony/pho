@@ -3,13 +3,13 @@ match-query-service
 
 Match Query Service provides API's to serve the user matches feed information.
 
-1. Service will handle the requests to serve the feed data
-	API's: http://locahost:9002/mymatches/ecv
-	http://localhost:9002/mymatches/matchfeed/users/32639493
-	http://localhost:9002/mymatches/matchfeed/users/32639493/cassandra
-	
-	
+Service will handle the requests to serve the feed data
 
-Datastore contains API's to store and retrieve the feed from MongoDB, Cassandra and HBase stores.
-
-http://docs.spring.io/spring-data/cassandra/docs/1.2.1.RELEASE/reference/html/
+1. Get Match From HBase Only
+   http://localhost:9002/mymatches/v1//users/{userId}/matches/{matchId}
+   
+2. Get Matches From Hbase
+   http://localhost:9002/mymatches/v1/internal/users/{userId}/matches
+ 
+3. Merge between Voldy and HBase (Profile data)
+   http://localhost:9002/mymatches/v1/users/{userId}/matches
