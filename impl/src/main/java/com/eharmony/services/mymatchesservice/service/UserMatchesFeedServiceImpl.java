@@ -12,12 +12,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import rx.Observable;
+
 import com.eharmony.configuration.Configuration;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
@@ -26,30 +29,30 @@ import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserMatchesFeedServiceImpl.class);
-    
+
     @Resource
     private MatchStoreQueryRepository repository;
-    
+
     @Resource
     private MatchDataFeedStore voldemortStore;
-    
-    @Resource 
+
+    @Resource
     private Configuration config;
-    
+
     @Value("${feed.mergeMode}")
     private MergeModeEnum mergeMode;
-    
+
     @Override
-    public List<MatchDataFeedItemDto> getUserMatchesInternal(Integer userId) {
+    public List<MatchDataFeedItemDto> getUserMatchesInternal(long userId) {
         MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
-        request.setUserId(userId);
+        request.setUserId(Long.valueOf(userId).intValue());
         try {
             Set<MatchDataFeedItemDto> matchDataFeeditems = repository.getMatchDataFeed(request);
-            if(CollectionUtils.isNotEmpty(matchDataFeeditems)) {
+            if (CollectionUtils.isNotEmpty(matchDataFeeditems)) {
                 logger.debug("found {} matches for user {}", matchDataFeeditems.size(), userId);
                 return new ArrayList<MatchDataFeedItemDto>(matchDataFeeditems);
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             logger.warn("exception while fetching matches", ex);
             throw new RuntimeException(ex);
         }
@@ -58,82 +61,66 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     }
 
     @Override
-    public LegacyMatchDataFeedDto getUserMatches(Integer userId) {
-    	
-        MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
-        request.setUserId(userId);
+    public LegacyMatchDataFeedDto getUserMatches(long userId) {
+
+        MatchFeedRequestContext request = new MatchFeedRequestContext(userId);
         try {
-        	
-        	LegacyMatchDataFeedMergeStrategy merger = 
-        				LegacyMatchDataFeedMergeStrategy.getMergeInstance(mergeMode, repository, voldemortStore);
-        	LegacyMatchDataFeedDto matchDataFeedItems = merger.merge(request);
-            
-        	if(matchDataFeedItems.getMatches().isEmpty()){
-                logger.info("no matches found for user {}", userId);  
+
+            LegacyMatchDataFeedMergeStrategy merger = LegacyMatchDataFeedMergeStrategy.getMergeInstance(mergeMode,
+                    repository, voldemortStore);
+            LegacyMatchDataFeedDto matchDataFeedItems = merger.merge(request);
+
+            if (matchDataFeedItems.getMatches().isEmpty()) {
+                logger.info("no matches found for user {}", userId);
                 return null;
-        	}
-        	
+            }
+
             logger.info("found {} matches for user {}", matchDataFeedItems.getMatches().size(), userId);
             return matchDataFeedItems;
-            
-            
-        } catch(Exception ex) {
+
+        } catch (Exception ex) {
             logger.warn("exception while fetching matches", ex);
             throw new RuntimeException(ex);
         }
     }
-    
-//    protected LegacyMatchDataFeedDto mergeMatchFeed(MatchDataFeedQueryRequest request){
-//    	
-//    	LegacyMatchDataFeedDto feed = null;
-//    	
-//    	logger.info("mode is " + mergeMode);
-//    	
-//    	switch(mergeMode){
-//    		
-//    		case VOLDEMORT_ONLY:  		
-//    		
-//    			String userId = Integer.toString(request.getUserId());
-//    			feed = voldemortStore.getMatches(userId);
-//    			
-//    			break;
-//    		
-//    		case VOLDEMORT_WITH_HBASE_PROFILE:
-//
-//    			try{
-//    				Set<MatchDataFeedItemDto> hbaseFeed = repository.getMatchDataFeed(request);
-//    				
-//    				
-//    			}catch(Exception ex){
-//    				
-//    			}
-//    			
-//    			break;
-//    		
-//    		case HBASE_ONLY:
-//    			// TODO: fetch from HBase only.
-//    			break;
-//    	}
-//    	
-//    	return feed;
-//    }
 
     @Override
-    public MatchDataFeedItemDto getUserMatch(Integer userId, Long matchId) {
+    public MatchDataFeedItemDto getUserMatch(long userId, long matchId) {
         MatchDataFeedItemQueryRequest request = new MatchDataFeedItemQueryRequest();
-        request.setUserId(userId);
+        request.setUserId(Long.valueOf(userId).intValue());
         request.setMatchId(matchId);
         try {
             MatchDataFeedItemDto matchDataFeeditem = repository.getMatchDataFeedItemDto(request);
-            if(matchDataFeeditem != null) {
+            if (matchDataFeeditem != null) {
                 logger.debug("found match for user {} and matchid {}", userId, matchId);
                 return matchDataFeeditem;
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             logger.warn("exception while fetching matches", ex);
             throw new RuntimeException(ex);
         }
         return null;
+    }
+
+    @Override
+    public Observable<Set<MatchDataFeedItemDto>> getUserMatchesFromStoreObservable(
+            MatchFeedRequestContext requestContext) {
+        return Observable.defer(() -> Observable.just(getMatchesFeed(requestContext)));
+    }
+
+    private Set<MatchDataFeedItemDto> getMatchesFeed(MatchFeedRequestContext request) {
+        try {
+            long startTime = System.currentTimeMillis();
+            MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest();
+            requestQuery.setUserId(Long.valueOf(request.getUserId()).intValue());
+            Set<MatchDataFeedItemDto> matchdataFeed =  repository.getMatchDataFeed(requestQuery);
+            long endTime = System.currentTimeMillis();
+            logger.info("Total time to get the feed from hbase is {} MS", endTime - startTime);
+            return matchdataFeed;
+        } catch (Exception e) {
+            logger.warn("Exception while fetching the matches from HBase store for user {}", request.getUserId(), e);
+            throw new RuntimeException(e);
+        }
     }
 
 }

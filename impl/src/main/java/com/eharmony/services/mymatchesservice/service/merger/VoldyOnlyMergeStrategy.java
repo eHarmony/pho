@@ -3,7 +3,7 @@ package com.eharmony.services.mymatchesservice.service.merger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -18,9 +18,9 @@ public class VoldyOnlyMergeStrategy extends LegacyMatchDataFeedMergeStrategy {
 	}
 
 	@Override
-	public LegacyMatchDataFeedDto merge(MatchDataFeedQueryRequest request) {
+	public LegacyMatchDataFeedDto merge(MatchFeedRequestContext request) {
 		
-		String userId = Integer.toString(request.getUserId());
+		long userId = request.getUserId();
 		
 		log.info("merging feed for userId {}", userId);
 		return voldemortStore.getMatches(userId);
