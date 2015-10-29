@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Path("/v1/async/")
-public class TempMatchFeedAsyncResource {
+public class MatchFeedAsyncResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
