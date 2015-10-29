@@ -16,10 +16,13 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +34,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 @Component
 @Path("/v1")
-public class MatchfeedResource {
+public class MatchFeedResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -68,6 +71,20 @@ public class MatchfeedResource {
         log.info("fetching match feed for user ={}", userId);
 
         return userMatchesFeedService.getUserMatchesInternal(userId);
+
+    }
+    
+    @PUT
+    @Path("/internal/users/{userId}/matches/refresh")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void refreshFeedFromVoldy(@PathParam("userId") long userId) {
+
+        log.info("refreshing user ={} feed from voldemort to HBase.", userId);
+        try {
+            userMatchesFeedService.refreshFeedFromVoldemortToHBase(userId);
+        } catch (Exception ex) {
+            throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        }
 
     }
 }

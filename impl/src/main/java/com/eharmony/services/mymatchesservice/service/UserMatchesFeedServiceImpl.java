@@ -19,6 +19,7 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
+import com.eharmony.datastore.repository.MatchStoreSaveRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
@@ -31,7 +32,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     private static final Logger logger = LoggerFactory.getLogger(UserMatchesFeedServiceImpl.class);
 
     @Resource
-    private MatchStoreQueryRepository repository;
+    private MatchStoreQueryRepository queryRepository;
+    
+    @Resource
+    private MatchStoreSaveRepository saveRepository;
 
     @Resource
     private MatchDataFeedStore voldemortStore;
@@ -47,7 +51,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
         request.setUserId(Long.valueOf(userId).intValue());
         try {
-            Set<MatchDataFeedItemDto> matchDataFeeditems = repository.getMatchDataFeed(request);
+            Set<MatchDataFeedItemDto> matchDataFeeditems = queryRepository.getMatchDataFeed(request);
             if (CollectionUtils.isNotEmpty(matchDataFeeditems)) {
                 logger.debug("found {} matches for user {}", matchDataFeeditems.size(), userId);
                 return new ArrayList<MatchDataFeedItemDto>(matchDataFeeditems);
@@ -67,7 +71,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         try {
 
             LegacyMatchDataFeedMergeStrategy merger = LegacyMatchDataFeedMergeStrategy.getMergeInstance(mergeMode,
-                    repository, voldemortStore);
+                    queryRepository, voldemortStore);
             LegacyMatchDataFeedDto matchDataFeedItems = merger.merge(request);
 
             if (matchDataFeedItems.getMatches().isEmpty()) {
@@ -90,7 +94,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         request.setUserId(Long.valueOf(userId).intValue());
         request.setMatchId(matchId);
         try {
-            MatchDataFeedItemDto matchDataFeeditem = repository.getMatchDataFeedItemDto(request);
+            MatchDataFeedItemDto matchDataFeeditem = queryRepository.getMatchDataFeedItemDto(request);
             if (matchDataFeeditem != null) {
                 logger.debug("found match for user {} and matchid {}", userId, matchId);
                 return matchDataFeeditem;
@@ -113,7 +117,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
             long startTime = System.currentTimeMillis();
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest();
             requestQuery.setUserId(Long.valueOf(request.getUserId()).intValue());
-            Set<MatchDataFeedItemDto> matchdataFeed =  repository.getMatchDataFeed(requestQuery);
+            Set<MatchDataFeedItemDto> matchdataFeed =  queryRepository.getMatchDataFeed(requestQuery);
             long endTime = System.currentTimeMillis();
             logger.info("Total time to get the feed from hbase is {} MS", endTime - startTime);
             return matchdataFeed;
@@ -121,6 +125,15 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
             logger.warn("Exception while fetching the matches from HBase store for user {}", request.getUserId(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void refreshFeedFromVoldemortToHBase(long userId) throws Exception {
+        LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(userId);
+        
+        //Transform the matches to set and save
+        //saveRepository.saveMatchDataFeedItems(feedItems);
+        
     }
 
 }
