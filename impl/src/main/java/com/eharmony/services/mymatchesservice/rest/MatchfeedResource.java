@@ -79,10 +79,16 @@ public class MatchFeedResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void refreshFeedFromVoldy(@PathParam("userId") long userId) {
 
-        log.info("refreshing user ={} feed from voldemort to HBase.", userId);
+        log.info("refreshing user {} feed from voldemort to HBase.", userId);
         try {
             userMatchesFeedService.refreshFeedFromVoldemortToHBase(userId);
+            
+        } catch (IllegalArgumentException ex) {
+        	
+            throw new WebApplicationException(Status.PRECONDITION_FAILED);
+            
         } catch (Exception ex) {
+        	
             throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
         }
 

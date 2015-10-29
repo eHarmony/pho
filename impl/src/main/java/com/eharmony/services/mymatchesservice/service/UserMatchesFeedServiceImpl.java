@@ -1,12 +1,15 @@
 package com.eharmony.services.mymatchesservice.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +26,7 @@ import com.eharmony.datastore.repository.MatchStoreSaveRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
+import com.eharmony.services.mymatchesservice.service.transform.FeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -129,11 +133,36 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
     @Override
     public void refreshFeedFromVoldemortToHBase(long userId) throws Exception {
+    	
         LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(userId);
+        if(isEmptyVoldyFeed(voldyFeed)){
+        	
+        	throw new IllegalArgumentException("Unknown userId: " + userId);
+        }
         
-        //Transform the matches to set and save
-        //saveRepository.saveMatchDataFeedItems(feedItems);
-        
+    	Set<MatchDataFeedItemDto> feedList = new HashSet<MatchDataFeedItemDto>();
+
+    	for(String key : voldyFeed.getMatches().keySet()){
+ 
+    		Map<String, Map<String, Object>> match = voldyFeed.getMatches().get(key);
+    		
+        	try{
+	        	MatchDataFeedItemDto xform = FeedTransformer.mapFeedtoMatchDataFeedItemList(match);
+
+	    		feedList.add(xform);
+        	}catch(Exception ex){
+        		
+                logger.warn("Exception while transforming feed for user {}", userId);
+                throw new RuntimeException(ex);
+        	}
+    	}
+    	 
+        saveRepository.saveMatchDataFeedItems(feedList);      
     }
+
+	private boolean isEmptyVoldyFeed(LegacyMatchDataFeedDto voldyFeed) {
+		
+		return MapUtils.isEmpty(voldyFeed.getMatches());
+	}
 
 }
