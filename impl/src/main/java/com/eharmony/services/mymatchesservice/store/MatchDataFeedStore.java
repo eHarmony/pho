@@ -3,12 +3,13 @@ package com.eharmony.services.mymatchesservice.store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.eharmony.datastore.store.impl.AbstractJsonDataStoreImpl;
+import rx.Observable;
 
+import com.eharmony.datastore.store.impl.AbstractJsonDataStoreImpl;
 
 public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDataFeedDto> {
 	
-    private static final Logger log = LoggerFactory.getLogger(MatchDataFeedStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(MatchDataFeedStore.class);
 
     /**
     * Reads matches from Voldemort.
@@ -17,20 +18,26 @@ public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDat
     *
     * @return  List of MatchDataFeedItemDto, or empty list if none found.
     */
-    public LegacyMatchDataFeedDto getMatches(String userId) {
+    public LegacyMatchDataFeedDto getMatches(long userId) {
 
 
-    	LegacyMatchDataFeedDto feed = fetchValue(userId);
+        long startTime = System.currentTimeMillis();
+    	LegacyMatchDataFeedDto feed = fetchValue(String.valueOf(userId));
 
     	if(feed != null){
-	        log.debug("found {} matches in Voldemort for user {}",
+    	    logger.debug("found {} matches in Voldemort for user {}",
 	            					feed.getMatches().size(), userId);
     	}else{
-    		log.debug("no matches in Voldemort for user {}", userId);
+    	    logger.debug("no matches in Voldemort for user {}", userId);
     		feed = new LegacyMatchDataFeedDto();
     	}
-    	
+    	long endTime = System.currentTimeMillis();
+        logger.info("Total time to get the feed from voldy is {} MS", endTime - startTime);
         return feed;            
 
+    }
+    
+    public Observable<LegacyMatchDataFeedDto> getMatchesObservable(long userId) {
+        return Observable.defer(() -> Observable.just(getMatches(userId)));
     }
 }
