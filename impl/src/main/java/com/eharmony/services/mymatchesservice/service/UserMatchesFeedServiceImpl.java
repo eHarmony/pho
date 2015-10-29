@@ -152,7 +152,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 	    		feedList.add(xform);
         	}catch(Exception ex){
         		
-                logger.warn("Exception while transforming feed for user {}", userId);
+                logger.warn("Exception while transforming feed for user {}", userId, ex);
                 throw new RuntimeException(ex);
         	}
     	}
