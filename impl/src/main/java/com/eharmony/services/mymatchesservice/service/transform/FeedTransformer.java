@@ -28,7 +28,7 @@ public class FeedTransformer {
         feedItem.setMatchedUser(mapMatchedUser(profileSection));
 
         Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
-        feedItem.setCommunication(mapMatchCommunication(commSection));
+        feedItem.setCommunication(mapMatchCommunication(commSection, matchSection));
 
         return feedItem;
     }
@@ -47,6 +47,7 @@ public class FeedTransformer {
         elem.setRelaxed(getBooleanNullSafe(MatchFeedModel.MATCH.RELAXED, matchSection) == true ? 1 : 0);
         elem.setStatus(translateMatchStatus(getStringNullSafe(MatchFeedModel.MATCH.STATUS, matchSection)));
         elem.setUserId(getLongNullSafe(MatchFeedModel.MATCH.USER_ID, matchSection));
+        elem.setMatchUser(getBooleanNullSafe(MatchFeedModel.MATCH.IS_USER, matchSection));
 
         return elem;
     }
@@ -67,6 +68,7 @@ public class FeedTransformer {
         elem.setGender(getIntegerNullSafe(MatchFeedModel.PROFILE.GENDER, profileSection));
         elem.setLocale(getStringNullSafe(MatchFeedModel.PROFILE.LOCALE, profileSection));
         elem.setStateCode(getStringNullSafe(MatchFeedModel.PROFILE.STATE_CODE, profileSection));
+        elem.setBirthdate(getLongDateNullSafe(MatchFeedModel.PROFILE.BIRTHDATE, profileSection));
         
         Object obj = profileSection.get(MatchFeedModel.PROFILE.PHOTO);
         elem.setPhotos(obj == null ? 0 : 1);
@@ -75,11 +77,28 @@ public class FeedTransformer {
     }
 
     private static MatchCommunicationElement mapMatchCommunication(
-        Map<String, Object> commSection) {
+        Map<String, Object> commSection, Map<String, Object> matchSection) {
         MatchCommunicationElement elem = new MatchCommunicationElement();
 
-        elem.setLastCommDate(getLongDateNullSafe(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, commSection));
-        elem.setViewedProfile(getBooleanNullSafe(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, commSection));        
+//        elem.setLastCommDate(getLongDateNullSafe(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, commSection));
+//        elem.setViewedProfile(getBooleanNullSafe(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, commSection));        
+//        elem.setChooseMhcsDate(getLongDateNullSafe(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, matchSection));
+//        elem.setCommLastSent(getLongNullSafe(MatchFeedModel.MATCH.COMM_LAST_SENT, matchSection));
+//        elem.setDisplayTab(getIntegerNullSafe(MatchFeedModel.MATCH.DISPLAY_TAB, matchSection));
+//        elem.setFastTrackAvailable(getBooleanNullSafe(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, matchSection));
+//        elem.setFastTrackStage(getIntegerNullSafe(MatchFeedModel.MATCH.FAST_TRACK_STAGE, matchSection));
+        
+        //TODO
+        //elem.setFastTrackStatus(getIntegerNullSafe(MatchFeedModel.MATCH.FAST_TRACK_STATUS, commSection));
+        //elem.setIcebreakerStatus(getIntegerNullSafe(MatchFeedModel.MATCH.ICEBREAKER_STATUS, commSection));
+        //elem.setInitializer(initializer);
+        //elem.setLastCommDate(lastCommDate);
+        //elem.setLastNudgeDate(lastNudgeDate);
+        //elem.setNudgeStatus(nudgeStatus);
+        elem.setStage(getIntegerNullSafe(MatchFeedModel.MATCH.STAGE, matchSection));
+
+        
+
         return elem;
     }
 
