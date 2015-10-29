@@ -34,7 +34,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 @Component
 @Path("/v1")
-public class MatchFeedResource {
+public class TempMatchFeedResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
