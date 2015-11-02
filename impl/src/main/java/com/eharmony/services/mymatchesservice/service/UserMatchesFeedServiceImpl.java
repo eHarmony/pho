@@ -135,9 +135,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     public void refreshFeedFromVoldemortToHBase(long userId) throws Exception {
     	
         LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(userId);
+        
         if(isEmptyVoldyFeed(voldyFeed)){
         	
-        	throw new IllegalArgumentException("Unknown userId: " + userId);
+        	return; // Nothing to do
         }
         
     	Set<MatchDataFeedItemDto> feedList = new HashSet<MatchDataFeedItemDto>();
@@ -162,7 +163,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
 	private boolean isEmptyVoldyFeed(LegacyMatchDataFeedDto voldyFeed) {
 		
+		if(voldyFeed == null){
+			return true;
+		}
+		
 		return MapUtils.isEmpty(voldyFeed.getMatches());
 	}
-
 }

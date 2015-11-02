@@ -83,10 +83,6 @@ public class MatchFeedResource {
         try {
             userMatchesFeedService.refreshFeedFromVoldemortToHBase(userId);
             
-        } catch (IllegalArgumentException ex) {
-        	
-            throw new WebApplicationException(Status.PRECONDITION_FAILED);
-            
         } catch (Exception ex) {
         	
             throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
