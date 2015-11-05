@@ -29,7 +29,7 @@ public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDat
 	            					feed.getMatches().size(), userId);
     	}else{
     	    logger.debug("no matches in Voldemort for user {}", userId);
-    		feed = new LegacyMatchDataFeedDto();
+    		return null;
     	}
     	long endTime = System.currentTimeMillis();
         logger.info("Total time to get the feed from voldy is {} MS", endTime - startTime);

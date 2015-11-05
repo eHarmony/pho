@@ -52,8 +52,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
     @Override
     public List<MatchDataFeedItemDto> getUserMatchesInternal(long userId) {
-        MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
-        request.setUserId(Long.valueOf(userId).intValue());
+        MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest(userId);
         try {
             Set<MatchDataFeedItemDto> matchDataFeeditems = queryRepository.getMatchDataFeed(request);
             if (CollectionUtils.isNotEmpty(matchDataFeeditems)) {
@@ -94,8 +93,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
     @Override
     public MatchDataFeedItemDto getUserMatch(long userId, long matchId) {
-        MatchDataFeedItemQueryRequest request = new MatchDataFeedItemQueryRequest();
-        request.setUserId(Long.valueOf(userId).intValue());
+        MatchDataFeedItemQueryRequest request = new MatchDataFeedItemQueryRequest(userId);
         request.setMatchId(matchId);
         try {
             MatchDataFeedItemDto matchDataFeeditem = queryRepository.getMatchDataFeedItemDto(request);
@@ -119,8 +117,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     private Set<MatchDataFeedItemDto> getMatchesFeed(MatchFeedRequestContext request) {
         try {
             long startTime = System.currentTimeMillis();
-            MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest();
-            requestQuery.setUserId(Long.valueOf(request.getUserId()).intValue());
+            MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(request.getUserId());
             Set<MatchDataFeedItemDto> matchdataFeed =  queryRepository.getMatchDataFeed(requestQuery);
             long endTime = System.currentTimeMillis();
             logger.info("Total time to get the feed from hbase is {} MS", endTime - startTime);
@@ -135,9 +132,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     public void refreshFeedFromVoldemortToHBase(long userId) throws Exception {
     	
         LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(userId);
+        
         if(isEmptyVoldyFeed(voldyFeed)){
         	
-        	throw new IllegalArgumentException("Unknown userId: " + userId);
+        	return; // Nothing to do
         }
         
     	Set<MatchDataFeedItemDto> feedList = new HashSet<MatchDataFeedItemDto>();
@@ -162,7 +160,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
 	private boolean isEmptyVoldyFeed(LegacyMatchDataFeedDto voldyFeed) {
 		
+		if(voldyFeed == null){
+			return true;
+		}
+		
 		return MapUtils.isEmpty(voldyFeed.getMatches());
 	}
-
 }
