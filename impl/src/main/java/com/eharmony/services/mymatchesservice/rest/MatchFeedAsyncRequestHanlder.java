@@ -59,12 +59,12 @@ public class MatchFeedAsyncRequestHanlder {
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
                     feedMergeStrategy.merge(response);
                     long duration = t.stop();
-                    logger.debug("Match Profile object created, duration {}", duration);
+                    logger.debug("Match feed created, duration {}", duration);
                     ResponseBuilder builder = buildResponse(response);
                     asyncResponse.resume(builder.build());
                 }, (throwable) -> {
                     long duration = t.stop();
-                    logger.error("Match Summary object creation failed, duration {}", duration, throwable);
+                    logger.error("Exception creating match feed, duration {}", duration, throwable);
                     asyncResponse.resume(throwable);
                 }, () -> {
                     asyncResponse.resume("");

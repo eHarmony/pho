@@ -35,8 +35,7 @@ public class VoldyWithHBaseProfileMergeStrategy extends LegacyMatchDataFeedMerge
 	public LegacyMatchDataFeedDto merge(MatchFeedRequestContext requestContext) {
 
 		log.info("merging feed for userId {}", requestContext.getUserId());
-		MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest();
-		request.setUserId(Long.valueOf(requestContext.getUserId()).intValue());
+		MatchDataFeedQueryRequest request = new MatchDataFeedQueryRequest(requestContext.getUserId());
 		
 		Set<MatchDataFeedItemDto> hbaseFeed = null;
 		
@@ -48,14 +47,14 @@ public class VoldyWithHBaseProfileMergeStrategy extends LegacyMatchDataFeedMerge
 			log.warn("error accessing HBase repository, proceeding without: {}", ex.getMessage());
 		}
 		
-		LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(request.getUserId());
+		LegacyMatchDataFeedDto voldyFeed =  voldemortStore.getMatches(requestContext.getUserId());
 		
 		if(CollectionUtils.isNotEmpty(hbaseFeed)){
 			Map<String, Map<String,  Map<String, Object>>> matches = voldyFeed.getMatches();
 			
 			mergeHBaseProfileIntoMatchFeed(matches, hbaseFeed);
 		} else {
-		    log.warn("No records exists to merge in HBase for the user {} ", request.getUserId());
+		    log.warn("No records exists to merge in HBase for the user {} ", requestContext.getUserId());
 		}
 		
 		return voldyFeed;
