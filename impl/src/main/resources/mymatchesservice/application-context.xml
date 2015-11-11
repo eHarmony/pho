@@ -14,6 +14,10 @@
         http://www.springframework.org/schema/util/spring-util-3.0.xsd
     ">
 
+	<import resource="data-mapping-context.xml"/>
+	<context:annotation-config />
+	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
+
 	<bean
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="systemPropertiesMode" value="2" />
@@ -69,10 +73,6 @@
         <constructor-arg ref="voldyClientConfig"/>
     </bean>
 
-	<!-- <import resource="store/mongo-store-context.xml" /> -->
-	<import resource="data-mapping-context.xml"/>
-	<context:annotation-config />
-	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
 	
 
 	<!-- **************** JSON SECTION ****************** -->
