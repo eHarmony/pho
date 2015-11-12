@@ -6,8 +6,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.filter.AbstractMatchFilter;
-import com.eharmony.services.mymatchesservice.service.filter.MatchFeedFilterContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
 public class MatchStatusFilter extends AbstractMatchFilter {
@@ -16,9 +16,9 @@ public class MatchStatusFilter extends AbstractMatchFilter {
 
 	@Override
 	protected boolean processMatchSection(Map<String, Object> matchSection,
-											MatchFeedFilterContext context) {
+											MatchFeedRequestContext context) {
 
-        Set<String> statuses = context.getMatchStatuses();
+        Set<String> statuses = context.getMatchFeedQueryContext().getStatuses();
         if ((statuses == null) || statuses.isEmpty()) {
         	logger.warn("Statuses set={} is empty, rejecting match={}", statuses, matchSection);
             return false;
@@ -38,10 +38,8 @@ public class MatchStatusFilter extends AbstractMatchFilter {
             status != null && statuses.contains(status.toString());
 
     	logger.debug("MatchId={} accepted={} as match status={} {} one of requested statuses={}",
-                  new Object[] {
-                      matchSection.get(MatchFeedModel.MATCH.ID), accepted, status, accepted ? "is"
-                                                                                     : "is not", statuses
-                  });
+                  matchSection.get(MatchFeedModel.MATCH.ID), accepted, status, 
+                  			accepted ? "is" : "is not", statuses);
 
 
         return accepted;	

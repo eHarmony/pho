@@ -1,6 +1,8 @@
 package com.eharmony.services.mymatchesservice.service.filter;
 
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+
 public interface IMatchFeedFilter {
 
-	MatchFeedFilterContext processMatchFeed(MatchFeedFilterContext context);
+	MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context);
 }

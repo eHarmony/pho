@@ -6,12 +6,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+
 public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
 	
 	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedFilter.class);
 
 	@Override
-	public MatchFeedFilterContext processMatchFeed(MatchFeedFilterContext context) {
+	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
 
         if (context == null) {
         	logger.debug("Match feed context is null, returning without processing. Context={}",
@@ -20,7 +22,7 @@ public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
         }
 
         for (Iterator<Map.Entry<String, Map<String, Map<String, Object>>>> matchIterator =
-             context.getFeedMap().entrySet().iterator(); matchIterator.hasNext();) {
+             context.getLegacyMatchDataFeedDto().getMatches().entrySet().iterator(); matchIterator.hasNext();) {
 
             Map<String, Map<String, Object>> matchInfo = matchIterator.next().getValue();
             Map<String, Object> section = matchInfo.get(getMatchSectionName());
@@ -49,11 +51,11 @@ public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
      * returns false, the object is removed from the feed.
      *
      * @param   matchSection  match info object
-     * @param   context    MatchFeedFilterContext
+     * @param   context    MatchFeedRequestContext
      *
      * @return  true if the transformation is successful, false otherwise
      */
     protected abstract boolean processMatchSection( Map<String, Object> matchSection,
-    											MatchFeedFilterContext context);
+    											MatchFeedRequestContext context);
 
 }
