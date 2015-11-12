@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Map;
 import java.util.Set;
@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.filter.AbstractMatchFilter;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
+import com.eharmony.services.mymatchesservice.service.transform.filter.AbstractMatchFilter;
 
 public class MatchStatusFilter extends AbstractMatchFilter {
 

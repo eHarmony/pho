@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.filter.IMatchFeedFilter;
+import com.eharmony.services.mymatchesservice.service.transform.filter.IMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 public class PaginationMatchFeedFilter implements IMatchFeedFilter {

@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.filter;
+package com.eharmony.services.mymatchesservice.service.transform.filter;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -10,7 +10,7 @@
  * Copyright 2000-2012 eharmony.com, Inc. All rights reserved.
  *
  */
-package com.eharmony.services.mymatchesservice.service.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Comparator;
 import java.util.Locale;

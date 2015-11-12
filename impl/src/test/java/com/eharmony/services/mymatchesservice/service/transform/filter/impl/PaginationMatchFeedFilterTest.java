@@ -1,8 +1,8 @@
-package com.eharmony.services.mymatchesservice.service.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import com.eharmony.services.mymatchesservice.MatchTestUtils;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;

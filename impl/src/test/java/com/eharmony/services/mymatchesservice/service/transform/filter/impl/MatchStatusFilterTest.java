@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

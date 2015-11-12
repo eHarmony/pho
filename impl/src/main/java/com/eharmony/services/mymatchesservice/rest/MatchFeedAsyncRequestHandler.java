@@ -21,13 +21,13 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
-import com.eharmony.services.mymatchesservice.service.filter.MatchFeedFilterChain;
-import com.eharmony.services.mymatchesservice.service.filter.impl.MatchDeliveredFilter;
-import com.eharmony.services.mymatchesservice.service.filter.impl.MatchStatusFilter;
-import com.eharmony.services.mymatchesservice.service.filter.impl.MatchViewableFilter;
-import com.eharmony.services.mymatchesservice.service.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
+import com.eharmony.services.mymatchesservice.service.transform.filter.MatchFeedFilterChain;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
