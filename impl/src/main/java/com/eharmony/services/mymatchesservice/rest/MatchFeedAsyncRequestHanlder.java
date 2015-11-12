@@ -86,8 +86,8 @@ public class MatchFeedAsyncRequestHanlder {
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMathesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
-                    feedMergeStrategy.merge(response);
                     //TODO call filter service
+                    feedMergeStrategy.merge(response);
                     //TODO call enricher service
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);

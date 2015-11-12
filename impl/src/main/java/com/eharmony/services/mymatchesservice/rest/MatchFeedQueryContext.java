@@ -1,6 +1,5 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import java.util.Locale;
 import java.util.Set;
 
 public interface MatchFeedQueryContext {
