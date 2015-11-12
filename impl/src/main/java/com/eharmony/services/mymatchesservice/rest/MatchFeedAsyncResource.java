@@ -40,8 +40,6 @@ public class MatchFeedAsyncResource {
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
 
-    private static final int DEFAULT_PAGE_SIZE = 50;
-
     @GET
     @Path("/users/{userId}/matches/async")
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,7 +61,7 @@ public class MatchFeedAsyncResource {
 
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
-        int ps = (pageSize == null ? DEFAULT_PAGE_SIZE : pageSize.intValue());
+        int ps = (pageSize == null ? 0 : pageSize.intValue());
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)

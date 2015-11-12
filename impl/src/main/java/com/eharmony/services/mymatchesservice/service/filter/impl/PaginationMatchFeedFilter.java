@@ -19,9 +19,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 public class PaginationMatchFeedFilter implements IMatchFeedFilter {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
-    
-    private static final int DEFAULT_PAGE_SIZE = 50;
-  
+      
     private StatusDateIdMatchInfoComparator comparator = new StatusDateIdMatchInfoComparator();
 
 	@Override
@@ -57,7 +55,7 @@ public class PaginationMatchFeedFilter implements IMatchFeedFilter {
 
         int pageSize = context.getMatchFeedQueryContext().getPageSize();
         pageSize =
-            (pageSize < 1) ? DEFAULT_PAGE_SIZE
+            (pageSize < 1) ? matches.size()
                            : pageSize; // fall back to default
 
         // 1. order the matches based on buckets, deliveredDate and matchId

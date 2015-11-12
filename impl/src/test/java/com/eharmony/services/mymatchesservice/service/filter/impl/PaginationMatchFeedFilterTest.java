@@ -72,4 +72,24 @@ public class PaginationMatchFeedFilterTest {
 		assertEquals(0, paginated.getLegacyMatchDataFeedDto().getMatches().size());
 		assertEquals(40, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
 	}
+	
+	@Test
+	public void testPageNoPageParameters() throws Exception{
+		
+		// read in the feed...
+		LegacyMatchDataFeedDto feed = MatchTestUtils.getTestFeed("json/getMatches_40_matches.json");
+		
+		// build the filter context...
+		MatchFeedQueryContext qctx = MatchFeedQueryContextBuilder.newInstance().build(); 
+		
+		MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
+		ctx.setLegacyMatchDataFeedDto(feed);
+		
+		PaginationMatchFeedFilter filter = new PaginationMatchFeedFilter();		
+		
+		ctx = filter.processMatchFeed(ctx);
+		assertEquals(40, ctx.getLegacyMatchDataFeedDto().getMatches().size());
+		assertEquals(40, ctx.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
+
+	}
 }
