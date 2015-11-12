@@ -21,8 +21,8 @@ import com.google.common.collect.Maps;
 
 
 /**
- * Compares match statuses such that the following order is produced: NEW -->
- * MYTURN --> OPENCOMM --> THEIRTURN --> ARCHIVED
+ * Compares match statuses such that the following order is produced: 
+ * NEW, MYTURN, OPENCOMM, THEIRTURN, ARCHIVED
  *
  * @author  adenissov
  */

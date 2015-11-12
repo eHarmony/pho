@@ -21,15 +21,20 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
+import com.eharmony.services.mymatchesservice.service.filter.MatchFeedFilterChain;
+import com.eharmony.services.mymatchesservice.service.filter.impl.MatchDeliveredFilter;
+import com.eharmony.services.mymatchesservice.service.filter.impl.MatchStatusFilter;
+import com.eharmony.services.mymatchesservice.service.filter.impl.MatchViewableFilter;
+import com.eharmony.services.mymatchesservice.service.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
 @Component
-public class MatchFeedAsyncRequestHanlder {
+public class MatchFeedAsyncRequestHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHanlder.class);
+    private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
 
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
@@ -42,6 +47,17 @@ public class MatchFeedAsyncRequestHanlder {
 
     @Resource
     private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
+    
+    private static MatchFeedFilterChain getMatchesFeedFilterChain;
+    static{
+    	
+    	getMatchesFeedFilterChain = new MatchFeedFilterChain();
+    	getMatchesFeedFilterChain.addFilter(new MatchStatusFilter());
+    	getMatchesFeedFilterChain.addFilter(new MatchDeliveredFilter());
+    	getMatchesFeedFilterChain.addFilter(new MatchViewableFilter());
+    	getMatchesFeedFilterChain.addFilter(new PaginationMatchFeedFilter());
+    }
+    
 
     public void getMatchesFeed(final long userId, final AsyncResponse asyncResponse) {
 
@@ -86,9 +102,13 @@ public class MatchFeedAsyncRequestHanlder {
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMathesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
-                    //TODO call filter service
+                    
+                	getMatchesFeedFilterChain.execute(response);
+                	
                     feedMergeStrategy.merge(response);
+                    
                     //TODO call enricher service
+                    
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);
                     ResponseBuilder builder = buildResponse(response);

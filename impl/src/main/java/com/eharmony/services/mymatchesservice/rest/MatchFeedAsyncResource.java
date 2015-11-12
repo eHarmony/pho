@@ -38,7 +38,7 @@ public class MatchFeedAsyncResource {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Resource
-    private MatchFeedAsyncRequestHanlder requesthandler;
+    private MatchFeedAsyncRequestHandler requesthandler;
 
     private static final int DEFAULT_PAGE_SIZE = 50;
 
