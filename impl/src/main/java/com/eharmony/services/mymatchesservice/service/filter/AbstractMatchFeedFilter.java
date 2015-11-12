@@ -40,7 +40,7 @@ public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
 	/**
 	 * Get name of match section to process. See MatchFeedModel.SECTIONS.
 	 * 
-	 * @return
+	 * @return String
 	 */
 	protected abstract String getMatchSectionName();
 
@@ -48,8 +48,8 @@ public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
      * Run filter on a matchInfo object. If the method
      * returns false, the object is removed from the feed.
      *
-     * @param   matchInfo  match info object
-     * @param   context    context
+     * @param   matchSection  match info object
+     * @param   context    MatchFeedFilterContext
      *
      * @return  true if the transformation is successful, false otherwise
      */

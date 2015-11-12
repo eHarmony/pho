@@ -24,6 +24,8 @@ import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.datastore.repository.MatchStoreSaveRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.transform.FeedTransformer;
@@ -70,7 +72,8 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     @Override
     public LegacyMatchDataFeedDto getUserMatches(long userId) {
 
-        MatchFeedRequestContext request = new MatchFeedRequestContext(userId);
+        MatchFeedQueryContext queryContext = MatchFeedQueryContextBuilder.newInstance().setUserId(userId).build();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(queryContext);
         try {
 
             LegacyMatchDataFeedMergeStrategy merger = LegacyMatchDataFeedMergeStrategy.getMergeInstance(mergeMode,

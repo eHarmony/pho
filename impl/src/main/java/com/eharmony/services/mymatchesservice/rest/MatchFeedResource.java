@@ -33,7 +33,7 @@ import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 @Component
-@Path("/v1")
+@Path("/v1/internal")
 public class MatchFeedResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());

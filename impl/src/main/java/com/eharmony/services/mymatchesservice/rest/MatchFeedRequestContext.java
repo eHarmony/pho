@@ -5,16 +5,18 @@ import java.util.Set;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.google.common.base.Preconditions;
 
 public class MatchFeedRequestContext {
 
-    private final long userId;
     private LegacyMatchDataFeedDto legacyMatchDataFeedDto;
     private Set<MatchDataFeedItemDto> newStoreFeed;
     private FeedMergeStrategyType feedMergeType;
-    
-    public MatchFeedRequestContext(final long userId) {
-        this.userId = userId;
+    final MatchFeedQueryContext matchFeedQueryContext;
+
+    public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
+        Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
+        this.matchFeedQueryContext = matchFeedQueryContext;
     }
 
     public LegacyMatchDataFeedDto getLegacyMatchDataFeedDto() {
@@ -33,10 +35,6 @@ public class MatchFeedRequestContext {
         this.newStoreFeed = newStoreFeed;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
     public FeedMergeStrategyType getFeedMergeType() {
         return feedMergeType;
     }
@@ -44,6 +42,13 @@ public class MatchFeedRequestContext {
     public void setFeedMergeType(FeedMergeStrategyType feedMergeType) {
         this.feedMergeType = feedMergeType;
     }
-    
-    
+
+    public MatchFeedQueryContext getMatchFeedQueryContext() {
+        return matchFeedQueryContext;
+    }
+
+    public long getUserId() {
+        return this.matchFeedQueryContext.getUserId();
+    }
+
 }

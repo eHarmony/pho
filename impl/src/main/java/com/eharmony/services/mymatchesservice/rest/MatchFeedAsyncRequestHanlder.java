@@ -43,12 +43,13 @@ public class MatchFeedAsyncRequestHanlder {
     @Resource
     private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
 
-    public void getMatchesFeed(final int userId, final AsyncResponse asyncResponse) {
+    public void getMatchesFeed(final long userId, final AsyncResponse asyncResponse) {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
                 .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
-
-        MatchFeedRequestContext request = new MatchFeedRequestContext(userId);
+        MatchFeedQueryContext matchFeedQueryContext = MatchFeedQueryContextBuilder.newInstance().setUserId(userId).build();
+                
+        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
@@ -58,6 +59,36 @@ public class MatchFeedAsyncRequestHanlder {
                 .zipWith(voldemortStore.getMatchesObservable(userId), populateLegacyMathesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
                     feedMergeStrategy.merge(response);
+                    long duration = t.stop();
+                    logger.debug("Match feed created, duration {}", duration);
+                    ResponseBuilder builder = buildResponse(response);
+                    asyncResponse.resume(builder.build());
+                }, (throwable) -> {
+                    long duration = t.stop();
+                    logger.error("Exception creating match feed, duration {}", duration, throwable);
+                    asyncResponse.resume(throwable);
+                }, () -> {
+                    asyncResponse.resume("");
+                });
+    }
+    
+    public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+
+        Timer.Context t = GraphiteReportingConfiguration.getRegistry()
+                .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
+
+        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
+
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+        matchQueryRequestObservable
+                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMathesFeed)
+                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMathesFeed)
+                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
+                    feedMergeStrategy.merge(response);
+                    //TODO call filter service
+                    //TODO call enricher service
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);
                     ResponseBuilder builder = buildResponse(response);
