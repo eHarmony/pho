@@ -39,6 +39,8 @@ public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFe
         if(legacyMatchesFeed == null || MapUtils.isEmpty(legacyMatchesFeed.getMatches())){
             log.warn("{} Records exist in HBase for the user {} and there are no records in voldy", 
                     storeMatchesFeed.size(), requestContext.getUserId());
+            //TODO transform hbase feed to Map of matches or fallback and return
+            return legacyMatchesFeed;
         }
         Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
         mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
@@ -68,15 +70,12 @@ public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFe
 
             // overwrite feed with HBase values
             MatchProfileElement profile = hbaseMatch.getMatchedUser();
-            //TODO: derive age.
-            //feedProfile.put("age", profile.getAge());
             feedProfile.put("city", profile.getCity());
             feedProfile.put("country", profile.getCountry());
             feedProfile.put("firstName", profile.getFirstName());
             feedProfile.put("gender", profile.getGender());
             feedProfile.put("stateCode", profile.getStateCode());
             feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
-            //feedProfile.put("version", profile.getVersion());
             feedProfile.put("birthdate", profile.getBirthdate());
 
         }

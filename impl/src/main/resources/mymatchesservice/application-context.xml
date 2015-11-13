@@ -69,8 +69,8 @@
         <constructor-arg ref="voldyClientConfig"/>
     </bean>
 
-	<!-- <import resource="store/mongo-store-context.xml" /> -->
 	<import resource="data-mapping-context.xml"/>
+	<import resource="data-transformation-context.xml"/>
 	<context:annotation-config />
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
 	
