@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
 
 import com.eharmony.configuration.Configuration;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
@@ -31,6 +33,7 @@ import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeed
 import com.eharmony.services.mymatchesservice.service.transform.FeedDtoTranslator;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
+import com.google.common.collect.Sets;
 
 @Service
 public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
@@ -112,11 +115,15 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     }
 
     @Override
-    public Observable<Set<MatchDataFeedItemDto>> getUserMatchesFromStoreObservable(
-            MatchFeedRequestContext requestContext) {
-        return Observable.defer(() -> Observable.just(getMatchesFeed(requestContext)));
+    public Observable<Set<MatchDataFeedItemDto>> getUserMatchesFromHBaseStoreSafe(MatchFeedRequestContext requestContext) {
+        Observable<Set<MatchDataFeedItemDto>> hbaseStoreFeed =  Observable.defer(() -> Observable.just(getMatchesFeed(requestContext)));
+        hbaseStoreFeed.onErrorReturn(ex -> {
+            logger.warn("Exception while fetching data from hbase for user {} and returning empty set for safe method", requestContext.getUserId(), ex);
+            return Sets.newHashSet();
+        });
+        return hbaseStoreFeed;
     }
-
+    
     private Set<MatchDataFeedItemDto> getMatchesFeed(MatchFeedRequestContext request) {
         try {
             long startTime = System.currentTimeMillis();

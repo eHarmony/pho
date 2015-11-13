@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import com.eharmony.datastore.store.impl.AbstractJsonDataStoreImpl;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 
 public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDataFeedDto> {
 	
@@ -37,7 +38,12 @@ public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDat
 
     }
     
-    public Observable<LegacyMatchDataFeedDto> getMatchesObservable(long userId) {
-        return Observable.defer(() -> Observable.just(getMatches(userId)));
+    public Observable<LegacyMatchDataFeedDto> getMatchesObservableSafe(MatchFeedRequestContext request) {
+        Observable<LegacyMatchDataFeedDto> voldyFeed =  Observable.defer(() -> Observable.just(getMatches(request.getUserId())));
+        voldyFeed.onErrorReturn(ex -> {
+            logger.warn("Exception while fetching data from voldemort for user {} and returning null feed object for safe method", request.getUserId(), ex);
+            return null;
+        });
+        return voldyFeed;
     }
 }

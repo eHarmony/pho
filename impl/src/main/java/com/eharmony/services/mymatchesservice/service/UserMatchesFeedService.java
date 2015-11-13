@@ -17,7 +17,7 @@ public interface UserMatchesFeedService {
     
     public MatchDataFeedItemDto getUserMatch(long userId, long matchId);
     
-    public Observable<Set<MatchDataFeedItemDto>> getUserMatchesFromStoreObservable(MatchFeedRequestContext request);
+    public Observable<Set<MatchDataFeedItemDto>> getUserMatchesFromHBaseStoreSafe(MatchFeedRequestContext request);
    
     public void refreshFeedFromVoldemortToHBase(long userId) throws Exception;
 	

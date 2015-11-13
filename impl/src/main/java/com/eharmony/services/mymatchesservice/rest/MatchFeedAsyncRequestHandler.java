@@ -24,16 +24,20 @@ import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
-import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher;
-import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher;
-import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoUrlEnricher;
-import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter;
-import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter;
-import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter;
-import com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
+/**
+ * Handles the GetMatches feed async requests.
+ * 
+ * Feed will be fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+ * 
+ * This handler uses safe methods, will return valid results as long as at least one of the stores available and respond
+ * with feed on time.
+ * 
+ * @author vvangapandu
+ *
+ */
 @Component
 public class MatchFeedAsyncRequestHandler {
 
@@ -50,61 +54,25 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource
     private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
-    
-    @Resource(name="getMatchesFeedEnricherChain")
+
+    @Resource(name = "getMatchesFeedEnricherChain")
     private MatchFeedTransformerChain getMatchesFeedEnricherChain;
 
-    @Resource(name="getMatchesFeedFilterChain")
+    @Resource(name = "getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
-    
-//    private static MatchFeedTransformerChain getMatchesFeedFilterChain;
-//    static{
-//    	
-//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
-//    	getMatchesFeedFilterChain.addTransformer(new MatchStatusFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new MatchDeliveredFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new MatchViewableFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new PaginationMatchFeedFilter());
-//    }
-//    
-//    private static MatchFeedTransformerChain getMatchesFeedEnricherChain;
-//    static{
-//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
-//    	getMatchesFeedFilterChain.addTransformer(new AgeCalculatorEnricher());   	
-//    	getMatchesFeedFilterChain.addTransformer(new PhotoUrlEnricher());   	
-//    	getMatchesFeedFilterChain.addTransformer(profileFieldsReadRemover);   	
-//    	getMatchesFeedFilterChain.addTransformer(matchFieldsRemover);   	
-//    }
 
-    public void getMatchesFeed(final long userId, final AsyncResponse asyncResponse) {
-
-        Timer.Context t = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
-        MatchFeedQueryContext matchFeedQueryContext = MatchFeedQueryContextBuilder.newInstance().setUserId(userId).build();
-                
-        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
-
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable
-                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMathesFeed)
-                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
-                .zipWith(voldemortStore.getMatchesObservable(userId), populateLegacyMathesFeed)
-                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
-                    feedMergeStrategy.merge(response);
-                    long duration = t.stop();
-                    logger.debug("Match feed created, duration {}", duration);
-                    ResponseBuilder builder = buildResponse(response);
-                    asyncResponse.resume(builder.build());
-                }, (throwable) -> {
-                    long duration = t.stop();
-                    logger.error("Exception creating match feed, duration {}", duration, throwable);
-                    asyncResponse.resume(throwable);
-                }, () -> {
-                    asyncResponse.resume("");
-                });
-    }
-    
+    /**
+     * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
+     * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+     * 
+     * This handler uses safe methods, will return valid results as long as at least one of the stores available and
+     * respond with feed on time.
+     * 
+     * @param matchFeedQueryContext
+     *            MatchFeedQueryContext
+     * @param asyncResponse
+     *            AsyncResponse
+     */
     public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
@@ -115,17 +83,11 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
-                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMathesFeed)
+                .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMathesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
-                .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMathesFeed)
+                .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMathesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
-                    
-                	getMatchesFeedFilterChain.execute(response);
-                	
-                    feedMergeStrategy.merge(response);
-                    
-                    getMatchesFeedEnricherChain.execute(response);
-                    
+                    handleFeedResponse(response);
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);
                     ResponseBuilder builder = buildResponse(response);
@@ -139,6 +101,11 @@ public class MatchFeedAsyncRequestHandler {
                 });
     }
 
+    private void handleFeedResponse(MatchFeedRequestContext response) {
+        getMatchesFeedFilterChain.execute(response);
+        feedMergeStrategy.merge(response);
+        getMatchesFeedEnricherChain.execute(response);
+    }
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext) {
         ResponseBuilder builder = Response.ok().entity(requestContext.getLegacyMatchDataFeedDto());
         builder.status(Status.OK);

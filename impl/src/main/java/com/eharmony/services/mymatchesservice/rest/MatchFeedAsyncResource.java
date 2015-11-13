@@ -41,17 +41,6 @@ public class MatchFeedAsyncResource {
     private MatchFeedAsyncRequestHandler requesthandler;
 
     @GET
-    @Path("/users/{userId}/matches/async")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void getMatchesFeed(@PathParam("userId") final int userId, @Suspended final AsyncResponse asyncResponse) {
-
-        log.info("fetching match feed for user ={}", userId);
-
-        requesthandler.getMatchesFeed(userId, asyncResponse);
-
-    }
-
-    @GET
     @Path("/users/{userId}/matches")
     @Produces(MediaType.APPLICATION_JSON)
     public void getMatches(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
