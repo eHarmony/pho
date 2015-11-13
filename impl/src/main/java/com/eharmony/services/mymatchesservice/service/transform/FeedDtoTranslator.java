@@ -14,7 +14,7 @@ import java.util.Map;
  * @author kmunroe
  *
  */
-public class FeedTransformer {
+public class FeedDtoTranslator {
 	
 	
     public static MatchDataFeedItemDto mapFeedtoMatchDataFeedItemList(

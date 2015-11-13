@@ -13,10 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.transform.filter.IMatchFeedFilter;
+import com.eharmony.services.mymatchesservice.service.transform.IMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
-public class PaginationMatchFeedFilter implements IMatchFeedFilter {
+public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
       

@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.transform.filter;
+package com.eharmony.services.mymatchesservice.service.transform;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 
-public abstract class AbstractMatchFeedFilter implements IMatchFeedFilter {
+public abstract class AbstractMatchFeedTransformer implements IMatchFeedTransformer {
 	
-	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedFilter.class);
+	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedTransformer.class);
 
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {

@@ -28,7 +28,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
-import com.eharmony.services.mymatchesservice.service.transform.FeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.FeedDtoTranslator;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -148,7 +148,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     		Map<String, Map<String, Object>> match = voldyFeed.getMatches().get(key);
     		
         	try{
-	        	MatchDataFeedItemDto xform = FeedTransformer.mapFeedtoMatchDataFeedItemList(match);
+	        	MatchDataFeedItemDto xform = FeedDtoTranslator.mapFeedtoMatchDataFeedItemList(match);
 
 	    		feedList.add(xform);
         	}catch(Exception ex){

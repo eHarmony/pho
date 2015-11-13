@@ -1,0 +1,66 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd       
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+    <context:component-scan base-package="com.eharmony.singles.common.photo"/>
+    <context:component-scan base-package="com.eharmony.photoclient"/>
+    
+	<util:constant id="profileSectionName" static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE"/>
+	<util:constant id="matchSectionName" static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH"/>
+
+	<util:set id="profileFieldsBlackList">
+		<value>birthdate</value>
+		<value>photo</value>
+	</util:set>
+
+	<util:set id="matchFieldsWhiteList">
+		<value>deliveredDate</value>
+		<value>distance</value>
+		<value>icebreakerStatus</value>
+		<value>id</value>
+		<value>relaxed</value>
+		<value>status</value>
+	</util:set> 
+	
+	<bean id="getMatchesFeedFilterChain" 
+			class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+			<constructor-arg>
+				<util:list>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter"/>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter"/>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter"/>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter"/>
+				</util:list>
+			</constructor-arg>
+	</bean>
+	
+	<bean id="getMatchesFeedEnricherChain" 
+			class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+			<constructor-arg>
+				<util:list>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher"/>
+					<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoUrlEnricher"/>
+					<bean id="profileFieldsReadRemover"
+						class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">
+						<constructor-arg index="0" ref="profileSectionName" />
+						<constructor-arg index="1" ref="profileFieldsBlackList" />
+						<constructor-arg index="2" value="BLACKLIST" />
+					</bean>			
+					<bean id="matchFieldsRemover"
+						class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">
+						<constructor-arg index="0" ref="matchSectionName" />
+						<constructor-arg index="1" ref="matchFieldsWhiteList" />
+						<constructor-arg index="2" value="WHITELIST" />
+					</bean>
+				</util:list>
+			</constructor-arg>
+	</bean>
+    
+</beans>

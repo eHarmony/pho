@@ -22,9 +22,17 @@
 		<crypto-library.version>15</crypto-library.version>
 		<protobuf-version>2.5.0</protobuf-version>
 		<datastore-version>14</datastore-version>
+		<!-- 
+		<photos.client.version>42</photos.client.version>
+		 -->
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>ehcomponents</groupId>
+			<artifactId>framework</artifactId>
+			<version>1.1.13</version>
+		</dependency>
 		<dependency>
 			<groupId>com.eharmony.services.match-query-service</groupId>
 			<artifactId>match-query-service-api</artifactId>
@@ -36,7 +44,76 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
+<!-- 	TODO: KDM missing jersey classes on jetty startup.
+
+		<dependency>
+  		  <groupId>com.eharmony.photos</groupId>
+		  <artifactId>photos-client</artifactId>
+		  <version>${photos.client.version}</version>
+		  <exclusions>
+		    <exclusion>
+		      <groupId>log4j</groupId>
+		      <artifactId>log4j</artifactId>
+		    </exclusion>
+		    <exclusion>
+		      <groupId>org.slf4j</groupId>
+		      <artifactId>slf4j-log4j12</artifactId>
+		    </exclusion>
+		    <exclusion>
+		      <groupId>org.jboss.netty</groupId>
+		      <artifactId>netty</artifactId>
+		    </exclusion>
+		    <exclusion>
+		      <groupId>io.netty</groupId>
+		      <artifactId>netty</artifactId>
+		    </exclusion>
+
+			<exclusion>
+				<groupId> javax.inject</groupId>
+				<artifactId>com.springsource.javax.inject</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.glassfish.hk2.external</groupId>
+				<artifactId>javax.inject</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.jboss.javaee</groupId>
+				<artifactId>jboss-jms-api</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>javax.jms</groupId>
+				<artifactId>jms</artifactId>
+			</exclusion>
+			 
+			<exclusion>
+				<groupId>com.sun.jersey</groupId>
+				<artifactId>jersey-core</artifactId>
+			</exclusion> 
+			<exclusion>
+				<groupId>javax.ws.rs</groupId>
+				<artifactId>javax.ws.rs-api</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>com.eharmony.commons</groupId>
+				<artifactId>foundation-commons-library</artifactId>
+			</exclusion>	
+			<exclusion>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-core-asl</artifactId>
+			</exclusion>	
+			<exclusion>
+				<groupId>commons-codec</groupId>
+				<artifactId>commons-codec</artifactId>
+			</exclusion>	
+			<exclusion>
+				<groupId>com.eharmony.event</groupId>
+				<artifactId>commons</artifactId>
+			</exclusion>	
+		  </exclusions>
+	  	</dependency>
+-->
+ 
 		<!-- VOLDEMORT Dependency -->
 		
 		  
@@ -372,7 +449,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet</artifactId>

@@ -23,7 +23,10 @@ import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
-import com.eharmony.services.mymatchesservice.service.transform.filter.MatchFeedFilterChain;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
+import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher;
+import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher;
+import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoUrlEnricher;
 import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter;
 import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter;
 import com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter;
@@ -48,16 +51,30 @@ public class MatchFeedAsyncRequestHandler {
     @Resource
     private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
     
-    private static MatchFeedFilterChain getMatchesFeedFilterChain;
-    static{
-    	
-    	getMatchesFeedFilterChain = new MatchFeedFilterChain();
-    	getMatchesFeedFilterChain.addFilter(new MatchStatusFilter());
-    	getMatchesFeedFilterChain.addFilter(new MatchDeliveredFilter());
-    	getMatchesFeedFilterChain.addFilter(new MatchViewableFilter());
-    	getMatchesFeedFilterChain.addFilter(new PaginationMatchFeedFilter());
-    }
+    @Resource(name="getMatchesFeedEnricherChain")
+    private MatchFeedTransformerChain getMatchesFeedEnricherChain;
+
+    @Resource(name="getMatchesFeedFilterChain")
+    private MatchFeedTransformerChain getMatchesFeedFilterChain;
     
+//    private static MatchFeedTransformerChain getMatchesFeedFilterChain;
+//    static{
+//    	
+//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
+//    	getMatchesFeedFilterChain.addTransformer(new MatchStatusFilter());
+//    	getMatchesFeedFilterChain.addTransformer(new MatchDeliveredFilter());
+//    	getMatchesFeedFilterChain.addTransformer(new MatchViewableFilter());
+//    	getMatchesFeedFilterChain.addTransformer(new PaginationMatchFeedFilter());
+//    }
+//    
+//    private static MatchFeedTransformerChain getMatchesFeedEnricherChain;
+//    static{
+//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
+//    	getMatchesFeedFilterChain.addTransformer(new AgeCalculatorEnricher());   	
+//    	getMatchesFeedFilterChain.addTransformer(new PhotoUrlEnricher());   	
+//    	getMatchesFeedFilterChain.addTransformer(profileFieldsReadRemover);   	
+//    	getMatchesFeedFilterChain.addTransformer(matchFieldsRemover);   	
+//    }
 
     public void getMatchesFeed(final long userId, final AsyncResponse asyncResponse) {
 
@@ -107,7 +124,7 @@ public class MatchFeedAsyncRequestHandler {
                 	
                     feedMergeStrategy.merge(response);
                     
-                    //TODO call enricher service
+                    getMatchesFeedEnricherChain.execute(response);
                     
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);

@@ -25,7 +25,7 @@ public class MatchStatusFilter extends AbstractMatchFilter {
         }
         
         if(statuses.contains(MatchFeedModel.STATUS.ALL)){
-        	logger.info("Status allows ALL, match accepted={}", matchSection);
+        	logger.debug("Status allows ALL, match accepted={}", matchSection);
         	return true;
         }
 

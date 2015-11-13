@@ -18,6 +18,13 @@ public class MatchViewableFilter extends AbstractMatchFilter {
 	protected boolean processMatchSection(Map<String, Object> matchSection,
 			MatchFeedRequestContext context) {
 		
+		if(context.getMatchFeedQueryContext().isViewHidden()){
+	        logger.debug("viewHidden={}, returning true. MatchId={}",
+				        		context.getMatchFeedQueryContext().isViewHidden(), 
+				        		matchSection.get(MatchFeedModel.MATCH.ID));
+			return true;
+		}
+		
 		//	null = 0 = OPEN so viewable
 		//	4 = CLOSED_NOT_VIEWABLE, Not viewable
 		//	If isUser and CLOSED_VIEWABLE_BY_CANDIDATE, not viewable
