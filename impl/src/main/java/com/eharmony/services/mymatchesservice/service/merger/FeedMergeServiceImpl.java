@@ -76,7 +76,7 @@ public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFe
             feedProfile.put("gender", profile.getGender());
             feedProfile.put("stateCode", profile.getStateCode());
             feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
-            feedProfile.put("birthdate", profile.getBirthdate());
+            feedProfile.put("birthdate", profile.getBirthdate().getTime());
 
         }
     }

@@ -25,14 +25,14 @@ public class AgeCalculatorEnricher extends AbstractProfileEnricher {
         Long birthdate = getLongNullSafe(PROFILE.BIRTHDATE, profileSection);
         if (birthdate == null) {
 
-            logger.warn("Birthdate is missing for userId={}", getIntegerNullSafe(PROFILE.USERID, profileSection));
+            logger.warn("Birthdate is missing for userId={}", getLongNullSafe(PROFILE.USERID, profileSection));
             return false;
 
         }
         
         int age = DateUtil.getAgeInYears(new Date(birthdate));
 
-        logger.debug("Calculated age={} for userId={}", age, getIntegerNullSafe(PROFILE.USERID, profileSection));
+        logger.debug("Calculated age={} for userId={}", age, getLongNullSafe(PROFILE.USERID, profileSection));
        
         profileSection.put(PROFILE.AGE, age);
 
