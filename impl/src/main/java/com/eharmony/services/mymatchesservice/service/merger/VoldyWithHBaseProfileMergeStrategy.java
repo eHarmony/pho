@@ -146,7 +146,7 @@ public class VoldyWithHBaseProfileMergeStrategy
                 feedProfile.put("stateCode", hbaseProfile.getStateCode());
                 feedProfile.put("userId", matchedUserId);
                 //feedProfile.put("version", profile.getVersion());
-                feedProfile.put("birthdate", hbaseProfile.getBirthdate());
+                feedProfile.put("birthdate", hbaseProfile.getBirthdate().getTime());
             }
         }
 
