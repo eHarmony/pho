@@ -22,9 +22,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -48,6 +50,15 @@ public class MatchFeedAsyncResource {
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse) {
 
+    	if(locale == null){
+            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+    	}
+
+    	if(CollectionUtils.isEmpty(statuses)){
+            throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
+    	}
+
+    	
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
