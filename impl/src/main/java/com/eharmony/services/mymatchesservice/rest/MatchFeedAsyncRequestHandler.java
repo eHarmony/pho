@@ -56,25 +56,6 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource(name="getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
-    
-//    private static MatchFeedTransformerChain getMatchesFeedFilterChain;
-//    static{
-//    	
-//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
-//    	getMatchesFeedFilterChain.addTransformer(new MatchStatusFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new MatchDeliveredFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new MatchViewableFilter());
-//    	getMatchesFeedFilterChain.addTransformer(new PaginationMatchFeedFilter());
-//    }
-//    
-//    private static MatchFeedTransformerChain getMatchesFeedEnricherChain;
-//    static{
-//    	getMatchesFeedFilterChain = new MatchFeedTransformerChain();
-//    	getMatchesFeedFilterChain.addTransformer(new AgeCalculatorEnricher());   	
-//    	getMatchesFeedFilterChain.addTransformer(new PhotoUrlEnricher());   	
-//    	getMatchesFeedFilterChain.addTransformer(profileFieldsReadRemover);   	
-//    	getMatchesFeedFilterChain.addTransformer(matchFieldsRemover);   	
-//    }
 
     public void getMatchesFeed(final long userId, final AsyncResponse asyncResponse) {
 
@@ -87,9 +68,9 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
-                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMathesFeed)
+                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
-                .zipWith(voldemortStore.getMatchesObservable(userId), populateLegacyMathesFeed)
+                .zipWith(voldemortStore.getMatchesObservable(userId), populateLegacyMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
                     feedMergeStrategy.merge(response);
                     long duration = t.stop();
@@ -115,9 +96,9 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
-                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMathesFeed)
+                .zipWith(userMatchesFeedService.getUserMatchesFromStoreObservable(request), populateMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
-                .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMathesFeed)
+                .zipWith(voldemortStore.getMatchesObservable(request.getUserId()), populateLegacyMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
                     
                 	getMatchesFeedFilterChain.execute(response);
@@ -145,13 +126,13 @@ public class MatchFeedAsyncRequestHandler {
         return builder;
     }
 
-    private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMathesFeed = (
+    private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMatchesFeed = (
             request, matchesFed) -> {
         request.setNewStoreFeed(matchesFed);
         return request;
     };
 
-    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMathesFeed = (
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeed) -> {
         request.setLegacyMatchDataFeedDto(legacyMatchDataFeed);
         return request;
