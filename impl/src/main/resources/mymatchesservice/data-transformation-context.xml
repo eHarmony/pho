@@ -8,10 +8,15 @@
         http://www.springframework.org/schema/context/spring-context.xsd       
         http://www.springframework.org/schema/util 
         http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+  
+     <bean id="photosServiceURLClient" class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoServiceURLClient">
+        <constructor-arg index="0"    ref="photosSecurityDelegate"/>
+    </bean>
+  
+    <bean  id="photosSecurityDelegate"  class="com.eharmony.photoclient.security.PhotosSecurityDelegate">
+    	<constructor-arg index="0"><null/></constructor-arg>
+  	</bean>	
 
-    <context:component-scan base-package="com.eharmony.singles.common.photo"/>
-    <context:component-scan base-package="com.eharmony.photoclient"/>
-    
 	<util:constant id="profileSectionName" static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE"/>
 	<util:constant id="matchSectionName" static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH"/>
 

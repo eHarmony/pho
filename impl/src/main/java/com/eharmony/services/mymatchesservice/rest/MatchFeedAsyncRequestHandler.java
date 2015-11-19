@@ -73,6 +73,7 @@ public class MatchFeedAsyncRequestHandler {
      * @param asyncResponse
      *            AsyncResponse
      */
+
     public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
@@ -83,9 +84,10 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
-                .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMathesFeed)
+                .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
-                .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMathesFeed)
+                .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMatchesFeed)
+
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
                     handleFeedResponse(response);
                     long duration = t.stop();
@@ -112,13 +114,13 @@ public class MatchFeedAsyncRequestHandler {
         return builder;
     }
 
-    private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMathesFeed = (
+    private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMatchesFeed = (
             request, matchesFed) -> {
         request.setNewStoreFeed(matchesFed);
         return request;
     };
 
-    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMathesFeed = (
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeed) -> {
         request.setLegacyMatchDataFeedDto(legacyMatchDataFeed);
         return request;

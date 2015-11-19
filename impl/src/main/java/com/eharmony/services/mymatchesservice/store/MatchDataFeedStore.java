@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 
-import com.eharmony.datastore.store.impl.AbstractJsonDataStoreImpl;
+import com.eharmony.datastore.store.impl.JsonDataStore;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 
-public class MatchDataFeedStore extends AbstractJsonDataStoreImpl<LegacyMatchDataFeedDto> {
+public class MatchDataFeedStore extends JsonDataStore<LegacyMatchDataFeedDto> {
 	
     private static final Logger logger = LoggerFactory.getLogger(MatchDataFeedStore.class);
 
