@@ -21,8 +21,10 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
     private static final Logger logger = LoggerFactory.getLogger(PhotoUrlEnricher.class);
 
     // INFO: these are fixed values for my matches page
-    public static final int DEFAULT_PRIMARY_PHOTO_HEIGHT = 167;
-    public static final int DEFAULT_PRIMARY_PHOTO_WIDTH = 210;
+    public static final int DEFAULT_PRIMARY_PHOTO_HEIGHT_THUMBNAIL = 167;
+    public static final int DEFAULT_PRIMARY_PHOTO_WIDTH_THUMBNAIL = 210;
+    public static final int DEFAULT_PRIMARY_PHOTO_HEIGHT_ICON = 31;
+    public static final int DEFAULT_PRIMARY_PHOTO_WIDTH_ICON = 40;
 
     @Resource
     PhotoServiceURLClient photoBuilder;
@@ -71,24 +73,22 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
         MatchFeedRequestContext context) {
         try {
             Long userId = (Long) profile.get(MatchFeedModel.PROFILE.USERID);
-            int height = DEFAULT_PRIMARY_PHOTO_HEIGHT;
-            int width = DEFAULT_PRIMARY_PHOTO_WIDTH;
-
+ 
             int genderId = getGenderIdFromProfile(profile);
             String iconUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.ICON, genderId);
             String thumbUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.MMP2, genderId);
  
             PhotoUrlDto icon = new PhotoUrlDto();
-            icon.setHeight(height);
-            icon.setWidth(width);
+            icon.setHeight(DEFAULT_PRIMARY_PHOTO_HEIGHT_ICON);
+            icon.setWidth(DEFAULT_PRIMARY_PHOTO_WIDTH_ICON);
             icon.setPhotoUrl(iconUrl);
             icon.setPhotoIndex(0);
             
             PhotoUrlDto thumb = new PhotoUrlDto();
-            thumb.setHeight(height);
-            thumb.setWidth(width);
+            thumb.setHeight(DEFAULT_PRIMARY_PHOTO_HEIGHT_THUMBNAIL);
+            thumb.setWidth(DEFAULT_PRIMARY_PHOTO_WIDTH_THUMBNAIL);
             thumb.setPhotoUrl(thumbUrl);
-            thumb.setPhotoIndex(1);
+            thumb.setPhotoIndex(0);
 
             profile.put(MatchFeedModel.PROFILE.PHOTOICON, icon);
             profile.put(MatchFeedModel.PROFILE.PHOTOTHUMB, thumb);
