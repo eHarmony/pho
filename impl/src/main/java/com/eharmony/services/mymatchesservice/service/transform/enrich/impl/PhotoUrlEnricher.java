@@ -3,7 +3,6 @@ package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 import java.util.Map;
 
 import javax.annotation.Resource;
-import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
@@ -24,7 +23,7 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
     // INFO: these are fixed values for my matches page
     public static final int DEFAULT_PRIMARY_PHOTO_HEIGHT = 167;
     public static final int DEFAULT_PRIMARY_PHOTO_WIDTH = 210;
-    private static final String PHOTO_URL_FOR_NO_PHOTO_ENABLED = "photo.url.for.no.photo.enabled";
+
     @Resource
     PhotoServiceURLClient photoBuilder;
     
@@ -34,19 +33,26 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
     @Value(value="${photo.metadata.service.base.url}")
     private String baseUrl;
 
+    @Value(value="${photo.url.for.no.photo.enabled}")
+    private boolean urlForNoPhoto;
+    
     @Override
     protected boolean processMatchSection(Map<String, Object> profile,
         MatchFeedRequestContext context) {
         // Throw away photo from feed
         @SuppressWarnings("unchecked")
         Map<String, Object> photo = (Map<String, Object>) profile.remove(MatchFeedModel.PROFILE.PHOTO);
+        
+        if(!context.getMatchFeedQueryContext().isAllowedSeePhotos()){
+        	logger.debug("allowedSeePhotos=false, returning without enriching.");
+        	return true;
+        }
 
         // set properties, even if null
         profile.put(MatchFeedModel.PROFILE.PHOTOICON, null);
         profile.put(MatchFeedModel.PROFILE.PHOTOTHUMB, null);
 
         boolean hasPhoto = MapUtils.isNotEmpty(photo);
-        boolean urlForNoPhoto = isPhotoUrlForNoPhotoEnabled();
 
         profile.put(MatchFeedModel.PROFILE.HAS_PHOTO, hasPhoto);
 
@@ -56,8 +62,6 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
             return true;
         }
         
-        UriBuilder builder = UriBuilder.fromUri("/test");
-
         return enrichContextWithPrimaryPhoto(profile, context);
     }
     
@@ -66,13 +70,13 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
     private boolean enrichContextWithPrimaryPhoto(Map<String, Object> profile,
         MatchFeedRequestContext context) {
         try {
-            int userId = (Integer) profile.get(MatchFeedModel.PROFILE.USERID);
+            Long userId = (Long) profile.get(MatchFeedModel.PROFILE.USERID);
             int height = DEFAULT_PRIMARY_PHOTO_HEIGHT;
             int width = DEFAULT_PRIMARY_PHOTO_WIDTH;
 
             int genderId = getGenderIdFromProfile(profile);
-            String iconUrl = photoBuilder.getPrimaryURL(baseUrl, userId, PhotoSizeEnum.ICON, genderId);
-            String thumbUrl = photoBuilder.getPrimaryURL(baseUrl, userId, PhotoSizeEnum.MMP2, genderId);
+            String iconUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.ICON, genderId);
+            String thumbUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.MMP2, genderId);
  
             PhotoUrlDto icon = new PhotoUrlDto();
             icon.setHeight(height);
@@ -111,7 +115,4 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
         return genderId;
     }
 
-    public boolean isPhotoUrlForNoPhotoEnabled() {
-        return config.getPropertyBoolean(PHOTO_URL_FOR_NO_PHOTO_ENABLED, false);
-    }
 }

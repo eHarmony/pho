@@ -23,6 +23,7 @@
 		<protobuf-version>2.5.0</protobuf-version>
 		<datastore-version>15</datastore-version>
 		<photos.client.version>2.0.0-SNAPSHOT</photos.client.version>
+		<event.proto.client.version>2.2.7</event.proto.client.version>
 		 
 	</properties>
 
@@ -47,7 +48,7 @@
 			<dependency>
 				<groupId>com.eharmony.event</groupId>
 				<artifactId>event-proto-client</artifactId>
-				<version>2.2.7</version>
+				<version>${event.proto.client.version}</version>
 				<exclusions>
 					<exclusion>
 						<artifactId>jersey-server</artifactId>
