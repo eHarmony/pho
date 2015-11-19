@@ -72,11 +72,15 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
     private boolean enrichContextWithPrimaryPhoto(Map<String, Object> profile,
         MatchFeedRequestContext context) {
         try {
-            Long userId = (Long) profile.get(MatchFeedModel.PROFILE.USERID);
+            Integer userId = getUserIdAsInteger(profile.get(MatchFeedModel.PROFILE.USERID));
+            if(userId == null){
+            	logger.warn("Failed to enrich photos: null userId in match profile {}", profile);
+            	return false;
+            }
  
             int genderId = getGenderIdFromProfile(profile);
-            String iconUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.ICON, genderId);
-            String thumbUrl = photoBuilder.getPrimaryURL(baseUrl, userId.intValue(), PhotoSizeEnum.MMP2, genderId);
+            String iconUrl = photoBuilder.getPrimaryURL(baseUrl, userId, PhotoSizeEnum.ICON, genderId);
+            String thumbUrl = photoBuilder.getPrimaryURL(baseUrl, userId, PhotoSizeEnum.MMP2, genderId);
  
             PhotoUrlDto icon = new PhotoUrlDto();
             icon.setHeight(DEFAULT_PRIMARY_PHOTO_HEIGHT_ICON);
@@ -95,13 +99,31 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
 
             return true;
         } catch (Exception e) {
-            logger.warn("Failed to enrich photo information for userId=" +
+            logger.warn("Failed to enrich photo for userId=" +
                 context.getUserId() + ", profile=" + profile, e);
 
             return false;
         }
 
      }
+    
+    private Integer getUserIdAsInteger(Object id){
+    	
+    	if(id == null){
+    		return null;
+    	}
+    	
+    	if(id instanceof Long){
+    		return ((Long)id).intValue();
+    	}
+    	
+    	if(id instanceof Integer){
+    		return (Integer)id;
+    	}
+    	
+    	// unrecognized type
+    	return null;
+    }
 
     private int getGenderIdFromProfile(Map<String, Object> profile) {
         int genderId = 0;
