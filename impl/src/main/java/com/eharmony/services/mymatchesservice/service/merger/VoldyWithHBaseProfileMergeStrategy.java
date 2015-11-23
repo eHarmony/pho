@@ -125,9 +125,7 @@ public class VoldyWithHBaseProfileMergeStrategy
                 if (profileAndMatchedUserId == null) {
                     log.warn("Voldy match {} not found in HBase feed for user {}",
                         matchId, userId);
-
                     continue;
-
                     // TODO: what does it mean if feed is missing here?
                 }
                 
@@ -136,17 +134,17 @@ public class VoldyWithHBaseProfileMergeStrategy
 
                 // get feed profile
                 Map<String, Object> feedProfile = feedMatch.get(MATCHINFOMODEL_MATCH_PROFILE);
-
-                //TODO: derive age.
-                //feedProfile.put("age", profile.getAge());
-                feedProfile.put("city", hbaseProfile.getCity());
+                String city = hbaseProfile.getCity();
+                feedProfile.put("city", city != null ? city : "");
                 feedProfile.put("country", hbaseProfile.getCountry());
                 feedProfile.put("firstName", hbaseProfile.getFirstName());
                 feedProfile.put("gender", hbaseProfile.getGender());
-                feedProfile.put("stateCode", hbaseProfile.getStateCode());
+                feedProfile.put("stateCode", hbaseProfile.getStateCode() != null ? hbaseProfile.getStateCode() : "");
                 feedProfile.put("userId", matchedUserId);
-                //feedProfile.put("version", profile.getVersion());
-                feedProfile.put("birthdate", hbaseProfile.getBirthdate().getTime());
+                if(hbaseProfile.getBirthdate() != null) {
+                    feedProfile.put("birthdate", hbaseProfile.getBirthdate().getTime());
+                }
+                
             }
         }
 
