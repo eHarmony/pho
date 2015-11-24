@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.codahale.metrics.annotation.Timed;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 
@@ -40,6 +41,7 @@ public class MatchFeedResource {
     @GET
     @Path("/users/{userId}/matches/{matchId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Timed
     public MatchDataFeedItemDto getMatch(@PathParam("userId") Integer userId, @PathParam("matchId") Long matchId) {
 
         log.info("fetching match for user ={} and match ={}", userId, matchId);
