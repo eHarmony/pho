@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
+import com.codahale.metrics.graphite.GraphiteSender;
 import com.codahale.metrics.graphite.PickledGraphite;
 
 /**
@@ -39,6 +41,12 @@ import com.codahale.metrics.graphite.PickledGraphite;
 
     @Value("${graphite.prefix}")
     private String prefix;
+    
+    @Value("${graphite.batch:false}")
+    private boolean isBatched;
+    
+    @Value("${graphite.batch.size:50}")
+    private Integer batchSize;
 
     public static MetricRegistry getRegistry() {
 
@@ -48,6 +56,7 @@ import com.codahale.metrics.graphite.PickledGraphite;
 
     @PostConstruct public void init() {
 
+    	log.info("Graphite host {} port {} prefix {} enabled {}", host, port, prefix, enabled);
         JmxReporter jmxReporter =
             JmxReporter.forRegistry(registry)
                        .convertDurationsTo(TimeUnit.MILLISECONDS)
@@ -57,21 +66,32 @@ import com.codahale.metrics.graphite.PickledGraphite;
 
         if (!enabled) {
 
-            log.info("Graphite reporting disabled, only enabling Jmx");
+            log.info("Graphite reporting disabled, only enabling JMX");
             return;
 
         }
 
         log.info("Graphite reporting enabled to {}:{} with prefix {} sending every {} {}",
                  new Object[] { host, port, prefix, period, TimeUnit.SECONDS });
-        final PickledGraphite pickledGraphite = new PickledGraphite(new InetSocketAddress(host, port));
+
+        GraphiteSender graphiteSender = null;
+        if(isBatched){
+        	log.info("Creating Batched Graphite sender with batch size {}", batchSize);
+        	graphiteSender = new PickledGraphite(new InetSocketAddress(host, port), batchSize);
+        }else{
+        	log.info("Creating per-event Graphite sender");
+        	graphiteSender = new Graphite(new InetSocketAddress(host, port));
+        }
+        
         final GraphiteReporter reporter =
             GraphiteReporter.forRegistry(registry)
                             .prefixedWith(prefix)
                             .convertRatesTo(TimeUnit.SECONDS)
                             .convertDurationsTo(TimeUnit.MILLISECONDS)
                             .filter(MetricFilter.ALL)
-                            .build(pickledGraphite);
+                            .build(graphiteSender);
+        
+
         reporter.start(period, TimeUnit.SECONDS);
 
     }
