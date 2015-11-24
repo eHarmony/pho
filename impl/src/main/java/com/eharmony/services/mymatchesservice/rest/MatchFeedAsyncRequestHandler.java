@@ -87,8 +87,8 @@ public class MatchFeedAsyncRequestHandler {
                 .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMatchesFeed)
                 .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMatchesFeed)
-
-                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor())).subscribe(response -> {
+                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                .subscribe(response -> {
                     handleFeedResponse(response);
                     long duration = t.stop();
                     logger.debug("Match feed created, duration {}", duration);

@@ -22,7 +22,7 @@
 		<crypto-library.version>15</crypto-library.version>
 		<protobuf-version>2.5.0</protobuf-version>
 		<datastore-version>15</datastore-version>
-		<photos.client.version>2.0.0-SNAPSHOT</photos.client.version>
+		<photos.client.version>2.0.3</photos.client.version>
 		<event.proto.client.version>2.2.7</event.proto.client.version>
 		 
 	</properties>
@@ -323,7 +323,7 @@
         <dependency>
 			<groupId>com.eharmony.matchdata.datastore</groupId>
 			<artifactId>matchdata-datastore-api</artifactId>
-			<version>0.1.4</version>
+			<version>0.1.6</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-beanutils</artifactId>

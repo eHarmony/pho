@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -70,13 +71,21 @@ public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFe
 
             // overwrite feed with HBase values
             MatchProfileElement profile = hbaseMatch.getMatchedUser();
-            feedProfile.put("city", profile.getCity());
-            feedProfile.put("country", profile.getCountry());
-            feedProfile.put("firstName", profile.getFirstName());
             feedProfile.put("gender", profile.getGender());
-            feedProfile.put("stateCode", profile.getStateCode());
+            feedProfile.put("country", profile.getCountry());
             feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
-            feedProfile.put("birthdate", profile.getBirthdate().getTime());
+            if(StringUtils.isNotBlank(profile.getCity())) {
+                feedProfile.put("city", profile.getCity());
+            }
+            if(StringUtils.isNotBlank(profile.getFirstName())) {
+                feedProfile.put("firstName", profile.getFirstName());
+            }
+            if(StringUtils.isNotBlank(profile.getStateCode())) {
+                feedProfile.put("stateCode", profile.getStateCode());
+            }
+            if(profile.getBirthdate() != null) {
+                feedProfile.put("birthdate", profile.getBirthdate().getTime());
+            }
 
         }
     }

@@ -3,7 +3,6 @@ package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

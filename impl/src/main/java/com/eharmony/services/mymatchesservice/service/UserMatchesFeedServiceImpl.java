@@ -16,8 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
 
 import com.eharmony.configuration.Configuration;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
@@ -29,10 +27,12 @@ import com.eharmony.services.mymatchesservice.MergeModeEnum;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.merger.LegacyMatchDataFeedMergeStrategy;
 import com.eharmony.services.mymatchesservice.service.transform.FeedDtoTranslator;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
+import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.google.common.collect.Sets;
 
 @Service
@@ -54,6 +54,11 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
 
     @Value("${feed.mergeMode}")
     private MergeModeEnum mergeMode;
+    
+    @Resource(name= "matchFeedProfileFieldsList")
+    private List<String> selectedProfileFields;
+    
+    private static final String ALL_MATCH_STATUS = "ALL";
 
     @Override
     public List<MatchDataFeedItemDto> getUserMatchesInternal(long userId) {
@@ -128,6 +133,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         try {
             long startTime = System.currentTimeMillis();
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(request.getUserId());
+            populateWithQueryParams(request, requestQuery);
             Set<MatchDataFeedItemDto> matchdataFeed =  queryRepository.getMatchDataFeed(requestQuery);
             long endTime = System.currentTimeMillis();
             logger.info("Total time to get the feed from hbase is {} MS", endTime - startTime);
@@ -135,6 +141,30 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         } catch (Exception e) {
             logger.warn("Exception while fetching the matches from HBase store for user {}", request.getUserId(), e);
             throw new RuntimeException(e);
+        }
+    }
+    
+    private void populateWithQueryParams(MatchFeedRequestContext request, MatchDataFeedQueryRequest requestQuery) {
+        Set<String> statuses = request.getMatchFeedQueryContext().getStatuses();
+        List<Integer> matchStatuses = new ArrayList<Integer>();
+        if(CollectionUtils.isNotEmpty(statuses)) {
+            for(String status : statuses) {
+                if(ALL_MATCH_STATUS.equalsIgnoreCase(status)) {
+                    matchStatuses = new ArrayList<Integer>();
+                    break;
+                }
+                MatchStatusEnum statusEnum = MatchStatusEnum.fromName(status);
+                if(statusEnum != null) {
+                    matchStatuses.add(statusEnum.toInt());
+                }
+            }
+            if(CollectionUtils.isNotEmpty(matchStatuses)) {
+                requestQuery.setMatchStatusFilters(matchStatuses);
+            }
+        }
+        FeedMergeStrategyType strategy = request.getFeedMergeType();
+        if(strategy != null && strategy == FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE) {
+            requestQuery.setSelectedFields(selectedProfileFields);
         }
     }
 
