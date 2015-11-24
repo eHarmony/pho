@@ -89,6 +89,8 @@
 		<value>locale</value>
 		<value>gender</value>
 		<value>storeUserIdKey</value>
+		<value>matchId</value>
+		<value>matchedUserId</value>
 	</util:set>
 
 

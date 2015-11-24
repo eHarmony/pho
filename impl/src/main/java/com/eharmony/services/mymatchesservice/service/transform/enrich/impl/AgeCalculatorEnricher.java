@@ -1,6 +1,5 @@
 package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 
-import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.getIntegerNullSafe;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.getLongNullSafe;
 
 import java.util.Date;

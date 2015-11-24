@@ -57,6 +57,8 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     
     @Resource(name= "matchFeedProfileFieldsList")
     private List<String> selectedProfileFields;
+    
+    private static final String ALL_MATCH_STATUS = "ALL";
 
     @Override
     public List<MatchDataFeedItemDto> getUserMatchesInternal(long userId) {
@@ -147,6 +149,10 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
         List<Integer> matchStatuses = new ArrayList<Integer>();
         if(CollectionUtils.isNotEmpty(statuses)) {
             for(String status : statuses) {
+                if(ALL_MATCH_STATUS.equalsIgnoreCase(status)) {
+                    matchStatuses = new ArrayList<Integer>();
+                    break;
+                }
                 MatchStatusEnum statusEnum = MatchStatusEnum.fromName(status);
                 if(statusEnum != null) {
                     matchStatuses.add(statusEnum.toInt());

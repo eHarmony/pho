@@ -4,13 +4,12 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
-
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
 import org.apache.commons.collections.CollectionUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,17 +133,21 @@ public class VoldyWithHBaseProfileMergeStrategy
 
                 // get feed profile
                 Map<String, Object> feedProfile = feedMatch.get(MATCHINFOMODEL_MATCH_PROFILE);
-                String city = hbaseProfile.getCity();
-                feedProfile.put("city", city != null ? city : "");
                 feedProfile.put("country", hbaseProfile.getCountry());
-                feedProfile.put("firstName", hbaseProfile.getFirstName());
                 feedProfile.put("gender", hbaseProfile.getGender());
-                feedProfile.put("stateCode", hbaseProfile.getStateCode() != null ? hbaseProfile.getStateCode() : "");
                 feedProfile.put("userId", matchedUserId);
+                if(StringUtils.isNotBlank(hbaseProfile.getCity())) {
+                    feedProfile.put("city", hbaseProfile.getCity());
+                }
+                if(StringUtils.isNotBlank(hbaseProfile.getFirstName())) {
+                    feedProfile.put("firstName", hbaseProfile.getFirstName());
+                }
+                if(StringUtils.isNotBlank(hbaseProfile.getStateCode())) {
+                    feedProfile.put("stateCode", hbaseProfile.getStateCode());
+                }
                 if(hbaseProfile.getBirthdate() != null) {
                     feedProfile.put("birthdate", hbaseProfile.getBirthdate().getTime());
                 }
-                
             }
         }
 
