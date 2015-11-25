@@ -85,9 +85,11 @@ public class MatchFeedAsyncRequestHandler {
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
                 .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMatchesFeed)
-                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMatchesFeed)
-                .observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
+                .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribe(response -> {
                     handleFeedResponse(response);
                     long duration = t.stop();

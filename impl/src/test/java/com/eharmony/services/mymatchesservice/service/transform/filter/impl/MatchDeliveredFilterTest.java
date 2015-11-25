@@ -34,6 +34,7 @@ public class MatchDeliveredFilterTest {
 				doMatchDeliveredFilter("json/getMatches.json");		
 		assertNotNull(ctx);
 		assertEquals(1, ctx.getLegacyMatchDataFeedDto().getMatches().size());
+		System.out.println("reversed userid:" + Long.reverseBytes(60660462));
 	}
 	
 	@Test
