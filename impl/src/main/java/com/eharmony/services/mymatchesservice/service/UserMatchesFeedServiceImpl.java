@@ -132,6 +132,7 @@ public class UserMatchesFeedServiceImpl implements UserMatchesFeedService {
     private Set<MatchDataFeedItemDto> getMatchesFeed(MatchFeedRequestContext request) {
         try {
             long startTime = System.currentTimeMillis();
+            logger.info("Getting feed from HBase, start time {}", startTime);
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(request.getUserId());
             populateWithQueryParams(request, requestQuery);
             Set<MatchDataFeedItemDto> matchdataFeed =  queryRepository.getMatchDataFeed(requestQuery);

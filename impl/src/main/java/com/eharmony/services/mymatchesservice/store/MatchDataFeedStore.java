@@ -24,7 +24,7 @@ public class MatchDataFeedStore extends JsonDataStore<LegacyMatchDataFeedDto> {
 
         long startTime = System.currentTimeMillis();
     	LegacyMatchDataFeedDto feed = fetchValue(String.valueOf(userId));
-
+    	logger.info("Getting feed from Voldy, start time {}", startTime);
     	if(feed != null){
     	    logger.debug("found {} matches in Voldemort for user {}",
 	            					feed.getMatches().size(), userId);
