@@ -21,7 +21,7 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
+import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
@@ -51,9 +51,6 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource
     private MatchDataFeedStore voldemortStore;
-
-    @Resource
-    private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
 
     @Resource(name = "getMatchesFeedEnricherChain")
     private MatchFeedTransformerChain getMatchesFeedEnricherChain;
@@ -107,7 +104,7 @@ public class MatchFeedAsyncRequestHandler {
 
     private void handleFeedResponse(MatchFeedRequestContext response) {
         getMatchesFeedFilterChain.execute(response);
-        feedMergeStrategy.merge(response);
+        FeedMergeStrategyManager.getMergeStrategy(response).merge(response);
         getMatchesFeedEnricherChain.execute(response);
     }
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext) {
@@ -115,6 +112,7 @@ public class MatchFeedAsyncRequestHandler {
         builder.status(Status.OK);
         return builder;
     }
+
 
     private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMatchesFeed = (
             request, matchesFed) -> {

@@ -8,17 +8,15 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
-@Component("feedMergeService")
-public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFeedDto>{
+public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMatchDataFeedDto>{
 
-    private static final Logger log = LoggerFactory.getLogger(FeedMergeServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
     
     @Override
     public LegacyMatchDataFeedDto merge(MatchFeedRequestContext requestContext) {
