@@ -50,15 +50,10 @@ public class MatchFeedAsyncResource {
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse) {
 
-    	if(locale == null){
-            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-    	}
-
     	if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
     	}
 
-    	
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
