@@ -25,6 +25,7 @@ import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyMa
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
 /**
@@ -75,29 +76,28 @@ public class MatchFeedAsyncRequestHandler {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
                 .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
-
+        long userId =  matchFeedQueryContext.getUserId();
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
                 .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMatchesFeed)
-                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMatchesFeed)
-                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribe(response -> {
                     handleFeedResponse(response);
                     long duration = t.stop();
-                    logger.debug("Match feed created, duration {}", duration);
+                    logger.debug("Match feed created for user {}, duration {}", userId, duration);
                     ResponseBuilder builder = buildResponse(response);
                     asyncResponse.resume(builder.build());
                 }, (throwable) -> {
                     long duration = t.stop();
-                    logger.error("Exception creating match feed, duration {}", duration, throwable);
+                    logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
                     asyncResponse.resume(throwable);
                 }, () -> {
+                    logger.info("Why are we here? when try to get feed for user {}", userId);
                     asyncResponse.resume("");
                 });
     }
@@ -107,10 +107,17 @@ public class MatchFeedAsyncRequestHandler {
         FeedMergeStrategyManager.getMergeStrategy(response).merge(response);
         getMatchesFeedEnricherChain.execute(response);
     }
+    
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext) {
-        ResponseBuilder builder = Response.ok().entity(requestContext.getLegacyMatchDataFeedDto());
-        builder.status(Status.OK);
-        return builder;
+        LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
+        if (wrapper != null) {
+            ResponseBuilder builder = Response.ok().entity(wrapper.getLegacyMatchDataFeedDto());
+            builder.status(Status.OK);
+            return builder;
+        } else {
+            ResponseBuilder builder = Response.serverError().status(Status.INTERNAL_SERVER_ERROR);
+            return builder;
+        }
     }
 
 
@@ -120,9 +127,9 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
-    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMatchesFeed = (
-            request, legacyMatchDataFeed) -> {
-        request.setLegacyMatchDataFeedDto(legacyMatchDataFeed);
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
+            request, legacyMatchDataFeedDtoWrapper) -> {
+        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
         return request;
     };
 

@@ -13,6 +13,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 public class AgeCalculatorEnricherTest {
 
@@ -24,7 +25,9 @@ public class AgeCalculatorEnricherTest {
 		// build the filter context...
 		MatchFeedQueryContext qctx = MatchFeedQueryContextBuilder.newInstance().build(); 
 		MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
-		ctx.setLegacyMatchDataFeedDto(feed);
+		LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(qctx.getUserId());
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
+        ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		
 		AgeCalculatorEnricher filter = new AgeCalculatorEnricher();
 		return filter.processMatchFeed(ctx);

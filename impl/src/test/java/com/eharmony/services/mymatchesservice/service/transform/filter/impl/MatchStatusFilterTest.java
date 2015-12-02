@@ -17,6 +17,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 public class MatchStatusFilterTest {
 
@@ -35,7 +36,9 @@ public class MatchStatusFilterTest {
 		MatchFeedQueryContext qctx = MatchFeedQueryContextBuilder.newInstance()
 									.setStatuses(statSet).build(); 
 		MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
-		ctx.setLegacyMatchDataFeedDto(feed);
+		LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(qctx.getUserId());
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
+        ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		
 		MatchStatusFilter filter = new MatchStatusFilter();
 		return filter.processMatchFeed(ctx);
