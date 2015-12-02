@@ -71,8 +71,13 @@ public class FeedMergeServiceImpl implements FeedMergeStrategy<LegacyMatchDataFe
 
             // overwrite feed with HBase values
             MatchProfileElement profile = hbaseMatch.getMatchedUser();
-            feedProfile.put("gender", profile.getGender());
-            feedProfile.put("country", profile.getCountry());
+            if(profile.getGender() > 0) {
+            	feedProfile.put("gender", profile.getGender());
+            }
+            if(profile.getCountry() > 0) {
+            	feedProfile.put("country", profile.getCountry());
+            }
+            
             feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
             if(StringUtils.isNotBlank(profile.getCity())) {
                 feedProfile.put("city", profile.getCity());
