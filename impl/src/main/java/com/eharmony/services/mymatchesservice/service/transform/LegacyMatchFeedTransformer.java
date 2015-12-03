@@ -20,7 +20,9 @@ public class LegacyMatchFeedTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(LegacyMatchFeedTransformer.class);
 
-    public static LegacyMatchDataFeedDto transform(MatchFeedRequestContext request, final Set<MatchDataFeedItemDto> hbaseFeedItems) {
+    public static LegacyMatchDataFeedDto transform(MatchFeedRequestContext request) {
+    	
+    	Set<MatchDataFeedItemDto> hbaseFeedItems = request.getNewStoreFeed();
     	
         LegacyMatchDataFeedDto feedDto = new LegacyMatchDataFeedDto();
         Map<String, Map<String, Map<String, Object>>> matches = new HashMap<String, Map<String, Map<String, Object>>>();
@@ -63,7 +65,7 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, elem.getStateCode());
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeNullSafe(elem.getBirthdate()));
-        profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getUserId());
+        profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
 
         return profile;
 	}

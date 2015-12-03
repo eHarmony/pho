@@ -1,8 +1,9 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 
-public interface FeedMergeStrategy<T> {
+public interface FeedMergeStrategy{
 
-	T merge(MatchFeedRequestContext request);
+	void merge(MatchFeedRequestContext request, UserMatchesFeedService userMatches);
 }

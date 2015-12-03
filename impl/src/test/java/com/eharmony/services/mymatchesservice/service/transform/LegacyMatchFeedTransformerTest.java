@@ -44,9 +44,9 @@ public class LegacyMatchFeedTransformerTest {
 		// Do transform here
 		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
 		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
-		
+		request.setNewStoreFeed(feedItems);
 		LegacyMatchDataFeedDto feed = 
-				LegacyMatchFeedTransformer.transform( request, feedItems);
+				LegacyMatchFeedTransformer.transform( request);
 		
 		// get the Legacy sections...
 		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();

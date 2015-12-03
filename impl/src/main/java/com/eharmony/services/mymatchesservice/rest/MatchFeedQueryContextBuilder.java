@@ -2,6 +2,8 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import java.util.Set;
 
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+
 public class MatchFeedQueryContextBuilder {
 
     private long userId;
@@ -12,14 +14,15 @@ public class MatchFeedQueryContextBuilder {
     private boolean viewHidden;
     private boolean allowedSeePhotos;
 
-    private boolean internalDisableVoldy;
+    // Internal test flags
+    private DataServiceStateEnum voldyState;
 
     private MatchFeedQueryContextBuilder() {
         
     }
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-                allowedSeePhotos, internalDisableVoldy);
+                allowedSeePhotos, voldyState);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -31,10 +34,16 @@ public class MatchFeedQueryContextBuilder {
         private final Set<String> statuses;
         private final boolean viewHidden;
         private final boolean allowedSeePhotos;
-        
-        private final boolean internalDisableVoldy;
+
+        private final DataServiceStateEnum voldyState;
+
 
         @Override
+        public DataServiceStateEnum getVoldyState() {
+			return voldyState;
+		}
+
+		@Override
         public long getUserId() {
             return userId;
         }
@@ -67,17 +76,13 @@ public class MatchFeedQueryContextBuilder {
         @Override
         public boolean isAllowedSeePhotos() {
             return allowedSeePhotos;
-        }
-
-        @Override
-        public boolean isDisableVoldemort() {
-            return internalDisableVoldy;
-        }
+        }        
         
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden, 
-                final boolean allowedSeePhotos, final boolean internalDisableVoldy) {
-            this.userId = userId;
+                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState) {
+
+        	this.userId = userId;
             this.locale = locale;
             this.startPage = startPage;
             this.pageSize = pageSize;
@@ -85,7 +90,7 @@ public class MatchFeedQueryContextBuilder {
             this.viewHidden = viewHidden;
             this.allowedSeePhotos = allowedSeePhotos;
             
-            this.internalDisableVoldy = internalDisableVoldy;
+            this.voldyState = (voldyState == null ? DataServiceStateEnum.ENABLED : voldyState);
         }
     }
 
@@ -126,9 +131,10 @@ public class MatchFeedQueryContextBuilder {
         this.allowedSeePhotos = allowedSeePhotos;
         return this;
     }
+    
+	public MatchFeedQueryContextBuilder setVoldyState(DataServiceStateEnum voldyState) {
+		this.voldyState = voldyState;
+		return this;
+	}
 
-    public MatchFeedQueryContextBuilder setDisableVoldemort(boolean disableVoldy) {
-    	this.internalDisableVoldy = disableVoldy;
-    	return this;
-    }
 }

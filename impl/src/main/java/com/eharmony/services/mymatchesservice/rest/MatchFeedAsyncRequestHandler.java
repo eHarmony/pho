@@ -24,6 +24,7 @@ import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -103,7 +104,7 @@ public class MatchFeedAsyncRequestHandler {
 
     private void handleFeedResponse(MatchFeedRequestContext response) {
         getMatchesFeedFilterChain.execute(response);
-        FeedMergeStrategyManager.getMergeStrategy(response).merge(response);
+        FeedMergeStrategyManager.getMergeStrategy(response).merge(response, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(response);
     }
     
@@ -128,16 +129,37 @@ public class MatchFeedAsyncRequestHandler {
 
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
-            	
-        if(!request.getMatchFeedQueryContext().isDisableVoldemort()){
+
+        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
+
+        switch(request.getMatchFeedQueryContext().getVoldyState()){
+        case ENABLED:
+        	
         	request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
-        }else{
-        	logger.warn("Voldemort disabled, not adding legacy feed to context");
+        	break;
+        case EMPTY:
         	
         	LegacyMatchDataFeedDtoWrapper empty = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
-        	empty.setFeedAvailable(false);
+        	empty.setFeedAvailable(true);
+        	empty.setLegacyMatchDataFeedDto(new LegacyMatchDataFeedDto());
         	request.setLegacyMatchDataFeedDtoWrapper(empty);
+        	break;
+        	
+        case DISABLED:
+        	
+        	LegacyMatchDataFeedDtoWrapper disabled = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
+        	disabled.setFeedAvailable(false);
+        	disabled.setLegacyMatchDataFeedDto(null);
+        	disabled.setError(new Exception("Voldy flag set to DISABLED in request."));
+        	request.setLegacyMatchDataFeedDtoWrapper(disabled);
+
+        	break;
+        	
+        default:
+            request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+
         }
+        
         return request;
     };
 

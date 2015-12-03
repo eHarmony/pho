@@ -1,5 +1,14 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.BIRTHDATE;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.CITY;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.COUNTRY;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.FIRSTNAME;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.GENDER;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.STATE_CODE;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.USERID;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -9,22 +18,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.*;
-import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.*;
-
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
-public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMatchDataFeedDto>{
+public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy{
 
     private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
     
     @Override
-    public LegacyMatchDataFeedDto merge(MatchFeedRequestContext requestContext) {
+    public void merge(MatchFeedRequestContext requestContext, UserMatchesFeedService userMatchesFeedService) {
 
         log.info("merging feed for userId {}", requestContext.getUserId());
         LegacyMatchDataFeedDto legacyMatchesFeed = requestContext.getLegacyMatchDataFeedDto();
@@ -37,28 +44,35 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMat
             } else {
                 log.info("no matches found for user {} in both hbase and voldy", requestContext.getUserId());
             }
-            return legacyMatchesFeed;
-        }
-        
-        if(legacyMatchesFeed == null || MapUtils.isEmpty(legacyMatchesFeed.getMatches())){
-            log.warn("{} Records exist in HBase for user {}, none in voldy. Using HBase record.", 
+            
+        }else if(legacyMatchesFeed == null || MapUtils.isEmpty(legacyMatchesFeed.getMatches())){
+            log.warn("{} Records exist in HBase for user {}, none in voldy. Using FULL HBase record.", 
                     storeMatchesFeed.size(), requestContext.getUserId());
 
-            LegacyMatchDataFeedDto legacyFeed = LegacyMatchFeedTransformer.transform(requestContext, storeMatchesFeed);
-            LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(requestContext.getUserId());
-            feedWrapper.setFeedAvailable(true);
-            feedWrapper.setLegacyMatchDataFeedDto(legacyFeed);   
-            
-            // Update the request context
-            requestContext.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
-            
-            return legacyFeed;
-        }
+            // call hbase with no strategy in context, so all fields are returned.
+            // TODO: limit size of hbase response.
+            // TODO: null is ugly, clean up.
+           
+            requestContext.setFeedMergeType(null);
+            userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(requestContext)
+            	.subscribe(response -> {
+            		
+            		requestContext.setNewStoreFeed(response);
+            		
+            		LegacyMatchDataFeedDto xformLegacyFeed = LegacyMatchFeedTransformer.transform(requestContext);
+                    LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(requestContext.getUserId());
+                    feedWrapper.setFeedAvailable(true);
+                    feedWrapper.setLegacyMatchDataFeedDto(xformLegacyFeed);   
+                    
+                    // Update the request context
+                    requestContext.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+             });
+                        
+        }else{
         
-        Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
-        mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
-        
-        return legacyMatchesFeed;
+	        Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
+	        mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
+	   }
     }
     
     private void mergeHBaseProfileIntoMatchFeed(Map<String, Map<String,  Map<String, Object>>> matches,

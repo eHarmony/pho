@@ -2,6 +2,8 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import java.util.Set;
 
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+
 public interface MatchFeedQueryContext {
 
     public long getUserId();
@@ -12,6 +14,6 @@ public interface MatchFeedQueryContext {
     public boolean isViewHidden();
     public boolean isAllowedSeePhotos();
 
-    // TODO: remove after hardening
-    public boolean isDisableVoldemort();
+    // Internal test flags.
+    public DataServiceStateEnum getVoldyState();
 }
