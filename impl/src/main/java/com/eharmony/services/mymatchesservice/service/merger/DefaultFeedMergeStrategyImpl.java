@@ -9,9 +9,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.*;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.*;
+
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMatchDataFeedDto>{
@@ -36,10 +40,11 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMat
         }
         
         if(legacyMatchesFeed == null || MapUtils.isEmpty(legacyMatchesFeed.getMatches())){
-            log.warn("{} Records exist in HBase for the user {} and there are no records in voldy", 
+            log.warn("{} Records exist in HBase for user {}, none in voldy. Using HBase record.", 
                     storeMatchesFeed.size(), requestContext.getUserId());
-            //TODO transform hbase feed to Map of matches or fallback and return
-            return legacyMatchesFeed;
+
+            return LegacyMatchFeedTransformer.transform(storeMatchesFeed);
+            
         }
         Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
         mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
@@ -47,8 +52,6 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMat
         return legacyMatchesFeed;
     }
     
-    private static final String MATCHINFOMODEL_MATCH_PROFILE = "matchedUser";
-
     private void mergeHBaseProfileIntoMatchFeed(Map<String, Map<String,  Map<String, Object>>> matches,
                                                     Set<MatchDataFeedItemDto> hbaseFeed) {
         
@@ -63,31 +66,31 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMat
                 continue;
                 // TODO: what does it mean if feed is missing here?
             }
+ 
             
             // get feed profile
-            Map<String, Object> feedProfile = feedMatch.get(MATCHINFOMODEL_MATCH_PROFILE);
+            Map<String, Object> feedProfile = feedMatch.get(PROFILE);
 
             // overwrite feed with HBase values
             MatchProfileElement profile = hbaseMatch.getMatchedUser();
             if(profile.getGender() > 0) {
-            	feedProfile.put("gender", profile.getGender());
+            	feedProfile.put(GENDER, profile.getGender());
             }
             if(profile.getCountry() > 0) {
-            	feedProfile.put("country", profile.getCountry());
+            	feedProfile.put(COUNTRY, profile.getCountry());
             }
-            
-            feedProfile.put("userId", hbaseMatch.getMatch().getMatchedUserId());
+            feedProfile.put(USERID, hbaseMatch.getMatch().getMatchedUserId());
             if(StringUtils.isNotBlank(profile.getCity())) {
-                feedProfile.put("city", profile.getCity());
+                feedProfile.put(CITY, profile.getCity());
             }
             if(StringUtils.isNotBlank(profile.getFirstName())) {
-                feedProfile.put("firstName", profile.getFirstName());
+                feedProfile.put(FIRSTNAME, profile.getFirstName());
             }
             if(StringUtils.isNotBlank(profile.getStateCode())) {
-                feedProfile.put("stateCode", profile.getStateCode());
+                feedProfile.put(STATE_CODE, profile.getStateCode());
             }
             if(profile.getBirthdate() != null) {
-                feedProfile.put("birthdate", profile.getBirthdate().getTime());
+                feedProfile.put(BIRTHDATE, profile.getBirthdate().getTime());
             }
 
         }
