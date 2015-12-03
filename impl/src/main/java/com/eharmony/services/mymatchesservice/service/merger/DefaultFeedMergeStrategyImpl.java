@@ -17,6 +17,7 @@ import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMatchDataFeedDto>{
 
@@ -43,9 +44,17 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy<LegacyMat
             log.warn("{} Records exist in HBase for user {}, none in voldy. Using HBase record.", 
                     storeMatchesFeed.size(), requestContext.getUserId());
 
-            return LegacyMatchFeedTransformer.transform(storeMatchesFeed);
+            LegacyMatchDataFeedDto legacyFeed = LegacyMatchFeedTransformer.transform(requestContext, storeMatchesFeed);
+            LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(requestContext.getUserId());
+            feedWrapper.setFeedAvailable(true);
+            feedWrapper.setLegacyMatchDataFeedDto(legacyFeed);   
             
+            // Update the request context
+            requestContext.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+            
+            return legacyFeed;
         }
+        
         Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
         mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
         
