@@ -48,7 +48,8 @@ public class MatchFeedAsyncResource {
     public void getMatches(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden,
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
-            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse) {
+            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
+            @QueryParam("disableVoldy") boolean disableVoldy) {
 
     	if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
@@ -60,7 +61,8 @@ public class MatchFeedAsyncResource {
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)
-                .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden).build();
+                .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden)
+                .setDisableVoldemort(disableVoldy).build();
 
         log.info("fetching match feed for user ={}", userId);
         requesthandler.getMatchesFeed(requestContext, asyncResponse);

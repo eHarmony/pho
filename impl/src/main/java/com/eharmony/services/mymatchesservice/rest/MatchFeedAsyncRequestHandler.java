@@ -24,7 +24,6 @@ import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
 
@@ -129,7 +128,16 @@ public class MatchFeedAsyncRequestHandler {
 
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
-        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+            	
+        if(!request.getMatchFeedQueryContext().isDisableVoldemort()){
+        	request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        }else{
+        	logger.warn("Voldemort disabled, not adding legacy feed to context");
+        	
+        	LegacyMatchDataFeedDtoWrapper empty = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
+        	empty.setFeedAvailable(false);
+        	request.setLegacyMatchDataFeedDtoWrapper(empty);
+        }
         return request;
     };
 

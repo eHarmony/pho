@@ -11,5 +11,7 @@ public interface MatchFeedQueryContext {
     public Set<String> getStatuses();
     public boolean isViewHidden();
     public boolean isAllowedSeePhotos();
-    
+
+    // TODO: remove after hardening
+    public boolean isDisableVoldemort();
 }

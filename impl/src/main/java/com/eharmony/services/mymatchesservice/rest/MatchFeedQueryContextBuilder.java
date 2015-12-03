@@ -12,12 +12,14 @@ public class MatchFeedQueryContextBuilder {
     private boolean viewHidden;
     private boolean allowedSeePhotos;
 
+    private boolean internalDisableVoldy;
+
     private MatchFeedQueryContextBuilder() {
         
     }
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-                allowedSeePhotos);
+                allowedSeePhotos, internalDisableVoldy);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -29,6 +31,8 @@ public class MatchFeedQueryContextBuilder {
         private final Set<String> statuses;
         private final boolean viewHidden;
         private final boolean allowedSeePhotos;
+        
+        private final boolean internalDisableVoldy;
 
         @Override
         public long getUserId() {
@@ -65,8 +69,14 @@ public class MatchFeedQueryContextBuilder {
             return allowedSeePhotos;
         }
 
+        @Override
+        public boolean isDisableVoldemort() {
+            return internalDisableVoldy;
+        }
+        
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
-                final int pageSize, final Set<String> statuses, final boolean viewHidden, final boolean allowedSeePhotos) {
+                final int pageSize, final Set<String> statuses, final boolean viewHidden, 
+                final boolean allowedSeePhotos, final boolean internalDisableVoldy) {
             this.userId = userId;
             this.locale = locale;
             this.startPage = startPage;
@@ -74,6 +84,8 @@ public class MatchFeedQueryContextBuilder {
             this.statuses = statuses;
             this.viewHidden = viewHidden;
             this.allowedSeePhotos = allowedSeePhotos;
+            
+            this.internalDisableVoldy = internalDisableVoldy;
         }
     }
 
@@ -115,4 +127,8 @@ public class MatchFeedQueryContextBuilder {
         return this;
     }
 
+    public MatchFeedQueryContextBuilder setDisableVoldemort(boolean disableVoldy) {
+    	this.internalDisableVoldy = disableVoldy;
+    	return this;
+    }
 }

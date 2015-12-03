@@ -42,10 +42,10 @@ public class LegacyMatchFeedTransformerTest {
 		LegacyMatchDataFeedDto feed = 
 				LegacyMatchFeedTransformer.transform(feedItems);
 		
+		// get the Legacy sections...
 		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
 		assertNotNull(matches);
 		
-		// get the Legacy sections...
 		String matchId = String.valueOf(hbaseFeedItem.getMatch().getMatchId());
 		assertNotNull(matches.get(matchId));		
 		Map<String, Map<String, Object>> oneMatch = matches.get(matchId);
