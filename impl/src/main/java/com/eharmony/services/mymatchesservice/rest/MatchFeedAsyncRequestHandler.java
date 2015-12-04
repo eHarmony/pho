@@ -109,7 +109,7 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable = matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
                 populateLegacyMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
         
-        chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
                 FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
         matchQueryRequestObservable.subscribe(response -> {
@@ -134,12 +134,12 @@ public class MatchFeedAsyncRequestHandler {
                 .timer(getClass().getCanonicalName() + ".getMatchesFromHBaseOnVoldeError").time();
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         long userId = queryContext.getUserId();
-        request.setFallbackRequest(true);
+        request.setFallbackRequest(request.isFallbackRequest());
         request.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_ONLY);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
 
-        chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, false);
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, false);
 
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -189,15 +189,6 @@ public class MatchFeedAsyncRequestHandler {
             matchQueryRequestObservable = matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
                     populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
         }
-        /*requestedMatchStatusGroups.forEach((k, v) -> {
-            HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
-            requestContext.setFallbackRequest(isFallbackRequest);
-            requestContext.setFeedMergeType(feedMergeType);
-            requestContext.setMatchStatuses(v);
-            requestContext.setMatchStatusGroup(k);
-            matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
-                    populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-        });*/
         return matchQueryRequestObservable;
     }
 
@@ -228,6 +219,7 @@ public class MatchFeedAsyncRequestHandler {
     private void executeFallbackIfRequired(MatchFeedRequestContext response) {
         if (shouldFallbackToHBase(response)) {
             // TODO make sure there is no concurent modificaiton - VIJAY
+            response.setFallbackRequest(true);
             populateContextWithHBaseMatchesOnVoldeError(response);
         }
     }
