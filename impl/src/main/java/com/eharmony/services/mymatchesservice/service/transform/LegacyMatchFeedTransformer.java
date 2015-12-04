@@ -20,7 +20,9 @@ public class LegacyMatchFeedTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(LegacyMatchFeedTransformer.class);
 
-    public static LegacyMatchDataFeedDto transform(MatchFeedRequestContext request, final Set<MatchDataFeedItemDto> hbaseFeedItems) {
+    public static LegacyMatchDataFeedDto transform(MatchFeedRequestContext request) {
+    	
+    	Set<MatchDataFeedItemDto> hbaseFeedItems = request.getNewStoreFeed();
     	
         LegacyMatchDataFeedDto feedDto = new LegacyMatchDataFeedDto();
         Map<String, Map<String, Map<String, Object>>> matches = new HashMap<String, Map<String, Map<String, Object>>>();
@@ -34,7 +36,7 @@ public class LegacyMatchFeedTransformer {
         });
         
         feedDto.setMatches(matches);
-        feedDto.setLocale(request.getMatchFeedQueryContext().getLocale());
+        feedDto.setLocale(request.getMatchFeedQueryContext() != null ? request.getMatchFeedQueryContext().getLocale() : null);
         feedDto.setTotalMatches(matches.size());
         
         return feedDto;
@@ -55,6 +57,10 @@ public class LegacyMatchFeedTransformer {
 
     	Map<String, Object> profile = new HashMap<>();
     	MatchProfileElement elem = item.getMatchedUser();
+    	if(elem == null){
+    		logger.warn("Null MatchProfileElement, returning empty profile.");
+    		return profile;
+    	}
     	
         profile.put(MatchFeedModel.PROFILE.CITY, elem.getCity());
         profile.put(MatchFeedModel.PROFILE.COUNTRY, elem.getCountry());
@@ -63,7 +69,7 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, elem.getStateCode());
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeNullSafe(elem.getBirthdate()));
-        profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getUserId());
+        profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
 
         return profile;
 	}
@@ -76,6 +82,11 @@ public class LegacyMatchFeedTransformer {
     	MatchCommunicationElement commElem = item.getCommunication();
     	MatchProfileElement profileElem = item.getMatchedUser();
     	
+    	if(matchElem == null || commElem == null || profileElem == null){
+    		logger.warn("Found null elements in feed, returning empty match.");
+    		return match;
+    	}
+    	
     	// pulled from matchElement
         match.put(MatchFeedModel.MATCH.ARCHIVE_STATUS, matchElem.getArchiveStatus());
         match.put(MatchFeedModel.MATCH.CLOSED_DATE, getTimeNullSafe(matchElem.getClosedDate()));
@@ -85,7 +96,7 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.MATCHEDUSERID, matchElem.getMatchedUserId());
         match.put(MatchFeedModel.MATCH.ID, matchElem.getMatchId());
         match.put(MatchFeedModel.MATCH.ONE_WAY_STATUS, matchElem.getOneWayStatus());
-        match.put(MatchFeedModel.MATCH.RELAXED, matchElem.getRelaxed());
+        match.put(MatchFeedModel.MATCH.RELAXED, deriveRelaxedState(matchElem.getRelaxed()));
         match.put(MatchFeedModel.MATCH.STATUS,  deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()));
         match.put(MatchFeedModel.MATCH.USER_ID, matchElem.getUserId());
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
@@ -112,8 +123,27 @@ public class LegacyMatchFeedTransformer {
         
         return match;
     }
+
+	private static Map<String, Object> createMatchFeedCommunication(
+			MatchDataFeedItemDto item) {
+		
+    	Map<String, Object> comm = new HashMap<>();
+    	MatchCommunicationElement elem = item.getCommunication();
+
+	    comm.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, elem.getLastCommDate());
+	    comm.put(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, elem.isViewedProfile()); 
     
-    private static Long getTimeNullSafe(Date date){
+    	return comm;
+	}
+    
+    private static Boolean deriveRelaxedState(int relaxed) {
+    	if(relaxed == 0){
+    		return false;
+    	}
+		return true;
+	}
+
+	private static Long getTimeNullSafe(Date date){
     	if(date == null){
     		return null;
     	}
@@ -132,15 +162,4 @@ public class LegacyMatchFeedTransformer {
 		return ms.getName();
 	}
 
-	private static Map<String, Object> createMatchFeedCommunication(
-			MatchDataFeedItemDto item) {
-		
-    	Map<String, Object> comm = new HashMap<>();
-    	MatchCommunicationElement elem = item.getCommunication();
-
-	    comm.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, elem.getLastCommDate());
-	    comm.put(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, elem.isViewedProfile()); 
-    	
-    	return comm;
-	}
 }

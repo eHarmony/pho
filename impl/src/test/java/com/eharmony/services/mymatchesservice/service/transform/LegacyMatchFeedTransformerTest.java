@@ -5,7 +5,9 @@ import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +28,187 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 public class LegacyMatchFeedTransformerTest {
 
 	@Test
-	public void testTransform(){
+	public void testMatchRelaxedIsBoolean(){
+
+		Long matchId = 9999L;
+
+		Map<Integer, Boolean> relaxedCodes = new HashMap<>();
+		relaxedCodes.put(0, false);
+		relaxedCodes.put(1, true);
+
+
+		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+		hbaseFeedItem.getMatch().setMatchId(matchId);
+
+		Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+		feedItems.add(hbaseFeedItem);
+
+		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+		request.setNewStoreFeed(feedItems);
+		
+		for(int relaxedCode : relaxedCodes.keySet()){
+			hbaseFeedItem.getMatch().setRelaxed(relaxedCode);
+	
+			LegacyMatchDataFeedDto feed = 
+					LegacyMatchFeedTransformer.transform( request);
+			
+			// get the Legacy sections...
+			Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+			assertNotNull(matches);
+			
+			Map<String, Map<String, Object>> aMatch = matches.get(String.valueOf(matchId));
+			assertNotNull(aMatch);
+			
+			Map<String, Object> section = aMatch.get(MatchFeedModel.SECTIONS.MATCH);
+			assertNotNull(section);
+			
+			assertEquals(relaxedCodes.get(relaxedCode), section.get(MatchFeedModel.MATCH.RELAXED));
+		}
+
+	}
+	
+	
+	@Test 
+	public void testMatchedUserIdInMatch(){
+		
+		Long matchId = 9999L;
+		
+		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+		hbaseFeedItem.getMatch().setUserId(1000L);
+		hbaseFeedItem.getMatch().setMatchedUserId(1001L);
+		hbaseFeedItem.getMatch().setMatchId(matchId);
+
+		Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+		feedItems.add(hbaseFeedItem);
+
+		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+		request.setNewStoreFeed(feedItems);
+		LegacyMatchDataFeedDto feed = 
+				LegacyMatchFeedTransformer.transform( request);
+		
+		// get the Legacy sections...
+		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+		assertNotNull(matches);
+		
+		Map<String, Map<String, Object>> aMatch = matches.get(String.valueOf(matchId));
+		assertNotNull(aMatch);
+		
+		Map<String, Object> section = aMatch.get(MatchFeedModel.SECTIONS.MATCH);
+		assertNotNull(section);
+		
+		assertEquals(1001L, section.get(MatchFeedModel.MATCH.MATCHEDUSERID));
+	}
+	
+	@Test 
+	public void testAllFieldsNull(){
+				
+		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+
+		Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+		feedItems.add(hbaseFeedItem);
+
+		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+		request.setNewStoreFeed(feedItems);
+		LegacyMatchDataFeedDto feed = 
+				LegacyMatchFeedTransformer.transform( request);
+		
+		// get the Legacy sections...
+		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+		assertNotNull(matches);
+
+	}
+	
+	@Test
+	public void testMatchStatusEnumMapping(){
+		
+		Long matchId = 9999L;
+		
+		Map<Integer, String> statusCodes = new HashMap<>();
+	    //NEW(0, "NEW"), MYTURN(1, "MYTURN"), THEIRTURN(2, "THEIRTURN"), OPENCOMM(3, "OPENCOMM"), CLOSED(4, "CLOSED"), ARCHIVED(5, "ARCHIVED");
+
+		statusCodes.put(0, "new");
+		statusCodes.put(1, "myturn");
+		statusCodes.put(2, "theirturn");
+		statusCodes.put(3, "opencomm");
+		statusCodes.put(4, "closed");
+		statusCodes.put(5, "archived");
+			
+		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+		hbaseFeedItem.getMatch().setMatchId(matchId);
+
+		Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+		feedItems.add(hbaseFeedItem);
+
+		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+		request.setNewStoreFeed(feedItems);
+
+		for(Integer statusId: statusCodes.keySet()){
+			
+			hbaseFeedItem.getMatch().setStatus(statusId);
+			
+			LegacyMatchDataFeedDto feed = 
+					LegacyMatchFeedTransformer.transform( request);
+			
+			// get the Legacy sections...
+			Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+			assertNotNull(matches);
+			
+			Map<String, Map<String, Object>> aMatch = matches.get(String.valueOf(matchId));
+			assertNotNull(aMatch);
+			
+			Map<String, Object> section = aMatch.get(MatchFeedModel.SECTIONS.MATCH);
+			assertNotNull(section);
+			
+			assertEquals(statusCodes.get(statusId).toLowerCase(), toLowerCase(section.get(MatchFeedModel.MATCH.STATUS)));
+		}
+	}
+	
+	private String toLowerCase(Object obj){
+		
+		return ((String)obj).toLowerCase();
+	}
+	
+	@Test
+	public void testBirthDateIsMillis(){
+
+		Long matchId = 9999L;
+		
+		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+		hbaseFeedItem.getMatch().setMatchId(matchId);
+
+		Calendar birthDate = Calendar.getInstance();
+		birthDate.roll(Calendar.YEAR, -21);
+		hbaseFeedItem.getMatchedUser().setBirthdate(birthDate.getTime());
+		
+		Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+		feedItems.add(hbaseFeedItem);
+
+		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+		request.setNewStoreFeed(feedItems);
+		LegacyMatchDataFeedDto feed = 
+				LegacyMatchFeedTransformer.transform( request);
+		
+		// get the Legacy sections...
+		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+		assertNotNull(matches);
+		
+		Map<String, Map<String, Object>> aMatch = matches.get(String.valueOf(matchId));
+		assertNotNull(aMatch);
+
+		Map<String, Object> section = aMatch.get(MatchFeedModel.SECTIONS.PROFILE);
+		assertNotNull(section);
+
+		assertEquals(birthDate.getTimeInMillis(), section.get(MatchFeedModel.PROFILE.BIRTHDATE));
+
+	}
+	
+	@Test
+	public void testTransformCoversAllFields(){
 		
 		MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
 		
@@ -44,9 +226,9 @@ public class LegacyMatchFeedTransformerTest {
 		// Do transform here
 		MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1).build();
 		MatchFeedRequestContext request = new MatchFeedRequestContext(query);
-		
+		request.setNewStoreFeed(feedItems);
 		LegacyMatchDataFeedDto feed = 
-				LegacyMatchFeedTransformer.transform( request, feedItems);
+				LegacyMatchFeedTransformer.transform( request);
 		
 		// get the Legacy sections...
 		Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
@@ -80,7 +262,7 @@ public class LegacyMatchFeedTransformerTest {
         assertEquals(matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID), matchElem.getMatchedUserId());
         assertEquals(matchSection.get(MatchFeedModel.MATCH.ID), matchElem.getMatchId());
         assertEquals(matchSection.get(MatchFeedModel.MATCH.ONE_WAY_STATUS), matchElem.getOneWayStatus());
-        assertEquals(matchSection.get(MatchFeedModel.MATCH.RELAXED), matchElem.getRelaxed());
+        //assertEquals(matchSection.get(MatchFeedModel.MATCH.RELAXED), matchElem.getRelaxed());
         //assertEquals(matchSection.get(MatchFeedModel.MATCH.STATUS),  matchElem.getStatus());
         assertEquals(matchSection.get(MatchFeedModel.MATCH.USER_ID), matchElem.getUserId());
         assertEquals(matchSection.get(MatchFeedModel.MATCH.IS_USER), matchElem.isMatchUser());
@@ -100,10 +282,6 @@ public class LegacyMatchFeedTransformerTest {
         assertEquals(matchSection.get(MatchFeedModel.MATCH.TURN_OWNER), commElem.getTurnOwner());
         assertEquals(matchSection.get(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB), commElem.getDisplayTab());
 
-        // pulled from profileElement
-       // assertEquals(matchSection.get(MatchFeedModel.MATCH.MATCH_FIRST_NAME, profileElem.getFirstName());
-        
-		System.err.println("DONE!");
 	}
 	
 

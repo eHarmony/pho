@@ -4,9 +4,9 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 
 public class FeedMergeStrategyManager {
 
-	private static FeedMergeStrategy<?> VOLDY_WITH_PROFILE_MERGE_STRATEGY = new DefaultFeedMergeStrategyImpl();
+	private static FeedMergeStrategy VOLDY_WITH_PROFILE_MERGE_STRATEGY = new DefaultFeedMergeStrategyImpl();
     
-    public static FeedMergeStrategy<?> getMergeStrategy(MatchFeedRequestContext requestContext){
+    public static FeedMergeStrategy getMergeStrategy(MatchFeedRequestContext requestContext){
     	
     	switch(requestContext.getFeedMergeType()){
     	
