@@ -18,6 +18,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher.SelectionListType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 
 public class FieldSelectorEnricherTest {
@@ -36,7 +37,9 @@ public class FieldSelectorEnricherTest {
                                                                  .build();
 
         MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
-        ctx.setLegacyMatchDataFeedDto(feed);
+        LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(qctx.getUserId());
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
+        ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 
         FieldSelectorEnricher enricher = new FieldSelectorEnricher(section, list, listType.toString());
 

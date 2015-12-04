@@ -18,14 +18,16 @@ import rx.schedulers.Schedulers;
 
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategy;
+import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -52,14 +54,14 @@ public class MatchFeedAsyncRequestHandler {
     @Resource
     private MatchDataFeedStore voldemortStore;
 
-    @Resource
-    private FeedMergeStrategy<LegacyMatchDataFeedDto> feedMergeStrategy;
-
     @Resource(name = "getMatchesFeedEnricherChain")
     private MatchFeedTransformerChain getMatchesFeedEnricherChain;
 
     @Resource(name = "getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
+    
+    @Resource
+    private RefreshEventSender refreshEventSender;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -78,43 +80,51 @@ public class MatchFeedAsyncRequestHandler {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
                 .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
-
+        long userId =  matchFeedQueryContext.getUserId();
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable
                 .zipWith(userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(request), populateMatchesFeed)
-                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .zipWith(voldemortStore.getMatchesObservableSafe(request), populateLegacyMatchesFeed)
-                //.observeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()))
                 .subscribe(response -> {
                     handleFeedResponse(response);
                     long duration = t.stop();
-                    logger.debug("Match feed created, duration {}", duration);
+                    logger.debug("Match feed created for user {}, duration {}", userId, duration);
                     ResponseBuilder builder = buildResponse(response);
                     asyncResponse.resume(builder.build());
                 }, (throwable) -> {
                     long duration = t.stop();
-                    logger.error("Exception creating match feed, duration {}", duration, throwable);
+                    logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
                     asyncResponse.resume(throwable);
                 }, () -> {
+                    logger.info("Why are we here? when try to get feed for user {}", userId);
                     asyncResponse.resume("");
                 });
     }
 
     private void handleFeedResponse(MatchFeedRequestContext response) {
-        getMatchesFeedFilterChain.execute(response);
-        feedMergeStrategy.merge(response);
+    	refreshEventSender.sendRefreshEvent(response);
+    	getMatchesFeedFilterChain.execute(response);
+        FeedMergeStrategyManager.getMergeStrategy(response).merge(response, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(response);
     }
+    
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext) {
-        ResponseBuilder builder = Response.ok().entity(requestContext.getLegacyMatchDataFeedDto());
-        builder.status(Status.OK);
-        return builder;
+        LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
+        if (wrapper != null) {
+            ResponseBuilder builder = Response.ok().entity(wrapper.getLegacyMatchDataFeedDto());
+            builder.status(Status.OK);
+            return builder;
+        } else {
+            ResponseBuilder builder = Response.serverError().status(Status.INTERNAL_SERVER_ERROR);
+            return builder;
+        }
     }
+
 
     private Func2<MatchFeedRequestContext, Set<MatchDataFeedItemDto>, MatchFeedRequestContext> populateMatchesFeed = (
             request, matchesFed) -> {
@@ -122,9 +132,39 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
-    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDto, MatchFeedRequestContext> populateLegacyMatchesFeed = (
-            request, legacyMatchDataFeed) -> {
-        request.setLegacyMatchDataFeedDto(legacyMatchDataFeed);
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
+            request, legacyMatchDataFeedDtoWrapper) -> {
+
+        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
+
+        switch(request.getMatchFeedQueryContext().getVoldyState()){
+        case ENABLED:
+        	
+        	request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        	break;
+        case EMPTY:
+        	
+        	LegacyMatchDataFeedDtoWrapper empty = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
+        	empty.setFeedAvailable(true);
+        	empty.setLegacyMatchDataFeedDto(new LegacyMatchDataFeedDto());
+        	request.setLegacyMatchDataFeedDtoWrapper(empty);
+        	break;
+        	
+        case DISABLED:
+        	
+        	LegacyMatchDataFeedDtoWrapper disabled = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
+        	disabled.setFeedAvailable(false);
+        	disabled.setLegacyMatchDataFeedDto(null);
+        	disabled.setError(new Exception("Voldy flag set to DISABLED in request."));
+        	request.setLegacyMatchDataFeedDtoWrapper(disabled);
+
+        	break;
+        	
+        default:
+            request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+
+        }
+        
         return request;
     };
 

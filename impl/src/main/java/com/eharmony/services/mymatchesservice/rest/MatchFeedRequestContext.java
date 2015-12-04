@@ -5,28 +5,29 @@ import java.util.Set;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.google.common.base.Preconditions;
 
 public class MatchFeedRequestContext {
 
-    private LegacyMatchDataFeedDto legacyMatchDataFeedDto;
+    private LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper;
     private Set<MatchDataFeedItemDto> newStoreFeed;
     private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
+    private boolean isFallbackRequest;
 
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
     }
 
-    public LegacyMatchDataFeedDto getLegacyMatchDataFeedDto() {
-        return legacyMatchDataFeedDto;
+    public boolean isFallbackRequest() {
+        return isFallbackRequest;
     }
 
-    public void setLegacyMatchDataFeedDto(LegacyMatchDataFeedDto legacyMatchDataFeedDto) {
-        this.legacyMatchDataFeedDto = legacyMatchDataFeedDto;
+    public void setFallbackRequest(boolean isFallbackRequest) {
+        this.isFallbackRequest = isFallbackRequest;
     }
-
     public Set<MatchDataFeedItemDto> getNewStoreFeed() {
         return newStoreFeed;
     }
@@ -49,6 +50,21 @@ public class MatchFeedRequestContext {
 
     public long getUserId() {
         return this.matchFeedQueryContext.getUserId();
+    }
+
+    public LegacyMatchDataFeedDtoWrapper getLegacyMatchDataFeedDtoWrapper() {
+        return legacyMatchDataFeedDtoWrapper;
+    }
+
+    public void setLegacyMatchDataFeedDtoWrapper(LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper) {
+        this.legacyMatchDataFeedDtoWrapper = legacyMatchDataFeedDtoWrapper;
+    }
+
+    public LegacyMatchDataFeedDto getLegacyMatchDataFeedDto() {
+        if (legacyMatchDataFeedDtoWrapper != null) {
+            return legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto();
+        }
+        return null;
     }
 
 }

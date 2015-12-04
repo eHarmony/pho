@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+
 @Component
 @Path("/v1")
 public class MatchFeedAsyncResource {
@@ -48,24 +50,21 @@ public class MatchFeedAsyncResource {
     public void getMatches(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden,
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
-            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse) {
-
-    	if(locale == null){
-            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-    	}
+            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
+            @QueryParam("voldyState") DataServiceStateEnum voldyState) {
 
     	if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
     	}
 
-    	
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)
-                .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden).build();
+                .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden)
+                .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
         requesthandler.getMatchesFeed(requestContext, asyncResponse);

@@ -10,6 +10,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 public class MatchDeliveredFilterTest {
 
@@ -21,7 +22,9 @@ public class MatchDeliveredFilterTest {
 		// build the filter context...
 		MatchFeedQueryContext qctx = MatchFeedQueryContextBuilder.newInstance().build(); 
 		MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
-		ctx.setLegacyMatchDataFeedDto(feed);
+		LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(qctx.getUserId());
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
+        ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		
 		MatchDeliveredFilter filter = new MatchDeliveredFilter();
 		return filter.processMatchFeed(ctx);

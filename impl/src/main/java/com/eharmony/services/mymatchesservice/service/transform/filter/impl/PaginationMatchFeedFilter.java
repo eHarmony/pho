@@ -33,6 +33,12 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         }
 
         LegacyMatchDataFeedDto feed = context.getLegacyMatchDataFeedDto();
+        if( feed == null){
+            log.debug("LegacyMatchDataFeedDto is null or does not have data, returning without processing. Context={}",
+                    context);
+            return context;      	
+        }
+        
         Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
         if (MapUtils.isEmpty(matches)) {
 
