@@ -40,6 +40,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
+import com.eharmony.singles.common.util.ResourceNotFoundException;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -113,10 +114,16 @@ public class MatchFeedAsyncRequestHandler {
                 FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
         matchQueryRequestObservable.subscribe(response -> {
-            handleFeedResponse(response);
+            boolean feedNotFound = false;
+            try {
+                handleFeedResponse(response);
+            } catch(ResourceNotFoundException e) {
+                feedNotFound = true;
+            }
+            
             long duration = t.stop();
             logger.debug("Match feed created for user {}, duration {}", userId, duration);
-            ResponseBuilder builder = buildResponse(response);
+            ResponseBuilder builder = buildResponse(response, feedNotFound);
             asyncResponse.resume(builder.build());
         }, (throwable) -> {
             long duration = t.stop();
@@ -199,9 +206,19 @@ public class MatchFeedAsyncRequestHandler {
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        throwExceptionIfFeedIsNotAvailable(context);
         getMatchesFeedFilterChain.execute(context);
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(context);
+    }
+    
+    private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
+        if(context.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable()) {
+            //Feed is available, no action required
+            return;
+        }
+        throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
+        
     }
     
 	private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
@@ -240,12 +257,16 @@ public class MatchFeedAsyncRequestHandler {
                 if (CollectionUtils.isNotEmpty(result.getValue())) {
                     return true;
                 }
-        }
+        } 
 
         return false;
     }
 
-    private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext) {
+    private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
+        if(feedNotFound) {
+            ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+            return builder;
+        }
         LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
         if (wrapper != null) {
             ResponseBuilder builder = Response.ok().entity(wrapper.getLegacyMatchDataFeedDto());
