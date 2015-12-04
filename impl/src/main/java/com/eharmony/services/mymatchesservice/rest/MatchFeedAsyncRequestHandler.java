@@ -131,7 +131,7 @@ public class MatchFeedAsyncRequestHandler {
             	
         if(!request.getMatchFeedQueryContext().isDisableVoldemort()){
         	request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
-        }else{
+        } else{
         	logger.warn("Voldemort disabled, not adding legacy feed to context");
         	
         	LegacyMatchDataFeedDtoWrapper empty = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
