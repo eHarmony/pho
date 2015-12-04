@@ -53,6 +53,7 @@ public class MatchFeedAsyncResource {
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
             @QueryParam("voldyState") DataServiceStateEnum voldyState) {
 
+        //TODO remove this check and assume user requesing all matches if this field is empty
     	if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
     	}
