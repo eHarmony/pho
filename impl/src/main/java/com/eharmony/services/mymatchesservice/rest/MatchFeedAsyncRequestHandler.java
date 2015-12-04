@@ -34,6 +34,7 @@ import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
+import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
@@ -79,6 +80,9 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource
     private HBaseStoreFeedService hbaseStoreFeedService;
+    
+    @Resource
+    private HBASEToLegacyFeedTransformer hbaseToLegacyFeedTransformer;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -102,8 +106,9 @@ public class MatchFeedAsyncRequestHandler {
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
                 populateLegacyMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        
         chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
                 FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
@@ -175,7 +180,16 @@ public class MatchFeedAsyncRequestHandler {
             return matchQueryRequestObservable;
         }
 
-        requestedMatchStatusGroups.forEach((k, v) -> {
+        for(Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
+            HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
+            requestContext.setFallbackRequest(isFallbackRequest);
+            requestContext.setFeedMergeType(feedMergeType);
+            requestContext.setMatchStatuses(entry.getValue());
+            requestContext.setMatchStatusGroup(entry.getKey());
+            matchQueryRequestObservable = matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
+                    populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        }
+        /*requestedMatchStatusGroups.forEach((k, v) -> {
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
             requestContext.setFeedMergeType(feedMergeType);
@@ -183,7 +197,7 @@ public class MatchFeedAsyncRequestHandler {
             requestContext.setMatchStatusGroup(k);
             matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
                     populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-        });
+        });*/
         return matchQueryRequestObservable;
     }
 
@@ -191,14 +205,15 @@ public class MatchFeedAsyncRequestHandler {
         refreshEventSender.sendRefreshEvent(context);
         executeFallbackIfRequired(context);
         aggregateHBaseFeedItems(context);
-        // TODO convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
+        // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
+        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
         getMatchesFeedFilterChain.execute(context);
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(context);
     }
-
-    private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
+    
+	private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
         Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsByGroups = context
                 .getHbaseFeedItemsByStatusGroup();
         if (MapUtils.isNotEmpty(feedItemsByGroups)) {

@@ -33,6 +33,11 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy{
     @Override
     public void merge(MatchFeedRequestContext requestContext, UserMatchesHBaseStoreFeedService userMatchesFeedService) {
 
+    	// no need to merge for a fallback request because the hbase feed has already been converted into legacy feed by now.
+    	if(requestContext.isFallbackRequest()) {
+    		return;
+    	}
+    	
         log.info("merging feed for userId {}", requestContext.getUserId());
         LegacyMatchDataFeedDto legacyMatchesFeed = requestContext.getLegacyMatchDataFeedDto();
         Set<MatchDataFeedItemDto> storeMatchesFeed = requestContext.getNewStoreFeed();
