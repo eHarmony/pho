@@ -102,9 +102,8 @@ public class MatchFeedAsyncRequestHandler {
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable
-                .zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
-                        Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
+                populateLegacyMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
         chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
                 FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
@@ -213,12 +212,12 @@ public class MatchFeedAsyncRequestHandler {
 
     private void executeFallbackIfRequired(MatchFeedRequestContext response) {
         if (shouldFallbackToHBase(response)) {
-            //TODO make sure there is no concurent modificaiton - VIJAY
+            // TODO make sure there is no concurent modificaiton - VIJAY
             populateContextWithHBaseMatchesOnVoldeError(response);
         }
     }
 
-    //Unit test please
+    // Unit test please
     private boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
         LegacyMatchDataFeedDtoWrapper legacyFeedWrapper = response.getLegacyMatchDataFeedDtoWrapper();
         if (legacyFeedWrapper != null && legacyFeedWrapper.isFeedAvailable()
