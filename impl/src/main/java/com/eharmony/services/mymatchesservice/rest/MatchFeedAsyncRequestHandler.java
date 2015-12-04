@@ -139,7 +139,7 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
 
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, false);
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, request.isFallbackRequest());
 
         CountDownLatch latch = new CountDownLatch(1);
 
