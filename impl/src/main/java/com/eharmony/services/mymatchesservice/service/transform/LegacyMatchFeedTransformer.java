@@ -68,7 +68,7 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.GENDER, elem.getGender());
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, elem.getStateCode());
-        profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeNullSafe(elem.getBirthdate()));
+        profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
 
         return profile;
@@ -89,9 +89,9 @@ public class LegacyMatchFeedTransformer {
     	
     	// pulled from matchElement
         match.put(MatchFeedModel.MATCH.ARCHIVE_STATUS, matchElem.getArchiveStatus());
-        match.put(MatchFeedModel.MATCH.CLOSED_DATE, getTimeNullSafe(matchElem.getClosedDate()));
+        match.put(MatchFeedModel.MATCH.CLOSED_DATE, getTimeInMillisNullSafe(matchElem.getClosedDate()));
         match.put(MatchFeedModel.MATCH.CLOSED_STATUS, matchElem.getClosedStatus());
-        match.put(MatchFeedModel.MATCH.DELIVERED_DATE, getTimeNullSafe(matchElem.getDeliveredDate()));
+        match.put(MatchFeedModel.MATCH.DELIVERED_DATE, getTimeInMillisNullSafe(matchElem.getDeliveredDate()));
         match.put(MatchFeedModel.MATCH.DISTANCE, matchElem.getDistance());
         match.put(MatchFeedModel.MATCH.MATCHEDUSERID, matchElem.getMatchedUserId());
         match.put(MatchFeedModel.MATCH.ID, matchElem.getMatchId());
@@ -102,18 +102,18 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
 
         // pulled from commElement
-        match.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, getTimeNullSafe(commElem.getChooseMhcsDate()));
+        match.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, getTimeInMillisNullSafe(commElem.getChooseMhcsDate()));
         match.put(MatchFeedModel.MATCH.COMM_LAST_SENT, commElem.getCommLastSent());
         match.put(MatchFeedModel.MATCH.DISPLAY_TAB, commElem.getDisplayTab());
         match.put(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, commElem.getFastTrackAvailable());
         match.put(MatchFeedModel.MATCH.FAST_TRACK_STAGE, commElem.getFastTrackStage());
         match.put(MatchFeedModel.MATCH.FAST_TRACK_STATUS, commElem.getFastTrackStatus());
         match.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, commElem.getIcebreakerStatus());      
-        match.put(MatchFeedModel.MATCH.LAST_NUDGE_DATE, getTimeNullSafe(commElem.getLastNudgeDate()));
+        match.put(MatchFeedModel.MATCH.LAST_NUDGE_DATE, getTimeInMillisNullSafe(commElem.getLastNudgeDate()));
         match.put(MatchFeedModel.MATCH.STAGE, commElem.getStage());
-        match.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, getTimeNullSafe(commElem.getCommStartedDate()));
+        match.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, getTimeInMillisNullSafe(commElem.getCommStartedDate()));
         match.put(MatchFeedModel.MATCH.NUDGE_STATUS, commElem.getNudgeStatus());
-        match.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, getTimeNullSafe(commElem.getReadDetailsDate()));
+        match.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, getTimeInMillisNullSafe(commElem.getReadDetailsDate()));
         match.put(MatchFeedModel.MATCH.TURN_OWNER, commElem.getTurnOwner());
         match.put(MatchFeedModel.MATCH.INITIALIZER, commElem.getInitializer());
         match.put(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB, commElem.getDisplayTab());
@@ -143,7 +143,7 @@ public class LegacyMatchFeedTransformer {
 		return true;
 	}
 
-	private static Long getTimeNullSafe(Date date){
+	private static Long getTimeInMillisNullSafe(Date date){
     	if(date == null){
     		return null;
     	}

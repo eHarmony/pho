@@ -140,7 +140,7 @@ public class MatchFeedAsyncRequestHandler {
         case EMPTY:
         	
         	LegacyMatchDataFeedDtoWrapper empty = new LegacyMatchDataFeedDtoWrapper(request.getUserId());
-        	empty.setFeedAvailable(true);
+        	empty.setFeedAvailable(false);
         	empty.setLegacyMatchDataFeedDto(new LegacyMatchDataFeedDto());
         	request.setLegacyMatchDataFeedDtoWrapper(empty);
         	break;
