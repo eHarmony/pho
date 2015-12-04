@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -66,6 +67,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
             populateRequestWithQueryParams(request, requestQuery);
             Set<MatchDataFeedItemDto> matchdataFeed = queryRepository.getMatchDataFeed(requestQuery);
+            printResults(matchdataFeed);
             response.setHbaseStoreFeedItems(matchdataFeed);
             if (CollectionUtils.isNotEmpty(matchdataFeed)) {
                 response.setDataAvailable(true);
@@ -78,6 +80,14 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             t.stop();
         }
         return response;
+    }
+    
+    private void printResults(Set<MatchDataFeedItemDto> matchdataFeed ) {
+        if(CollectionUtils.isNotEmpty(matchdataFeed)) {
+            for(MatchDataFeedItemDto feedItem: matchdataFeed) {
+                Log.info("DeliveryDate {}", feedItem.getMatch().getDeliveredDate());
+            }
+        }
     }
 
     private void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,

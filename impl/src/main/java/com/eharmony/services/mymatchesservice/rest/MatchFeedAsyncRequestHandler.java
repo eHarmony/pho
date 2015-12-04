@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 import javax.ws.rs.container.AsyncResponse;
@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import rx.Observable;
@@ -84,6 +85,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private HBASEToLegacyFeedTransformer hbaseToLegacyFeedTransformer;
+    
+    @Value("${hbase.fallback.call.timeout:120000}")
+    private int hbaseCallbackTimeout;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -148,28 +152,19 @@ public class MatchFeedAsyncRequestHandler {
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, request.isFallbackRequest());
 
-        CountDownLatch latch = new CountDownLatch(1);
-
         matchQueryRequestObservable.subscribe(response -> {
             long duration = t.stop();
             logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, duration);
-            latch.countDown();
         }, (throwable) -> {
             long duration = t.stop();
             logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId, duration,
                     throwable);
-            latch.countDown();
         }, () -> {
             logger.info("Why are we here? when try to get feed for user {}", userId);
-            latch.countDown();
         });
-
-        try {
-            latch.wait(30000);
-        } catch (Exception ex) {
-            logger.warn("Exception while waiting for results from HBase fallback request for user {}", userId, ex);
-        }
-
+        matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
+        logger.debug("Returning the context after hbase fallback call...");
+        
     }
 
     private Observable<MatchFeedRequestContext> chainHBaseFeedRequestsByStatus(
