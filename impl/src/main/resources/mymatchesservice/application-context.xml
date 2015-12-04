@@ -78,6 +78,19 @@
 	<context:annotation-config />
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
 
+
+	<!-- events section -->
+	<bean id="eventSender" class="com.eharmony.event.jersey.AsyncJerseyClientEventSender">
+      <constructor-arg index="0" value="${event.server.url}"/>
+      <constructor-arg index="1" ref="eventSenderClient"/>
+    </bean>
+    
+    <bean id="eventSenderClient" class="com.eharmony.protorest.RestClientImpl">
+      <constructor-arg index="0" value="${events.client.max.connections}"/>
+      <constructor-arg index="1" value="${events.client.connect.timeout}"/>
+      <constructor-arg index="2" value="${events.client.read.timeout}"/>
+      <constructor-arg index="3" value="${events.client.onlyUseJson}"/>
+   </bean>
 	
 
 	<!-- **************** JSON SECTION ****************** -->

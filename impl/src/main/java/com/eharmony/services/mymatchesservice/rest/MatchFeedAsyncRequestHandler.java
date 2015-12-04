@@ -18,15 +18,16 @@ import rx.schedulers.Schedulers;
 
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedStore;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -58,6 +59,9 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource(name = "getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
+    
+    @Resource
+    private RefreshEventSender refreshEventSender;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -103,7 +107,8 @@ public class MatchFeedAsyncRequestHandler {
     }
 
     private void handleFeedResponse(MatchFeedRequestContext response) {
-        getMatchesFeedFilterChain.execute(response);
+    	refreshEventSender.sendRefreshEvent(response);
+    	getMatchesFeedFilterChain.execute(response);
         FeedMergeStrategyManager.getMergeStrategy(response).merge(response, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(response);
     }

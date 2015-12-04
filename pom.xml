@@ -57,6 +57,7 @@
 		<c3p0.version>0.9.1.2</c3p0.version>
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>
+		<event.library.version>2.2.1</event.library.version>
 	</properties>
 
 	<dependencyManagement>
@@ -399,6 +400,19 @@
 				<version>${cglib.version}</version>
 			</dependency>
 
+
+			<dependency>
+	            <groupId>com.eharmony.event</groupId>
+	            <artifactId>event-library</artifactId>
+	            <version>${event.library.version}</version>
+	           	<exclusions>
+	              	<exclusion>
+	                	<groupId>org.slf4j</groupId>
+	                	<artifactId>slf4j-log4j12</artifactId>
+	              	</exclusion>
+	           	</exclusions>
+        	</dependency>
+        	
 		</dependencies>
 	</dependencyManagement>
 
