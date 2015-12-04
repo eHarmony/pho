@@ -102,8 +102,9 @@ public class MatchFeedAsyncRequestHandler {
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
                 populateLegacyMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        
         chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
                 FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
@@ -175,7 +176,16 @@ public class MatchFeedAsyncRequestHandler {
             return matchQueryRequestObservable;
         }
 
-        requestedMatchStatusGroups.forEach((k, v) -> {
+        for(Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
+            HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
+            requestContext.setFallbackRequest(isFallbackRequest);
+            requestContext.setFeedMergeType(feedMergeType);
+            requestContext.setMatchStatuses(entry.getValue());
+            requestContext.setMatchStatusGroup(entry.getKey());
+            matchQueryRequestObservable = matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
+                    populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        }
+        /*requestedMatchStatusGroups.forEach((k, v) -> {
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
             requestContext.setFeedMergeType(feedMergeType);
@@ -183,7 +193,7 @@ public class MatchFeedAsyncRequestHandler {
             requestContext.setMatchStatusGroup(k);
             matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
                     populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-        });
+        });*/
         return matchQueryRequestObservable;
     }
 
