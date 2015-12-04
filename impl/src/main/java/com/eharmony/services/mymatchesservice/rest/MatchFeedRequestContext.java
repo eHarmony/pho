@@ -14,12 +14,20 @@ public class MatchFeedRequestContext {
     private Set<MatchDataFeedItemDto> newStoreFeed;
     private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
+    private boolean isFallbackRequest;
 
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
     }
 
+    public boolean isFallbackRequest() {
+        return isFallbackRequest;
+    }
+
+    public void setFallbackRequest(boolean isFallbackRequest) {
+        this.isFallbackRequest = isFallbackRequest;
+    }
     public Set<MatchDataFeedItemDto> getNewStoreFeed() {
         return newStoreFeed;
     }
