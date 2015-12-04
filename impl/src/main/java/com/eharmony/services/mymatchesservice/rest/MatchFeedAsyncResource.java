@@ -29,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -53,10 +54,14 @@ public class MatchFeedAsyncResource {
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
             @QueryParam("voldyState") DataServiceStateEnum voldyState) {
 
-        //TODO remove this check and assume user requesing all matches if this field is empty
+        //TODO remove this check and assume user requesting all matches if this field is empty
     	if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
     	}
+    	
+    	if(StringUtils.isEmpty(locale)){
+            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+        }
 
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
