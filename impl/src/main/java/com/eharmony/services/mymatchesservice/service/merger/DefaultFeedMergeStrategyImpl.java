@@ -54,6 +54,7 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy{
             // TODO: null is ugly, clean up.
            
             requestContext.setFeedMergeType(null);
+            requestContext.setFallbackRequest(true);
             userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(requestContext)
             	.subscribe(response -> {
             		
