@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
+import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
@@ -31,8 +31,13 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy{
     private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
     
     @Override
-    public void merge(MatchFeedRequestContext requestContext, UserMatchesFeedService userMatchesFeedService) {
+    public void merge(MatchFeedRequestContext requestContext, UserMatchesHBaseStoreFeedService userMatchesFeedService) {
 
+    	// no need to merge for a fallback request because the hbase feed has already been converted into legacy feed by now.
+    	if(requestContext.isFallbackRequest()) {
+    		return;
+    	}
+    	
         log.info("merging feed for userId {}", requestContext.getUserId());
         LegacyMatchDataFeedDto legacyMatchesFeed = requestContext.getLegacyMatchDataFeedDto();
         Set<MatchDataFeedItemDto> storeMatchesFeed = requestContext.getNewStoreFeed();

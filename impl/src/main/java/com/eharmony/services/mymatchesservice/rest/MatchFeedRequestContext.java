@@ -1,11 +1,16 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
+import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.base.Preconditions;
 
 public class MatchFeedRequestContext {
@@ -15,12 +20,38 @@ public class MatchFeedRequestContext {
     private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
     private boolean isFallbackRequest;
+    private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
 
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
     }
+    
+    public MatchFeedRequestContext(final MatchFeedRequestContext matchFeedRequestContext) {
+        Preconditions.checkNotNull(matchFeedRequestContext, "matchFeedRequestContext must not be null");
+        this.matchFeedQueryContext = matchFeedRequestContext.getMatchFeedQueryContext();
+        this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
+        this.newStoreFeed = matchFeedRequestContext.getNewStoreFeed();
+        this.feedMergeType = matchFeedRequestContext.getFeedMergeType();
+        this.isFallbackRequest = matchFeedRequestContext.isFallbackRequest();
+    }
 
+    public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
+        return hbaseFeedItemsByStatusGroup;
+    }
+
+    public void setHbaseFeedItemsByStatusGroup(
+            Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup) {
+        this.hbaseFeedItemsByStatusGroup = hbaseFeedItemsByStatusGroup;
+    }
+    
+    public void putFeedItemsInMapByStatusGroup(MatchStatusGroupEnum statusGroup, Set<MatchDataFeedItemDto> feedItems) {
+        
+        if(CollectionUtils.isNotEmpty(feedItems)) {
+            hbaseFeedItemsByStatusGroup.put(statusGroup, feedItems);
+        }
+    }
+    
     public boolean isFallbackRequest() {
         return isFallbackRequest;
     }
