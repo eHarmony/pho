@@ -82,10 +82,10 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource
     private HBaseStoreFeedService hbaseStoreFeedService;
-    
+
     @Resource
     private HBASEToLegacyFeedTransformer hbaseToLegacyFeedTransformer;
-    
+
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
 
@@ -111,20 +111,21 @@ public class MatchFeedAsyncRequestHandler {
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(voldemortStore.getMatchesObservableSafe(matchFeedQueryContext),
-                populateLegacyMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-        
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, matchFeedQueryContext,
-                FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                Schedulers.from(executorServiceProvider.getTaskExecutor()));
+
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
+                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
                 handleFeedResponse(response);
-            } catch(ResourceNotFoundException e) {
+            } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
             }
-            
+
             long duration = t.stop();
             logger.debug("Match feed created for user {}, duration {}", userId, duration);
             ResponseBuilder builder = buildResponse(response, feedNotFound);
@@ -134,7 +135,6 @@ public class MatchFeedAsyncRequestHandler {
             logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
             asyncResponse.resume(throwable);
         }, () -> {
-            logger.info("Why are we here? when try to get feed for user {}", userId);
             asyncResponse.resume("");
         });
     }
@@ -150,7 +150,8 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
 
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null, request.isFallbackRequest());
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null,
+                request.isFallbackRequest());
 
         matchQueryRequestObservable.subscribe(response -> {
             long duration = t.stop();
@@ -164,7 +165,7 @@ public class MatchFeedAsyncRequestHandler {
         });
         matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
         logger.debug("Returning the context after hbase fallback call...");
-        
+
     }
 
     private Observable<MatchFeedRequestContext> chainHBaseFeedRequestsByStatus(
@@ -182,14 +183,15 @@ public class MatchFeedAsyncRequestHandler {
             return matchQueryRequestObservable;
         }
 
-        for(Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
+        for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
             requestContext.setFeedMergeType(feedMergeType);
             requestContext.setMatchStatuses(entry.getValue());
             requestContext.setMatchStatusGroup(entry.getKey());
-            matchQueryRequestObservable = matchQueryRequestObservable.zipWith(hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext),
-                    populateHBaseMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+            matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                    hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext), populateHBaseMatchesFeed)
+                    .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
         }
         return matchQueryRequestObservable;
     }
@@ -206,17 +208,17 @@ public class MatchFeedAsyncRequestHandler {
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context, userMatchesFeedService);
         getMatchesFeedEnricherChain.execute(context);
     }
-    
+
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
-        if(context.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable()) {
-            //Feed is available, no action required
+        if (context.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable()) {
+            // Feed is available, no action required
             return;
         }
         throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
-        
+
     }
-    
-	private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
+
+    private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
         Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsByGroups = context
                 .getHbaseFeedItemsByStatusGroup();
         if (MapUtils.isNotEmpty(feedItemsByGroups)) {
@@ -252,13 +254,13 @@ public class MatchFeedAsyncRequestHandler {
                 if (CollectionUtils.isNotEmpty(result.getValue())) {
                     return true;
                 }
-        } 
+        }
 
         return false;
     }
 
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
-        if(feedNotFound) {
+        if (feedNotFound) {
             ResponseBuilder builder = Response.status(Status.NOT_FOUND);
             return builder;
         }

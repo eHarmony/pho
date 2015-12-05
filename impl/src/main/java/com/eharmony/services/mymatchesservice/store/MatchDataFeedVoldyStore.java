@@ -24,7 +24,7 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
     /**
      * Reads matches from Voldemort.
      *
-     * @param queryContext MatchFeedQueryContext
+     * @param queryContext      MatchFeedQueryContext
      *
      * @return LegacyMatchDataFeedDtoWrapper
      */
@@ -58,9 +58,11 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
             // TODO meter?
             feedWrapper.setError(t);
             feedWrapper.setFeedAvailable(false);
+        } finally {
+            long elapsedTime = timerContext.stop();
+            logger.info("Total time to get the feed from voldy for user {} is {} MS", userId, elapsedTime);
         }
-        long elapsedTime = timerContext.stop();
-        logger.info("Total time to get the feed from voldy for user {} is {} MS", userId, elapsedTime);
+
         return feedWrapper;
 
     }

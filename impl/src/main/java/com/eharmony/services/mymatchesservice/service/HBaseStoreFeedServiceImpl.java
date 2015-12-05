@@ -7,7 +7,6 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -60,14 +59,18 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
+        StringBuilder timerNameBuilder = new StringBuilder();
+        timerNameBuilder.append(getClass().getCanonicalName()).append(".getUserMatchesByStatusGroup");
+        if(request.getMatchStatusGroup() != null) {
+            timerNameBuilder.append(".").append(request.getMatchStatusGroup().getName());
+        }
+        
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getUserMatchesByStatusGroup").time();
+                .timer(timerNameBuilder.toString()).time();
         try {
-
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
             populateRequestWithQueryParams(request, requestQuery);
             Set<MatchDataFeedItemDto> matchdataFeed = queryRepository.getMatchDataFeed(requestQuery);
-            printResults(matchdataFeed);
             response.setHbaseStoreFeedItems(matchdataFeed);
             if (CollectionUtils.isNotEmpty(matchdataFeed)) {
                 response.setDataAvailable(true);
@@ -77,19 +80,13 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                     queryContext.getUserId(), request.getMatchStatusGroup(), e);
             response.setError(e);
         } finally {
-            t.stop();
+            long time = t.stop();
+            logger.info("HBase response time {} for user {} and statusgroup {}", time, request.getMatchFeedQueryContext().getUserId(), 
+                    request.getMatchStatusGroup() != null ? request.getMatchStatusGroup().getName() : "NONE");
         }
         return response;
     }
     
-    private void printResults(Set<MatchDataFeedItemDto> matchdataFeed ) {
-        if(CollectionUtils.isNotEmpty(matchdataFeed)) {
-            for(MatchDataFeedItemDto feedItem: matchdataFeed) {
-                Log.info("DeliveryDate {}", feedItem.getMatch().getDeliveredDate());
-            }
-        }
-    }
-
     private void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
         FeedMergeStrategyType strategy = request.getFeedMergeType();
