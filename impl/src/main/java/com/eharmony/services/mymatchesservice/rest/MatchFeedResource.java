@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
-import com.eharmony.services.mymatchesservice.service.UserMatchesFeedService;
+import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
 
 @Component
 @Path("/v1/internal")
@@ -36,7 +36,7 @@ public class MatchFeedResource {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Resource
-    private UserMatchesFeedService userMatchesFeedService;
+    private UserMatchesHBaseStoreFeedService userMatchesFeedService;
 
     @GET
     @Path("/users/{userId}/matches/{matchId}")

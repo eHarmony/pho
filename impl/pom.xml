@@ -29,6 +29,67 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.eharmony.event</groupId>
+			<artifactId>event-library</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons</artifactId>
+					<groupId>com.eharmony.event</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-client</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-server</artifactId>
+					<groupId>com.sun.jersey</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-spring</artifactId>
+					<groupId>com.sun.jersey.contribs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jersey-apache-client4</artifactId>
+					<groupId>com.sun.jersey.contribs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>joda-time</artifactId>
+					<groupId>joda-time</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-httpclient</artifactId>
+					<groupId>commons-httpclient</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-lang</artifactId>
+					<groupId>commons-lang</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-io</artifactId>
+					<groupId>commons-io</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>
+						com.springsource.javax.inject
+					</artifactId>
+					<groupId>javax.inject</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+			
+		<dependency>
 			<groupId>ehcomponents</groupId>
 			<artifactId>framework</artifactId>
 			<version>1.1.13</version>
@@ -323,7 +384,7 @@
         <dependency>
 			<groupId>com.eharmony.matchdata.datastore</groupId>
 			<artifactId>matchdata-datastore-api</artifactId>
-			<version>0.1.8</version>
+			<version>0.1.10</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-beanutils</artifactId>

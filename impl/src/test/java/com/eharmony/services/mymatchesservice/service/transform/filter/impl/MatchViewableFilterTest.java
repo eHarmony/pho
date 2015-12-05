@@ -13,6 +13,7 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.singles.common.enumeration.MatchClosedStatusEnum;
 
 public class MatchViewableFilterTest {
@@ -43,7 +44,9 @@ public class MatchViewableFilterTest {
 		MatchFeedQueryContext qctx = MatchFeedQueryContextBuilder.newInstance()
 										.build(); 
 		MatchFeedRequestContext ctx = new MatchFeedRequestContext(qctx);
-		ctx.setLegacyMatchDataFeedDto(feed);
+		LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(qctx.getUserId());
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
+        ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		
 		// run the filter...
 		MatchViewableFilter filter = new MatchViewableFilter();

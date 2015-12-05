@@ -20,6 +20,11 @@ public abstract class AbstractMatchFeedTransformer implements IMatchFeedTransfor
                       context);
             return context;
         }
+        
+        if(context.getLegacyMatchDataFeedDto() == null){
+        	logger.debug("LegacyMatchDataFeedDto is null, returning without processing. Context={}", context);
+        	return context;
+        }
 
         for (Iterator<Map.Entry<String, Map<String, Map<String, Object>>>> matchIterator =
              context.getLegacyMatchDataFeedDto().getMatches().entrySet().iterator(); matchIterator.hasNext();) {
