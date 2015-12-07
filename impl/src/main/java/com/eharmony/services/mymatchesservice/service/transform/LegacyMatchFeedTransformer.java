@@ -97,7 +97,7 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.ID, matchElem.getMatchId());
         match.put(MatchFeedModel.MATCH.ONE_WAY_STATUS, matchElem.getOneWayStatus());
         match.put(MatchFeedModel.MATCH.RELAXED, deriveRelaxedState(matchElem.getRelaxed()));
-        match.put(MatchFeedModel.MATCH.STATUS,  deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()));
+        match.put(MatchFeedModel.MATCH.STATUS,  deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()).toLowerCase());
         match.put(MatchFeedModel.MATCH.USER_ID, matchElem.getUserId());
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
 
@@ -132,6 +132,9 @@ public class LegacyMatchFeedTransformer {
 
 	    comm.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, elem.getLastCommDate());
 	    comm.put(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, elem.isViewedProfile()); 
+	    
+	    //KDM: not used, but set anyway.
+	    comm.put(MatchFeedModel.COMMUNICATION.NEW_MESSAGE_COUNT, 0);  
     
     	return comm;
 	}

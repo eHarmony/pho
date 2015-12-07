@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.eharmony.services.match-query-service</groupId>
 		<artifactId>match-query-service</artifactId>
-		<version>1.0.8-SNAPSHOT</version>
+		<version>1.0.9-SNAPSHOT</version>
 	</parent>
 	<name>match query service Impl</name>
 	<artifactId>match-query-service-impl</artifactId>
@@ -88,7 +88,35 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-			
+	
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>servlet-api</artifactId>
+					<groupId>javax.servlet</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+        	<groupId>com.eharmony.singles</groupId>
+			<artifactId>singles-business</artifactId>
+			<exclusions>
+			  <exclusion>
+			    <groupId>log4j</groupId>
+			    <artifactId>log4j</artifactId>
+			  </exclusion>
+			  <exclusion>
+			    <groupId>org.slf4j</groupId>
+			    <artifactId>slf4j-log4j12</artifactId>
+			  </exclusion>
+			</exclusions>
+		</dependency>
+				
 		<dependency>
 			<groupId>ehcomponents</groupId>
 			<artifactId>framework</artifactId>
@@ -117,7 +145,7 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
-
+		
 		<dependency>
   		  <groupId>com.eharmony.photos</groupId>
 		  <artifactId>photos-client</artifactId>

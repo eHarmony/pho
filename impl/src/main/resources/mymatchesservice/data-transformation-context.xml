@@ -38,6 +38,17 @@
 		<value>relaxed</value>
 		<value>status</value>
 	</util:set>
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+    	<property name="basename">
+			<value>messages</value>
+		</property>
+	</bean>
+
+	<!-- Used for Comm Next Steps -->
+	<bean id="commDisplayMessageService" class="com.eharmony.singles.common.communication.CommDisplayMessageServiceImpl">
+		<constructor-arg index="0" ref="messageSource"/>
+	</bean>
 
 	<bean id="getMatchesFeedFilterChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
@@ -75,6 +86,11 @@
 					<constructor-arg index="1" ref="matchFieldsWhiteList" />
 					<constructor-arg index="2" value="WHITELIST" />
 				</bean>
+				<bean id="commNextStepEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
+				</bean>
+
+				
 			</util:list>
 		</constructor-arg>
 	</bean>
