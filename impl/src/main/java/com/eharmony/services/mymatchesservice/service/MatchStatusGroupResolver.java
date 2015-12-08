@@ -19,7 +19,6 @@ public class MatchStatusGroupResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchStatusGroupResolver.class);
 
-    //TODO unit test here please -KEVIN
     public Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> buildMatchesStatusGroups(long userId, Set<String> statuses) {
         Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> statusGroups = new HashMap<MatchStatusGroupEnum, Set<MatchStatusEnum>>();
 

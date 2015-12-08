@@ -90,7 +90,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         return response;
     }
 
-    private void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
+    protected void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
         FeedMergeStrategyType strategy = request.getFeedMergeType();
         if (strategy != null && strategy == FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE) {
@@ -122,7 +122,6 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         return DEFAULT_SORT_BY_FIELD;
     }
 
-    //TODO unit test here please -KEVIN
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
         int pageSize = request.getMatchFeedQueryContext().getPageSize();
