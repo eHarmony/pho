@@ -19,107 +19,95 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
-import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
-public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy{
+public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
-    
+
     @Override
     public void merge(MatchFeedRequestContext requestContext, UserMatchesHBaseStoreFeedService userMatchesFeedService) {
 
-    	// no need to merge for a fallback request because the hbase feed has already been converted into legacy feed by now.
-    	if(requestContext.isFallbackRequest()) {
-    		return;
-    	}
-    	
+        // no need to merge for a fallback request because the hbase feed has already been converted into legacy feed.
+        if (requestContext.isFallbackRequest()) {
+            return;
+        }
+
         log.info("merging feed for userId {}", requestContext.getUserId());
         LegacyMatchDataFeedDto legacyMatchesFeed = requestContext.getLegacyMatchDataFeedDto();
         Set<MatchDataFeedItemDto> storeMatchesFeed = requestContext.getNewStoreFeed();
-        
-        if(CollectionUtils.isEmpty(storeMatchesFeed)) {
-            if( legacyMatchesFeed != null && MapUtils.isNotEmpty(legacyMatchesFeed.getMatches())) {
-                log.warn("There are no matches in HBase for user {} and found {} matches in voldy", 
+
+        if (CollectionUtils.isEmpty(storeMatchesFeed)) {
+            if (legacyMatchesFeed != null && MapUtils.isNotEmpty(legacyMatchesFeed.getMatches())) {
+                log.warn("There are no matches in HBase for user {} and found {} matches in voldy",
                         requestContext.getUserId(), legacyMatchesFeed.getMatches().size());
             } else {
                 log.info("no matches found for user {} in both hbase and voldy", requestContext.getUserId());
             }
-            
-        }else if(legacyMatchesFeed == null || MapUtils.isEmpty(legacyMatchesFeed.getMatches())){
-            log.warn("{} Records exist in HBase for user {}, none in voldy. Using FULL HBase record.", 
-                    storeMatchesFeed.size(), requestContext.getUserId());
+        } else if (legacyMatchesFeed != null && MapUtils.isNotEmpty(legacyMatchesFeed.getMatches())) {
+            Map<String, Map<String, Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
+            mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
 
-            // call hbase with no strategy in context, so all fields are returned.
-            // TODO: limit size of hbase response.
-            // TODO: null is ugly, clean up.
-           
-            requestContext.setFeedMergeType(null);
-            requestContext.setFallbackRequest(true);
-            userMatchesFeedService.getUserMatchesFromHBaseStoreSafe(requestContext)
-            	.subscribe(response -> {
-            		
-            		requestContext.setNewStoreFeed(response);
-            		
-            		LegacyMatchDataFeedDto xformLegacyFeed = LegacyMatchFeedTransformer.transform(requestContext);
-                    LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(requestContext.getUserId());
-                    feedWrapper.setFeedAvailable(true);
-                    feedWrapper.setLegacyMatchDataFeedDto(xformLegacyFeed);   
-                    
-                    // Update the request context
-                    requestContext.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
-             });
-                        
-        }else{
-        
-	        Map<String, Map<String,  Map<String, Object>>> matches = legacyMatchesFeed.getMatches();
-	        mergeHBaseProfileIntoMatchFeed(matches, storeMatchesFeed);
-	   }
+        } else {
+            log.error(
+                    "{} Records exist in HBase for user {}, none in voldy. Using FULL HBase record.This path must not be exeucted.",
+                    storeMatchesFeed.size(), requestContext.getUserId());
+        }
     }
-    
-    private void mergeHBaseProfileIntoMatchFeed(Map<String, Map<String,  Map<String, Object>>> matches,
-                                                    Set<MatchDataFeedItemDto> hbaseFeed) {
-        
-        for(MatchDataFeedItemDto hbaseMatch : hbaseFeed) {
-            
-            // find this match in feed...
+
+    private void mergeHBaseProfileIntoMatchFeed(Map<String, Map<String, Map<String, Object>>> matches,
+            Set<MatchDataFeedItemDto> hbaseFeed) {
+
+        for (MatchDataFeedItemDto hbaseMatch : hbaseFeed) {
+
             String matchId = Long.toString(hbaseMatch.getMatch().getMatchId());
-            Map<String,  Map<String, Object>> feedMatch = matches.get(matchId);
-            if(feedMatch == null){
-                
-                log.warn("HBase match {} not found in voldy feed for user {}", matchId, hbaseMatch.getMatch().getUserId());
+            Map<String, Map<String, Object>> feedMatch = matches.get(matchId);
+            if (feedMatch == null) {
+
+                log.info(
+                        "HBase match {} not found in voldy feed for user {} during merge and keeping volde as source of truth",
+                        matchId, hbaseMatch.getMatch().getUserId());
                 continue;
-                // TODO: what does it mean if feed is missing here?
             }
- 
-            
-            // get feed profile
             Map<String, Object> feedProfile = feedMatch.get(PROFILE);
 
             // overwrite feed with HBase values
             MatchProfileElement profile = hbaseMatch.getMatchedUser();
-            if(profile.getGender() > 0) {
-            	feedProfile.put(GENDER, profile.getGender());
+
+            MatchElement matchElement = hbaseMatch.getMatch();
+            long matchedUserId = matchElement.getMatchedUserId();
+            if (profile.getGender() > 0) {
+                feedProfile.put(GENDER, profile.getGender());
+            } else {
+                log.info("Gender must not be null in HBase for user {} and match {}", matchedUserId, matchId);
             }
-            if(profile.getCountry() > 0) {
-            	feedProfile.put(COUNTRY, profile.getCountry());
+            if (profile.getCountry() > 0) {
+                feedProfile.put(COUNTRY, profile.getCountry());
+            } else {
+                log.info("Country must not be null in HBase for user {} and match {}", matchedUserId, matchId);
             }
-            feedProfile.put(USERID, hbaseMatch.getMatch().getMatchedUserId());
-            if(StringUtils.isNotBlank(profile.getCity())) {
+            feedProfile.put(USERID, matchedUserId);
+            if (StringUtils.isNotBlank(profile.getCity())) {
                 feedProfile.put(CITY, profile.getCity());
+            } else {
+                log.info("city must not be blank in HBase for user {} and match {}", matchedUserId, matchId);
             }
-            if(StringUtils.isNotBlank(profile.getFirstName())) {
+            if (StringUtils.isNotBlank(profile.getFirstName())) {
                 feedProfile.put(FIRSTNAME, profile.getFirstName());
+            } else {
+                log.info("firstname must not be blank in HBase for user {} and match {}", matchedUserId, matchId);
             }
-            if(StringUtils.isNotBlank(profile.getStateCode())) {
+            if (StringUtils.isNotBlank(profile.getStateCode())) {
                 feedProfile.put(STATE_CODE, profile.getStateCode());
             }
-            if(profile.getBirthdate() != null) {
+            if (profile.getBirthdate() != null) {
                 feedProfile.put(BIRTHDATE, profile.getBirthdate().getTime());
+            } else {
+                log.info("birthdate must not be null in HBase for user {} and match {}", matchedUserId, matchId);
             }
 
         }

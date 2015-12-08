@@ -19,7 +19,7 @@ public class MatchStatusGroupResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchStatusGroupResolver.class);
 
-    //TODO unit test here please -VIJAY
+    //TODO unit test here please -KEVIN
     public Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> buildMatchesStatusGroups(long userId, Set<String> statuses) {
         Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> statusGroups = new HashMap<MatchStatusGroupEnum, Set<MatchStatusEnum>>();
 
@@ -42,6 +42,7 @@ public class MatchStatusGroupResolver {
                     }
                     newMmatchStuses.add(matchStatus);
                     statusGroups.put(MatchStatusGroupEnum.NEW, newMmatchStuses);
+                    break;
                 case ARCHIVED:
                     Set<MatchStatusEnum> archiveMatchStuses = statusGroups.get(MatchStatusGroupEnum.ARCHIVE);
                     if (CollectionUtils.isEmpty(archiveMatchStuses)) {
@@ -49,6 +50,7 @@ public class MatchStatusGroupResolver {
                     }
                     archiveMatchStuses.add(matchStatus);
                     statusGroups.put(MatchStatusGroupEnum.ARCHIVE, archiveMatchStuses);
+                    break;
                 case OPENCOMM:
                 case MYTURN:
                 case THEIRTURN:
@@ -58,8 +60,10 @@ public class MatchStatusGroupResolver {
                     }
                     commMatchStuses.add(matchStatus);
                     statusGroups.put(MatchStatusGroupEnum.COMMUNICATION, commMatchStuses);
+                    break;
                 case CLOSED:
                     logger.warn("Closed matches are not supported in this system...");
+                    break;
                 }
             }
         }

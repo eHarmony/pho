@@ -99,6 +99,7 @@ public class RefreshEventSender {
         if (matchesFeedContext.getLegacyMatchDataFeedDtoWrapper() == null) {
             return false;
         }
+        //TODO check for error - VIJAY
         return matchesFeedContext.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable();
     }
 
