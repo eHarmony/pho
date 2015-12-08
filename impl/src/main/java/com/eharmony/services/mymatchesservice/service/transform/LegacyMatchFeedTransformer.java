@@ -97,7 +97,7 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.ID, matchElem.getMatchId());
         match.put(MatchFeedModel.MATCH.ONE_WAY_STATUS, matchElem.getOneWayStatus());
         match.put(MatchFeedModel.MATCH.RELAXED, deriveRelaxedState(matchElem.getRelaxed()));
-        match.put(MatchFeedModel.MATCH.STATUS,  deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()).toLowerCase());
+        match.put(MatchFeedModel.MATCH.STATUS,  deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()));
         match.put(MatchFeedModel.MATCH.USER_ID, matchElem.getUserId());
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
 
@@ -162,7 +162,7 @@ public class LegacyMatchFeedTransformer {
 			return "";
 		}
 		
-		return ms.getName();
+		return ms.getName().toLowerCase();
 	}
 
 }
