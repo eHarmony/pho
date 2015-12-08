@@ -132,6 +132,9 @@ public class LegacyMatchFeedTransformer {
 
 	    comm.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, elem.getLastCommDate());
 	    comm.put(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, elem.isViewedProfile()); 
+	    
+	    //KDM: not used, but set anyway.
+	    comm.put(MatchFeedModel.COMMUNICATION.NEW_MESSAGE_COUNT, 0);  
     
     	return comm;
 	}
@@ -159,7 +162,7 @@ public class LegacyMatchFeedTransformer {
 			return "";
 		}
 		
-		return ms.getName();
+		return ms.getName().toLowerCase();
 	}
 
 }

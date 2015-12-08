@@ -8,11 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 
-public abstract class AbstractMatchFeedTransformer implements IMatchFeedTransformer {
+public abstract class AbstractMatchFeedSectionTransformer implements IMatchFeedTransformer{
 	
-	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedTransformer.class);
+	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedSectionTransformer.class);
 
-	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
 
         if (context == null) {
@@ -30,8 +29,9 @@ public abstract class AbstractMatchFeedTransformer implements IMatchFeedTransfor
              context.getLegacyMatchDataFeedDto().getMatches().entrySet().iterator(); matchIterator.hasNext();) {
 
             Map<String, Map<String, Object>> matchInfo = matchIterator.next().getValue();
+            Map<String, Object> section = matchInfo.get(getMatchSectionName());
 
-            if (!processMatch(matchInfo, context)) {
+            if (!processMatchSection(section, context)) {
 
                 // remove the current matchInfo from the iterator, continue with the next matchInfo
             	matchIterator.remove();
@@ -43,17 +43,23 @@ public abstract class AbstractMatchFeedTransformer implements IMatchFeedTransfor
         return context;
 	}
 	
+	/**
+	 * Get name of match section to process. See MatchFeedModel.SECTIONS.
+	 * 
+	 * @return String
+	 */
+	protected abstract String getMatchSectionName();
 
     /**
      * Run filter on a matchInfo object. If the method
      * returns false, the object is removed from the feed.
      *
-     * @param   match  match info object
+     * @param   matchSection  match info object
      * @param   context    MatchFeedRequestContext
      *
      * @return  true if the transformation is successful, false otherwise
      */
-    protected abstract boolean processMatch( Map<String, Map<String, Object>> match,
+    protected abstract boolean processMatchSection( Map<String, Object> matchSection,
     											MatchFeedRequestContext context);
 
 }

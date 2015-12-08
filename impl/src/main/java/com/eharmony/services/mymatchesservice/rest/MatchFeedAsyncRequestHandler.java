@@ -239,7 +239,7 @@ public class MatchFeedAsyncRequestHandler {
     }
 
     // Unit test please
-    private boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
+    protected boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
         LegacyMatchDataFeedDtoWrapper legacyFeedWrapper = response.getLegacyMatchDataFeedDtoWrapper();
         if (legacyFeedWrapper != null && legacyFeedWrapper.isFeedAvailable()
                 && legacyFeedWrapper.getLegacyMatchDataFeedDto() != null

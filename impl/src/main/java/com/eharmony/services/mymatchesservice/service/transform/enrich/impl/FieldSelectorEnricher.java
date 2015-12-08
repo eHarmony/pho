@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedSectionTransformer;
 
 
-public class FieldSelectorEnricher extends AbstractMatchFeedTransformer {
+public class FieldSelectorEnricher extends AbstractMatchFeedSectionTransformer {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FieldSelectorEnricher.class);
 	
