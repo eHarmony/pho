@@ -116,7 +116,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             return DEFAULT_SORT_BY_FIELD;
         }
         if (matchStatusGroup.equals(MatchStatusGroupEnum.COMMUNICATION)) {
-            return COMM_SORT_BY_FIELD;
+            //return COMM_SORT_BY_FIELD;
+        	//TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
+        	return DEFAULT_SORT_BY_FIELD;
         }
 
         return DEFAULT_SORT_BY_FIELD;
