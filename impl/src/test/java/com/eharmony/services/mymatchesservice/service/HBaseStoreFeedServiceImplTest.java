@@ -30,6 +30,8 @@ public class HBaseStoreFeedServiceImplTest {
 		
 		HBaseStoreFeedServiceImpl hbaseStore = new HBaseStoreFeedServiceImpl();
 		hbaseStore.populateRequestWithQueryParams(request, requestQuery);
-
+		
+		assertEquals(2, requestQuery.getStartPage());
+		assertEquals(5, requestQuery.getPageSize());
 	}
 }
