@@ -1,15 +1,19 @@
 package com.eharmony.services.mymatchesservice.store;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.store.impl.JsonDataStore;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+
+import rx.Observable;
 
 /**
  * Repository class to fetch the data from voldemort store
@@ -20,6 +24,13 @@ import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum
 public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDto> {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchDataFeedVoldyStore.class);
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    
+    private static final String METRICS_HIERARCHY_PREFIX = MatchDataFeedVoldyStore.class.getCanonicalName();
+    
+    private static final String METRICS_GET_VOLDY_SAFE = "getMatchesFromVoldySafe";
 
     /**
      * Reads matches from Voldemort.
@@ -39,14 +50,16 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
             logger.warn("Recieved the mock volde feed request for user {}, please verify this is intended?", userId);
             return feedWrapper;
         }
-        Timer.Context timerContext = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFromVoldySafe").time();
+        Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_VOLDY_SAFE);
+        Histogram matchHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX, METRICS_GET_VOLDY_SAFE);
         feedWrapper = new LegacyMatchDataFeedDtoWrapper(userId);
 
         try {
             LegacyMatchDataFeedDto feed = fetchValue(String.valueOf(userId));
             if (feed != null) {
-                logger.debug("found {} matches in Voldemort for user {}", feed.getMatches().size(), userId);
+				int matchNumber = (feed.getMatches() == null) ? 0 : feed.getMatches().size();
+                logger.debug("found {} matches in Voldemort for user {}", matchNumber, userId);
+                matchHistogram.update(matchNumber);
                 feedWrapper.setFeedAvailable(true);
                 feedWrapper.setLegacyMatchDataFeedDto(feed);
             } else {
