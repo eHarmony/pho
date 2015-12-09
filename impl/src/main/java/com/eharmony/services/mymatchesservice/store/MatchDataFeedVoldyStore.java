@@ -32,6 +32,7 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
 
         long userId = queryContext.getUserId();
         logger.debug("Getting feed from Voldy for user {}", userId);
+        long startTime = System.currentTimeMillis();
 
         LegacyMatchDataFeedDtoWrapper feedWrapper = buildWrapperForMockRequest(queryContext);
         // Return the feed if the request is mock request
@@ -59,8 +60,9 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
             feedWrapper.setError(t);
             feedWrapper.setFeedAvailable(false);
         } finally {
-            long elapsedTime = timerContext.stop();
-            logger.info("Total time to get the feed from voldy for user {} is {} MS", userId, elapsedTime);
+            timerContext.stop();
+            long endTime = System.currentTimeMillis();
+            logger.info("Total time to get the feed from voldy for user {} is {} MS", userId, (endTime - startTime));
         }
 
         return feedWrapper;

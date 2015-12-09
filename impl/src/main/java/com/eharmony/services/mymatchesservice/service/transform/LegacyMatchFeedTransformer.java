@@ -66,7 +66,6 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.COUNTRY, elem.getCountry());
         profile.put(MatchFeedModel.PROFILE.FIRSTNAME, elem.getFirstName());
         profile.put(MatchFeedModel.PROFILE.GENDER, elem.getGender());
-        profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, elem.getStateCode());
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
