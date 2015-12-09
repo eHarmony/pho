@@ -14,14 +14,17 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.Histogram;
+
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
-import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
+
 
 @Component
 public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
@@ -36,12 +39,17 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
     @Resource
     private MatchFeedLimitsByStatusConfiguration matchFeedLimitsByStatusConfiguration;
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
     private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     //HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
+    private static final String METRICS_HIERARCHY_PREFIX = HBaseStoreFeedServiceImpl.class.getCanonicalName();
+    private static final String METRICS_GETBYSTATUS_METHOD = "getUserMatchesByStatusGroup";
     @Override
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request) {
         Observable<HBaseStoreFeedResponse> hbaseStoreFeedResponse = Observable.defer(() -> Observable
@@ -60,14 +68,14 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
-        StringBuilder timerNameBuilder = new StringBuilder();
-        timerNameBuilder.append(getClass().getCanonicalName()).append(".getUserMatchesByStatusGroup");
-        if (request.getMatchStatusGroup() != null) {
-            timerNameBuilder.append(".").append(request.getMatchStatusGroup().getName());
-        }
+        MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
         long startTime = System.currentTimeMillis();
-
-        Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(timerNameBuilder.toString()).time();
+        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, 
+                                                                              METRICS_GETBYSTATUS_METHOD, 
+                                                                              matchStatusGroup);
+        Histogram metricsHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX,
+                                                                             METRICS_GETBYSTATUS_METHOD,
+                                                                             matchStatusGroup);
         try {
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
             populateRequestWithQueryParams(request, requestQuery);
@@ -75,17 +83,18 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             response.setHbaseStoreFeedItems(matchdataFeed);
             if (CollectionUtils.isNotEmpty(matchdataFeed)) {
                 response.setDataAvailable(true);
+                metricsHistogram.update(matchdataFeed.size());
             }
         } catch (Throwable e) {
             logger.warn("Exception while fetching the matches from HBase store for user {} and group {}",
                     queryContext.getUserId(), request.getMatchStatusGroup(), e);
             response.setError(e);
         } finally {
-            t.stop();
+            metricsTimer.stop();
             long endTime = System.currentTimeMillis();
             logger.info("HBase response time {} for user {} and statusgroup {}", (endTime - startTime), request
-                    .getMatchFeedQueryContext().getUserId(), request.getMatchStatusGroup() != null ? request
-                    .getMatchStatusGroup().getName() : "NONE");
+                           .getMatchFeedQueryContext().getUserId(), request.getMatchStatusGroup() != null ? request
+                           .getMatchStatusGroup().getName() : "NONE");
         }
         return response;
     }
