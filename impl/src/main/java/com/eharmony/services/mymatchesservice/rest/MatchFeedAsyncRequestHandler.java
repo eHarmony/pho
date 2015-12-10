@@ -157,19 +157,17 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null,
                 request.isFallbackRequest());
 
-        matchQueryRequestObservable.subscribe(response -> {
+        try {
+            matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
+        } catch (Throwable ex) {
+            long endTime = System.currentTimeMillis();
+            logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
+                    (endTime - startTime), ex);
+        } finally {
             t.stop();
             long endTime = System.currentTimeMillis();
             logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, (endTime - startTime));
-        }, (throwable) -> {
-            t.stop();
-            long endTime = System.currentTimeMillis();
-            logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
-                    (endTime - startTime), throwable);
-        }, () -> {
-            logger.debug("Why are we here? when try to get feed for user {}", userId);
-        });
-        matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
+        }
         logger.debug("Returning the context after hbase fallback call...");
 
     }
@@ -190,7 +188,8 @@ public class MatchFeedAsyncRequestHandler {
         }
 
         for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
-            Log.info("create observable to fetch matches for group {} and user {}", entry.getKey(), matchFeedQueryContext.getUserId());
+            logger.info("create observable to fetch matches for group {} and user {}", entry.getKey(),
+                    matchFeedQueryContext.getUserId());
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
             requestContext.setFeedMergeType(feedMergeType);
@@ -216,7 +215,8 @@ public class MatchFeedAsyncRequestHandler {
     }
 
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
-        if (context.getLegacyMatchDataFeedDtoWrapper() != null && context.getLegacyMatchDataFeedDtoWrapper().getVoldyMatchesCount() > 0) {
+        if (context.getLegacyMatchDataFeedDtoWrapper() != null
+                && context.getLegacyMatchDataFeedDtoWrapper().getVoldyMatchesCount() > 0) {
             // Feed is available, no action required
             return;
         }
@@ -238,18 +238,16 @@ public class MatchFeedAsyncRequestHandler {
     protected boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
         LegacyMatchDataFeedDtoWrapper legacyFeedWrapper = response.getLegacyMatchDataFeedDtoWrapper();
         if (legacyFeedWrapper == null) {
-            logger.warn("legacyFeedWrapper must not be null for user {}",
-                    response.getUserId());
-            if(response.hasHbaseMatches()) {
-                logger.warn("legacyFeedWrapper is null for user {} and falling back to hbase",
-                        response.getUserId());
+            logger.warn("legacyFeedWrapper must not be null for user {}", response.getUserId());
+            if (response.hasHbaseMatches()) {
+                logger.warn("legacyFeedWrapper is null for user {} and falling back to hbase", response.getUserId());
                 return true;
             }
-            
+
             return false;
         }
-        if (legacyFeedWrapper.getLegacyMatchDataFeedDto() != null && 
-                MapUtils.isNotEmpty(legacyFeedWrapper.getLegacyMatchDataFeedDto().getMatches())) {
+        if (legacyFeedWrapper.getLegacyMatchDataFeedDto() != null
+                && MapUtils.isNotEmpty(legacyFeedWrapper.getLegacyMatchDataFeedDto().getMatches())) {
             return false;
         }
 
