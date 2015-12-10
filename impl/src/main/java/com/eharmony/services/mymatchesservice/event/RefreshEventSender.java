@@ -21,8 +21,10 @@ public class RefreshEventSender {
 
     private static final String LOCALE = "locale";
     private static final String USER_ID = "userId";
-
-    public static final String USER_FEED_REFRESH_EVENT = "user.match.feed.refresh";
+    
+    @Value("${hbase.feed.refresh.event.name:user.match.feed.refresh.new}" )
+    public String USER_FEED_REFRESH_EVENT;
+    
     public static final String OLD_USER_FEED_REFRESH_EVENT = "user.match.refresh.command.send";
     public static final String PRODUCER = "MQS";
 
@@ -36,6 +38,10 @@ public class RefreshEventSender {
     private boolean sendRefreshEvent;
 
     private Logger log = LoggerFactory.getLogger(RefreshEventSender.class);
+    
+    public void setEventSender(EventSender sender){
+    	this.eventSender = sender;
+    }
 
     public void sendRefreshEvent(MatchFeedRequestContext matchesFeedContext) {
 
