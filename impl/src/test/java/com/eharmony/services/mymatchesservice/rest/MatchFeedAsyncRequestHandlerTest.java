@@ -208,10 +208,10 @@ public class MatchFeedAsyncRequestHandlerTest {
 		feedSet.add(new MatchDataFeedItemDto());
 		feedsByStatusGroup.put(MatchStatusGroupEnum.NEW, feedSet);
 		
-		long matchId = 11790420914L;
+		//long matchId = 11790420914L;
 		LegacyMatchDataFeedDto legacy = new LegacyMatchDataFeedDto();
 		Map<String, Map<String, Map<String, Object>>> matches = new HashMap<>();
-		matches.put(String.valueOf(matchId), new HashMap<String, Map<String, Object>>());
+		//matches.put(String.valueOf(matchId), new HashMap<String, Map<String, Object>>());
 		legacy.setMatches(matches);
 		
 		long userId = 62837673;

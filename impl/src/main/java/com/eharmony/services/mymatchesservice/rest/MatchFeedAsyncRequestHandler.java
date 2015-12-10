@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -121,6 +122,7 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
+                // aggregateHBaseFeedItems(response);
                 handleFeedResponse(response);
             } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
@@ -143,9 +145,11 @@ public class MatchFeedAsyncRequestHandler {
 
         Timer.Context t = GraphiteReportingConfiguration.getRegistry()
                 .timer(getClass().getCanonicalName() + ".getMatchesFromHBaseOnVoldeError").time();
+        long startTime = System.currentTimeMillis();
+        // Should we use meter
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         long userId = queryContext.getUserId();
-        request.setFallbackRequest(request.isFallbackRequest());
+        request.setFallbackRequest(true);
         request.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_ONLY);
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
@@ -154,14 +158,16 @@ public class MatchFeedAsyncRequestHandler {
                 request.isFallbackRequest());
 
         matchQueryRequestObservable.subscribe(response -> {
-            long duration = t.stop();
-            logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, duration);
+            t.stop();
+            long endTime = System.currentTimeMillis();
+            logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, (endTime - startTime));
         }, (throwable) -> {
-            long duration = t.stop();
-            logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId, duration,
-                    throwable);
+            t.stop();
+            long endTime = System.currentTimeMillis();
+            logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
+                    (endTime - startTime), throwable);
         }, () -> {
-            logger.info("Why are we here? when try to get feed for user {}", userId);
+            logger.debug("Why are we here? when try to get feed for user {}", userId);
         });
         matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
         logger.debug("Returning the context after hbase fallback call...");
@@ -184,6 +190,7 @@ public class MatchFeedAsyncRequestHandler {
         }
 
         for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
+            Log.info("create observable to fetch matches for group {} and user {}", entry.getKey(), matchFeedQueryContext.getUserId());
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
             requestContext.setFeedMergeType(feedMergeType);
@@ -199,18 +206,17 @@ public class MatchFeedAsyncRequestHandler {
     private void handleFeedResponse(MatchFeedRequestContext context) {
         refreshEventSender.sendRefreshEvent(context);
         executeFallbackIfRequired(context);
-        aggregateHBaseFeedItems(context);
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
         throwExceptionIfFeedIsNotAvailable(context);
         getMatchesFeedFilterChain.execute(context);
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context, userMatchesFeedService);
+        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
         getMatchesFeedEnricherChain.execute(context);
     }
 
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
-        if (context.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable()) {
+        if (context.getLegacyMatchDataFeedDtoWrapper() != null && context.getLegacyMatchDataFeedDtoWrapper().getVoldyMatchesCount() > 0) {
             // Feed is available, no action required
             return;
         }
@@ -218,44 +224,44 @@ public class MatchFeedAsyncRequestHandler {
 
     }
 
-    private void aggregateHBaseFeedItems(MatchFeedRequestContext context) {
-        Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsByGroups = context
-                .getHbaseFeedItemsByStatusGroup();
-        if (MapUtils.isNotEmpty(feedItemsByGroups)) {
-            Set<MatchDataFeedItemDto> storeFeedItems = new HashSet<MatchDataFeedItemDto>();
-            feedItemsByGroups.forEach((k, v) -> {
-                storeFeedItems.addAll(v);
-            });
-            context.setNewStoreFeed(storeFeedItems);
-        }
-    }
-
     private void executeFallbackIfRequired(MatchFeedRequestContext response) {
         if (shouldFallbackToHBase(response)) {
-            // TODO make sure there is no concurent modificaiton - VIJAY
             response.setFallbackRequest(true);
             populateContextWithHBaseMatchesOnVoldeError(response);
+            // aggregateHBaseFeedItems(response);
+        } else {
+            response.setFallbackRequest(false);
         }
     }
 
     // Unit test please
     protected boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
         LegacyMatchDataFeedDtoWrapper legacyFeedWrapper = response.getLegacyMatchDataFeedDtoWrapper();
-        if (legacyFeedWrapper != null && legacyFeedWrapper.isFeedAvailable()
-                && legacyFeedWrapper.getLegacyMatchDataFeedDto() != null
-                && MapUtils.isNotEmpty(legacyFeedWrapper.getLegacyMatchDataFeedDto().getMatches())) {
+        if (legacyFeedWrapper == null) {
+            logger.warn("legacyFeedWrapper must not be null for user {}",
+                    response.getUserId());
+            if(response.hasHbaseMatches()) {
+                logger.warn("legacyFeedWrapper is null for user {} and falling back to hbase",
+                        response.getUserId());
+                return true;
+            }
+            
+            return false;
+        }
+        if (legacyFeedWrapper.getLegacyMatchDataFeedDto() != null && 
+                MapUtils.isNotEmpty(legacyFeedWrapper.getLegacyMatchDataFeedDto().getMatches())) {
             return false;
         }
 
         // Voldemort feed is empty but there are matches in Hbase
-        if (MapUtils.isNotEmpty(response.getHbaseFeedItemsByStatusGroup())) {
-            for (Entry<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> result : response
-                    .getHbaseFeedItemsByStatusGroup().entrySet())
-                if (CollectionUtils.isNotEmpty(result.getValue())) {
-                    return true;
-                }
+        if (response.hasHbaseMatches()) {
+            logger.info(
+                    "There are no matches in voldemrt, but matches exist in HBase for user {} falling back on hbase",
+                    response.getUserId());
+            return true;
         }
 
+        logger.debug("There are no records in HBase and Voldemort for user {}", response.getUserId());
         return false;
     }
 

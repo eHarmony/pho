@@ -58,10 +58,11 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
         try {
             LegacyMatchDataFeedDto feed = fetchValue(String.valueOf(userId));
             if (feed != null) {
-				int matchNumber = (feed.getMatches() == null) ? 0 : feed.getMatches().size();
-                logger.debug("found {} matches in Voldemort for user {}", matchNumber, userId);
-                matchHistogram.update(matchNumber);
+				int matchesCount = (feed.getMatches() == null) ? 0 : feed.getMatches().size();
+                logger.debug("found {} matches in Voldemort for user {}", matchesCount, userId);
+                matchHistogram.update(matchesCount);
                 feedWrapper.setFeedAvailable(true);
+                feedWrapper.setVoldyMatchesCount(matchesCount);
                 feedWrapper.setLegacyMatchDataFeedDto(feed);
             } else {
                 logger.debug("no matches in Voldemort for user {}", userId);

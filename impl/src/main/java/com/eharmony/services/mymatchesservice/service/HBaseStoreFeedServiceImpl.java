@@ -44,7 +44,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
-    private static final String COMM_SORT_BY_FIELD = "lastCommDate";
+    //private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     //HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
