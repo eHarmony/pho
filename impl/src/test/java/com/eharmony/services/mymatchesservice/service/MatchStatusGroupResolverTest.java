@@ -95,5 +95,6 @@ public class MatchStatusGroupResolverTest {
         assertTrue(!oneGroup.contains(MatchStatusEnum.MYTURN));
         assertTrue(!oneGroup.contains(MatchStatusEnum.THEIRTURN));
         assertTrue(!oneGroup.contains(MatchStatusEnum.OPENCOMM));
+        System.out.println("Reverse Bytes for user 62928226" + Long.reverseBytes(62928226));
     }
 }

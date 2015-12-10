@@ -92,14 +92,19 @@ public class RefreshEventSender {
             return false;
         }
 
-        if (!matchesFeedContext.hasHbaseMatches()) {
-            return false;
+        if(!wrapper.isFeedAvailable()) {
+            return true;
+        }
+        
+        if (wrapper.isFeedAvailable() && wrapper.getVoldyMatchesCount() == 0 && matchesFeedContext.hasHbaseMatches()) {
+            log.info(
+                    "Voldemort feed is not available for the user {} but hbase has records, emiting the feed refresh event..",
+                    matchesFeedContext.getUserId());
+            return true;
         }
 
-        log.info(
-                "Voldemort feed is not available for the user {} but hbase has records, emiting the feed refresh event..",
-                matchesFeedContext.getUserId());
-        return true;
+        
+        return false;
     }
 
     private void sendRefreshEvent(MatchFeedRequestContext matchesFeedContext, String categoryName) {

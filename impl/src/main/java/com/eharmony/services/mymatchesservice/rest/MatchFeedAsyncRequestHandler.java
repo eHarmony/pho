@@ -188,7 +188,7 @@ public class MatchFeedAsyncRequestHandler {
         }
 
         for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
-            logger.info("create observable to fetch matches for group {} and user {}", entry.getKey(),
+            logger.debug("create observable to fetch matches for group {} and user {}", entry.getKey(),
                     matchFeedQueryContext.getUserId());
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
             requestContext.setFallbackRequest(isFallbackRequest);
@@ -218,6 +218,9 @@ public class MatchFeedAsyncRequestHandler {
         if (context.getLegacyMatchDataFeedDtoWrapper() != null
                 && context.getLegacyMatchDataFeedDtoWrapper().getVoldyMatchesCount() > 0) {
             // Feed is available, no action required
+            return;
+        }
+        if(context.getLegacyMatchDataFeedDtoWrapper() != null && context.getLegacyMatchDataFeedDtoWrapper().getLegacyMatchDataFeedDto() != null) {
             return;
         }
         throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
