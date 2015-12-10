@@ -6,7 +6,14 @@ public class LegacyMatchDataFeedDtoWrapper {
     private boolean feedAvailable;
     private Throwable error;
     private final long userId;
+    private int voldyMatchesCount;
     
+    public int getVoldyMatchesCount() {
+        return voldyMatchesCount;
+    }
+    public void setVoldyMatchesCount(int voldyMatchesCount) {
+        this.voldyMatchesCount = voldyMatchesCount;
+    }
     public LegacyMatchDataFeedDtoWrapper(final long userId) {
         this.userId = userId;
     }

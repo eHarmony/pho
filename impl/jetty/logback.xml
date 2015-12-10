@@ -29,7 +29,7 @@
     <!-- rather spammy loggers for requests -->
 	<logger name="io.netty.handler.logging" level="ERROR"/>
 	<logger name="org.glassfish.jersey.filter.LoggingFilter" level="ERROR" />
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="CONSOLE" />
     </root>

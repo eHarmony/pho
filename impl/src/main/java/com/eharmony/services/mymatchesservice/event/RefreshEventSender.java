@@ -5,31 +5,26 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.event.CommandEvent;
 import com.eharmony.event.Event;
 import com.eharmony.event.EventSender;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.singles.common.enumeration.Gender;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 @Component
 public class RefreshEventSender {
 
     private static final String LOCALE = "locale";
-    private static final String GENDER = "gender";
     private static final String USER_ID = "userId";
 
     public static final String USER_FEED_REFRESH_EVENT = "user.match.feed.refresh";
     public static final String OLD_USER_FEED_REFRESH_EVENT = "user.match.refresh.command.send";
     public static final String PRODUCER = "MQS";
-    public static final String CP_LOCALE = "en_US_10";
 
     @Value("${instance}")
     private String instance;
@@ -51,56 +46,65 @@ public class RefreshEventSender {
             }
 
             // check voldy feed, if not present send a old refresh event
-            if (!isVoldyFeedPresent(matchesFeedContext)) {
+            if (shouldSendVoldyFeedRefreshEvent(matchesFeedContext)) {
                 sendRefreshEvent(matchesFeedContext, OLD_USER_FEED_REFRESH_EVENT);
             }
 
             // check hbase records. If none present raise a new refresh event
-            if (!isHBASEFeedPresent(matchesFeedContext)) {
+            if (shouldSendHBaseFeedRefreshEvent(matchesFeedContext)) {
                 sendRefreshEvent(matchesFeedContext, USER_FEED_REFRESH_EVENT);
             }
 
-            // if there is an empty voldy feed but some HBASE records; raise an old refresh event
-            if (voldyOutOfSync(matchesFeedContext)) {
-                log.warn("For userId {}, voldy has an empty feed but HBASE has some records: ",
-                        matchesFeedContext.getUserId());
-                sendRefreshEvent(matchesFeedContext, OLD_USER_FEED_REFRESH_EVENT);
-            }
         } catch (Exception ex) {
             log.warn("Exception while sending the refresh event for user {}", matchesFeedContext.getUserId(), ex);
         }
 
     }
 
-    private boolean voldyOutOfSync(MatchFeedRequestContext matchesFeedContext) {
-        if (matchesFeedContext.getLegacyMatchDataFeedDtoWrapper() == null) {
+    private boolean shouldSendHBaseFeedRefreshEvent(MatchFeedRequestContext matchesFeedContext) {
+        if (matchesFeedContext.hasHbaseMatches()) {
             return false;
         }
-        // if there is a voldy feed
-        if (matchesFeedContext.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable()) {
-            // is it empty?
-            boolean doesNotHaveVoldyMatches = MapUtils.isEmpty(matchesFeedContext.getLegacyMatchDataFeedDtoWrapper()
-                    .getLegacyMatchDataFeedDto().getMatches());
-            if (doesNotHaveVoldyMatches) {
-                if (CollectionUtils.isNotEmpty(matchesFeedContext.getNewStoreFeed())) {
-                    return true;
-                }
 
-            }
+        LegacyMatchDataFeedDtoWrapper wrapper = matchesFeedContext.getLegacyMatchDataFeedDtoWrapper();
+        if (wrapper != null && wrapper.getVoldyMatchesCount() > 0) {
+            log.info("user {} has {} matches in voldy but no matches in hbase, sending refresh event.",
+                    matchesFeedContext.getUserId(), wrapper.getVoldyMatchesCount());
+            return true;
         }
         return false;
     }
 
-    private boolean isHBASEFeedPresent(MatchFeedRequestContext matchesFeedContext) {
-        return CollectionUtils.isNotEmpty(matchesFeedContext.getNewStoreFeed());
-    }
-
-    private boolean isVoldyFeedPresent(MatchFeedRequestContext matchesFeedContext) {
-        if (matchesFeedContext.getLegacyMatchDataFeedDtoWrapper() == null) {
+    private boolean shouldSendVoldyFeedRefreshEvent(MatchFeedRequestContext matchesFeedContext) {
+        LegacyMatchDataFeedDtoWrapper wrapper = matchesFeedContext.getLegacyMatchDataFeedDtoWrapper();
+        if (wrapper == null) {
+            log.warn("Voldy feed wrapper object must not be null for user {}.", matchesFeedContext.getUserId());
             return false;
         }
-        //TODO check for error - VIJAY
-        return matchesFeedContext.getLegacyMatchDataFeedDtoWrapper().isFeedAvailable();
+
+        if (wrapper.getError() != null) {
+            log.info("Voldy feed is not available for user {} due to error.", matchesFeedContext.getUserId());
+            return false;
+        }
+
+        if (wrapper.getVoldyMatchesCount() > 0) {
+            // feed is available and there are matches in feed
+            return false;
+        }
+
+        if(!wrapper.isFeedAvailable()) {
+            return true;
+        }
+        
+        if (wrapper.isFeedAvailable() && wrapper.getVoldyMatchesCount() == 0 && matchesFeedContext.hasHbaseMatches()) {
+            log.info(
+                    "Voldemort feed is not available for the user {} but hbase has records, emiting the feed refresh event..",
+                    matchesFeedContext.getUserId());
+            return true;
+        }
+
+        
+        return false;
     }
 
     private void sendRefreshEvent(MatchFeedRequestContext matchesFeedContext, String categoryName) {
@@ -112,15 +116,9 @@ public class RefreshEventSender {
 
             String userIdStr = String.valueOf(userId);
 
-            // NOTE: This is a super hack.
-            // Ideally the api for feed refresh in MDS and Match events should lookup profile and get this info for the
-            // given user
-            String gender = deriveUserGender(matchesFeedContext);
-
             Map<String, String> context = new HashMap<String, String>();
             context.put(LOCALE, locale);
             context.put(USER_ID, userIdStr);
-            context.put(GENDER, gender);
 
             Event userFeedRefreshEvent = new CommandEvent.Builder().setCategory(categoryName).setProducer(PRODUCER)
                     .setInstance(instance).setContext(context).setFrom(userIdStr).setUid(userIdStr).build();
@@ -136,25 +134,4 @@ public class RefreshEventSender {
 
     }
 
-    private String deriveUserGender(MatchFeedRequestContext matchesFeedContext) {
-
-        String userLocale = matchesFeedContext.getMatchFeedQueryContext().getLocale();
-        if (CollectionUtils.isNotEmpty(matchesFeedContext.getNewStoreFeed())) {
-            MatchDataFeedItemDto oneFeedItem = matchesFeedContext.getNewStoreFeed().iterator().next();
-            Gender matchedUserGender = Gender.fromInt(oneFeedItem.getMatchedUser().getGender());
-            if (userLocale.equalsIgnoreCase(CP_LOCALE)) {
-                return matchedUserGender.name();
-            } else {
-                if (Gender.MALE.compareTo(matchedUserGender) == 0) {
-                    return Gender.FEMALE.name();
-                } else {
-                    return Gender.MALE.name();
-                }
-            }
-        }
-
-        log.warn("Could not derive gender for user {} since there are no HBASE records either", matchesFeedContext
-                .getMatchFeedQueryContext().getUserId());
-        return Gender.UNKNOWN.name();
-    }
 }

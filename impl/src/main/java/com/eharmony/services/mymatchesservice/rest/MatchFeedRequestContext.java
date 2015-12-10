@@ -1,10 +1,13 @@
 package com.eharmony.services.mymatchesservice.rest;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
@@ -16,7 +19,6 @@ import com.google.common.base.Preconditions;
 public class MatchFeedRequestContext {
 
     private LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper;
-    private Set<MatchDataFeedItemDto> newStoreFeed;
     private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
     private boolean isFallbackRequest;
@@ -26,14 +28,14 @@ public class MatchFeedRequestContext {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
     }
-    
+
     public MatchFeedRequestContext(final MatchFeedRequestContext matchFeedRequestContext) {
         Preconditions.checkNotNull(matchFeedRequestContext, "matchFeedRequestContext must not be null");
         this.matchFeedQueryContext = matchFeedRequestContext.getMatchFeedQueryContext();
         this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
-        this.newStoreFeed = matchFeedRequestContext.getNewStoreFeed();
         this.feedMergeType = matchFeedRequestContext.getFeedMergeType();
         this.isFallbackRequest = matchFeedRequestContext.isFallbackRequest();
+        this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
     }
 
     public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
@@ -44,27 +46,20 @@ public class MatchFeedRequestContext {
             Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup) {
         this.hbaseFeedItemsByStatusGroup = hbaseFeedItemsByStatusGroup;
     }
-    
+
     public void putFeedItemsInMapByStatusGroup(MatchStatusGroupEnum statusGroup, Set<MatchDataFeedItemDto> feedItems) {
-        
-        if(CollectionUtils.isNotEmpty(feedItems)) {
+
+        if (CollectionUtils.isNotEmpty(feedItems)) {
             hbaseFeedItemsByStatusGroup.put(statusGroup, feedItems);
         }
     }
-    
+
     public boolean isFallbackRequest() {
         return isFallbackRequest;
     }
 
     public void setFallbackRequest(boolean isFallbackRequest) {
         this.isFallbackRequest = isFallbackRequest;
-    }
-    public Set<MatchDataFeedItemDto> getNewStoreFeed() {
-        return newStoreFeed;
-    }
-
-    public void setNewStoreFeed(Set<MatchDataFeedItemDto> newStoreFeed) {
-        this.newStoreFeed = newStoreFeed;
     }
 
     public FeedMergeStrategyType getFeedMergeType() {
@@ -96,6 +91,31 @@ public class MatchFeedRequestContext {
             return legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto();
         }
         return null;
+    }
+    
+    public boolean hasHbaseMatches() {
+        if (MapUtils.isEmpty(hbaseFeedItemsByStatusGroup)) {
+            return false;
+        }
+
+        for (Entry<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedEntry : hbaseFeedItemsByStatusGroup.entrySet()) {
+            if (CollectionUtils.isNotEmpty(feedEntry.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public Set<MatchDataFeedItemDto> getAggregateHBaseFeedItems() {
+        Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsByGroups = this
+                .getHbaseFeedItemsByStatusGroup();
+        Set<MatchDataFeedItemDto> storeFeedItems = new HashSet<MatchDataFeedItemDto>();
+        if (MapUtils.isNotEmpty(feedItemsByGroups)) {
+            feedItemsByGroups.forEach((k, v) -> {
+                storeFeedItems.addAll(v);
+            });
+        }
+        return storeFeedItems;
     }
 
 }

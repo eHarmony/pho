@@ -22,7 +22,6 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
@@ -30,7 +29,7 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
     private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
 
     @Override
-    public void merge(MatchFeedRequestContext requestContext, UserMatchesHBaseStoreFeedService userMatchesFeedService) {
+    public void merge(MatchFeedRequestContext requestContext) {
 
         // no need to merge for a fallback request because the hbase feed has already been converted into legacy feed.
         if (requestContext.isFallbackRequest()) {
@@ -39,12 +38,16 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         log.info("merging feed for userId {}", requestContext.getUserId());
         LegacyMatchDataFeedDto legacyMatchesFeed = requestContext.getLegacyMatchDataFeedDto();
-        Set<MatchDataFeedItemDto> storeMatchesFeed = requestContext.getNewStoreFeed();
+        Set<MatchDataFeedItemDto> storeMatchesFeed = requestContext.getAggregateHBaseFeedItems();
+        int legacyMatchesSize = 0;
+        if (legacyMatchesFeed != null && MapUtils.isNotEmpty(legacyMatchesFeed.getMatches())) {
+            legacyMatchesSize = legacyMatchesFeed.getMatches().size();
+        }
 
         if (CollectionUtils.isEmpty(storeMatchesFeed)) {
-            if (legacyMatchesFeed != null && MapUtils.isNotEmpty(legacyMatchesFeed.getMatches())) {
+            if (legacyMatchesSize > 0) {
                 log.warn("There are no matches in HBase for user {} and found {} matches in voldy",
-                        requestContext.getUserId(), legacyMatchesFeed.getMatches().size());
+                        requestContext.getUserId(), legacyMatchesSize);
             } else {
                 log.info("no matches found for user {} in both hbase and voldy", requestContext.getUserId());
             }
@@ -54,8 +57,8 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         } else {
             log.error(
-                    "{} Records exist in HBase for user {}, none in voldy. Using FULL HBase record.This path must not be exeucted.",
-                    storeMatchesFeed.size(), requestContext.getUserId());
+                    "{} Records exist in HBase and {} records in voldy for user {} after merge. this path must not be exeucted.",
+                    storeMatchesFeed.size(), legacyMatchesSize, requestContext.getUserId());
         }
     }
 

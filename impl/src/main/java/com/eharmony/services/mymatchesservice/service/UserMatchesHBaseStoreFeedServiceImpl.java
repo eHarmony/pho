@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import rx.Observable;
 
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.configuration.Configuration;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
@@ -26,6 +27,7 @@ import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.datastore.repository.MatchStoreSaveRepository;
 import com.eharmony.services.mymatchesservice.MergeModeEnum;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
@@ -50,6 +52,9 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
 
     @Resource
     private Configuration config;
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
     @Value("${feed.mergeMode}")
     private MergeModeEnum mergeMode;
@@ -67,6 +72,10 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
     private MatchStatusGroupResolver matchStatusGroupResolver;
 
     private static final String ALL_MATCH_STATUS = "ALL";
+    
+    private static final String METRICS_HIERARCHY_PREFIX = UserMatchesHBaseStoreFeedServiceImpl.class.getCanonicalName();
+    
+    private static final String METRICS_GET_HBASE_PARALLEL = "getMatchesFromHBaseParallel";
 
     @Override
     public List<MatchDataFeedItemDto> getUserMatchesInternal(long userId) {
@@ -143,8 +152,9 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
     }
 
     private Set<MatchDataFeedItemDto> fetchMatchesFeedInParallel(MatchFeedRequestContext request) {
-        Timer.Context timerContext = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFromHBaseParallel").time();
+
+        Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_HBASE_PARALLEL);
+        Histogram matchHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX, METRICS_GET_HBASE_PARALLEL);
         try {
             MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
             Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> matchStatusGroups = matchStatusGroupResolver.buildMatchesStatusGroups(queryContext.getUserId(), queryContext.getStatuses());
@@ -160,6 +170,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
                     //feedObservable.zipWith(other, zipFunction)
                 }
             }
+            matchHistogram.update(matchesFeedByStatus.size());
             return matchesFeedByStatus;
         } catch (Exception e) {
             logger.warn("Exception while fetching the matches from HBase store in parallel for user {}",
