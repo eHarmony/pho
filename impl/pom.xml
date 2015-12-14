@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.eharmony.services.match-query-service</groupId>
 		<artifactId>match-query-service</artifactId>
-		<version>1.0.15</version>
+		<version>1.0.16-SNAPSHOT</version>
 	</parent>
 	<name>match query service Impl</name>
 	<artifactId>match-query-service-impl</artifactId>
