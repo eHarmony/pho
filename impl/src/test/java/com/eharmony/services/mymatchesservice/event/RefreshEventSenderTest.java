@@ -57,14 +57,7 @@ public class RefreshEventSenderTest {
 		wrapper.setLegacyMatchDataFeedDto(legacy);
 		wrapper.setFeedAvailable(true);
 		wrapper.setVoldyMatchesCount(1);
-			
-		//MockEventSender eventSender = new MockEventSender();
-		
-		//RefreshEventSender target = new RefreshEventSender();
-		//refreshEventSender.setEventSender(eventSender);
-		//ReflectionTestUtils.setField(refreshEventSender, "sendRefreshEvent", true);
-		//ReflectionTestUtils.setField(refreshEventSender, "instance", "junit-test");
-		
+					
 		refreshEventSender.sendRefreshEvent(ctx);
 		
 		Event sentEvent = eventSender.getLastEvent();
