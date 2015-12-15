@@ -44,7 +44,7 @@
 		<mockito.all.version>1.8.5</mockito.all.version>
 		<easymock.version>3.0</easymock.version>
 		<httpunit.version>1.6.2</httpunit.version>
-		<junit.version>4.7</junit.version>
+		<junit.version>4.12</junit.version>
 		<jboss.jms.api.version>1.1.0.GA</jboss.jms.api.version>
 		<jboss.netty.version>3.2.0.Final</jboss.netty.version>
 		<asm.version>3.1</asm.version>  
