@@ -1,5 +1,6 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -268,7 +269,9 @@ public class MatchFeedAsyncRequestHandler {
 
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
-            ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+
+        	ResponseBuilder builder = Response.ok().entity(Collections.EMPTY_MAP);
+        	builder.status(Status.OK);
             return builder;
         }
         LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
