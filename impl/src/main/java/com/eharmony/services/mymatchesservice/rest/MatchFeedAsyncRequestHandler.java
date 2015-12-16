@@ -270,8 +270,8 @@ public class MatchFeedAsyncRequestHandler {
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
 
-        	ResponseBuilder builder = Response.ok().entity(Collections.EMPTY_MAP);
-        	builder.status(Status.OK);
+            ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+            
             return builder;
         }
         LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
