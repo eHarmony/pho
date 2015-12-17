@@ -24,10 +24,24 @@
 		<datastore-version>15</datastore-version>
 		<photos.client.version>2.0.3</photos.client.version>
 		<event.proto.client.version>2.2.7</event.proto.client.version>
+		<powermock.version>1.6.4</powermock.version>
 		 
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+	
 		<dependency>
 			<groupId>com.eharmony.event</groupId>
 			<artifactId>event-library</artifactId>
