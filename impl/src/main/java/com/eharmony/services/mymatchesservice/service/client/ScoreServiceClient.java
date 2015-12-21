@@ -55,19 +55,9 @@ public class ScoreServiceClient {
 							.resolveTemplate("pairingPurpose", pairingPurpose)
 							.resolveTemplate("userId", userId).build().toURL().toString();		
 
-		/*ScoredUserListProto scoredUserList =  restClient.post(resolvedURL, pairingsProto, ScoredUserListProto.class);
+		ScoredUserListProto scoredUserList =  restClient.post(resolvedURL, pairingsProto, ScoredUserListProto.class);
 		logger.info("Result from Score service - {}", scoredUserList);
-		return scoredUserList;*/
-		
-		ScoredUserProto userProto = ScoredUserProto.newBuilder().setUserId(4251019).setScore(1).build();
-		ScoredUserProto userProto2 = ScoredUserProto.newBuilder().setUserId(5928856).setScore(1).build();
-		ScoredUserProto userProto3 = ScoredUserProto.newBuilder().setUserId(5424942).setScore(1).build();
-		List<ScoredUserProto> x = new ArrayList<ScoredUserProto>();
-		x.add(userProto);
-		x.add(userProto2);
-		x.add(userProto3);
-		return ScoredUserListProto.newBuilder().addAllScoredUsers(x).build();
-		
+		return scoredUserList;
 	}
 
 }
