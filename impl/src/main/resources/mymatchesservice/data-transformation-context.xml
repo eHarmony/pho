@@ -50,6 +50,19 @@
 		<constructor-arg index="0" ref="messageSource"/>
 	</bean>
 
+	<bean id="matchesComparator" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.StatusDateIdMatchInfoComparator" />
+	
+	<bean id="matcheScoreComparator" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.comparator.MatchScoreComparator" />
+	
+	<bean id="paginationMatchFeedFilter" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" >
+		<property name="comparator" ref="matchesComparator" />
+	</bean>
+	
+	<bean id="teaserFeedPaginationFilter" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" >
+		<property name="comparator" ref="matcheScoreComparator" />
+	</bean>
+
+
 	<bean id="getMatchesFeedFilterChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
 		<constructor-arg>
@@ -60,8 +73,34 @@
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
 				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
+				<ref bean="paginationMatchFeedFilter" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+	
+	
+	<bean id="getTeaserMatchesFeedFilterChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
 				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" />
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchPhotoFilter" /> 
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchTeaserCandidatesFilter">
+					<constructor-arg index="0" value="${match.history.days}" />
+				</bean>
+				<bean 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.MatchScoreEnricher">
+					<constructor-arg index="0" ref="scoreServiceClient" />
+				</bean>
+				<ref bean="teaserFeedPaginationFilter" />
+				
 			</util:list>
 		</constructor-arg>
 	</bean>

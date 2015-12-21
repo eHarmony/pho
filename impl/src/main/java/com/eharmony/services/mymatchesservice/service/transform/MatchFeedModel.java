@@ -63,8 +63,7 @@ public abstract class MatchFeedModel {
        static final String TURN_OWNER = "turnOwner";
        static final String USER_ID = "userId";
        
-       
-
+       static final String MATCH_ATTRACTIVENESS_SCORE = "matchAttractivenessScore";
    }
 
    public interface PROFILE {

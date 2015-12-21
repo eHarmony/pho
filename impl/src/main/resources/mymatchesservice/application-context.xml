@@ -103,5 +103,20 @@
 		<constructor-arg index="0" value="${ecvFile}" />
 		<constructor-arg index="1" value="${ecv.wait.timeout.seconds}" />
 	</bean>
+	
+	<!--  Score Service Dependencies -->
+	
+	<bean id="scoreServiceClient" class="com.eharmony.services.mymatchesservice.service.client.ScoreServiceClient">
+        <constructor-arg name="scoreServiceHost" value="${score.service.host}"/>
+        <constructor-arg name="scoreServicePort" value="${score.service.port}"/>
+        <constructor-arg name="restClient" ref="restClient" />
+    </bean>
+    
+   <bean id="restClient" class="com.eharmony.protorest.RestClientImpl">
+      <constructor-arg index="0" value="${score.service.maxConnections}"/>
+      <constructor-arg index="1" value="${score.service.connectTimeout}"/>
+      <constructor-arg index="2" value="${score.service.readTimeout}"/>
+      <constructor-arg index="3" value="${score.service.onlyUseJson}"/>
+   </bean>
 
 </beans>

@@ -1,6 +1,7 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -11,17 +12,19 @@ import java.util.Map.Entry;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.IMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
+@Component("paginationMatchFeedFilter")
 public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
       
-    private StatusDateIdMatchInfoComparator comparator = new StatusDateIdMatchInfoComparator();
-
+    private Comparator comparator;
+    
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
 
@@ -64,11 +67,10 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
             (pageSize < 1) ? matches.size()
                            : pageSize; // fall back to default
 
-        // 1. order the matches based on buckets, deliveredDate and matchId
-        List<Map.Entry<String, Map<String, Map<String, Object>>>> entries =
-            new LinkedList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
+        // 1. order the matches based on the plugged in comparator.
+        List<Map.Entry<String, Map<String, Map<String, Object>>>> entries = new LinkedList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
         Collections.sort(entries, comparator);
-
+        
         // 2. advance to required window
         Iterator<Entry<String, Map<String, Map<String, Object>>>> it = entries.iterator();
         int currentRecord = 1;
@@ -107,4 +109,7 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     }
 
+	public void setComparator(Comparator comparator) {
+		this.comparator = comparator;
+	}
 }

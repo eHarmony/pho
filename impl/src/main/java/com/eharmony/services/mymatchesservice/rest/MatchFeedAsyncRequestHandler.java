@@ -1,7 +1,5 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -15,18 +13,12 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import rx.Observable;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
 import com.codahale.metrics.Timer;
-import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
@@ -39,11 +31,16 @@ import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyMa
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
+
+import rx.Observable;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -59,7 +56,11 @@ import com.eharmony.singles.common.util.ResourceNotFoundException;
 @Component
 public class MatchFeedAsyncRequestHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
+    private static final String TEASER = "Teaser";
+
+	private static final String EMPTY_STRING = "";
+
+	private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
 
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
@@ -76,6 +77,9 @@ public class MatchFeedAsyncRequestHandler {
     @Resource(name = "getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
 
+    @Resource(name= "getTeaserMatchesFeedFilterChain")
+    private MatchFeedTransformerChain  getTeaserMatchesFeedFilterChain;
+    
     @Resource
     private RefreshEventSender refreshEventSender;
 
@@ -102,12 +106,13 @@ public class MatchFeedAsyncRequestHandler {
      *            MatchFeedQueryContext
      * @param asyncResponse
      *            AsyncResponse
+     * @param teaserMatches  boolean indicating if the request is for teaser matches or real matches
      */
 
-    public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+    public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, boolean teaserMatches) {
 
-        Timer.Context t = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
+        String timerName = getClass().getCanonicalName() + ".getMatchesFeedAsync" + (teaserMatches == true ? TEASER:EMPTY_STRING);
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(timerName).time();
         long userId = matchFeedQueryContext.getUserId();
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
@@ -123,8 +128,7 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
-                // aggregateHBaseFeedItems(response);
-                handleFeedResponse(response);
+                handleFeedResponse(response, teaserMatches);
             } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
             }
@@ -203,14 +207,24 @@ public class MatchFeedAsyncRequestHandler {
         return matchQueryRequestObservable;
     }
 
-    private void handleFeedResponse(MatchFeedRequestContext context) {
+    private void handleFeedResponse(MatchFeedRequestContext context, boolean teaserMatches) {
         refreshEventSender.sendRefreshEvent(context);
         executeFallbackIfRequired(context);
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
         throwExceptionIfFeedIsNotAvailable(context);
-        getMatchesFeedFilterChain.execute(context);
+        
+		if (!teaserMatches) {
+			
+			getMatchesFeedFilterChain.execute(context);
+		
+		} else {
+		
+			getTeaserMatchesFeedFilterChain.execute(context);
+
+		}
+        
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
         getMatchesFeedEnricherChain.execute(context);
     }

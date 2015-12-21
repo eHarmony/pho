@@ -13,6 +13,7 @@
 package com.eharmony.services.mymatchesservice.rest;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+import com.eharmony.singles.common.status.MatchStatus;
 
 @Component
 @Path("/v1")
@@ -45,6 +47,10 @@ public class MatchFeedAsyncResource {
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
 
+    private static final int ONE = 1;
+    
+    private static final int FIVE = 5;
+    
     @GET
     @Path("/users/{userId}/matches")
     @Produces(MediaType.APPLICATION_JSON)
@@ -73,7 +79,55 @@ public class MatchFeedAsyncResource {
                 .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
-        requesthandler.getMatchesFeed(requestContext, asyncResponse);
+        requesthandler.getMatchesFeed(requestContext, asyncResponse, false);
+    }
+    
+    
+    /**
+     * Returns matches with photos and with match status not in (archived or closed) or passed via 'status' param. The matches are sorted in the order of their 
+     * score returned from the scorer service. 
+     *  
+     * @param userId  Id of the logged in user
+     * @param locale  Locale of the logged in user
+     * @param viewHidden view hidden profiles
+     * @param resultSize  number of matches to be returned
+     * @param asyncResponse Asynchronous response stream
+     */
+    @GET
+    @Path("/users/{userId}/teasermatches")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void getTeaserMatches(
+    		@PathParam("userId") long userId, 
+    		@MatrixParam("locale") String locale,
+            @QueryParam("viewHidden") boolean viewHidden,
+            @QueryParam("resultSize") Integer resultSize, 
+            @Suspended final AsyncResponse asyncResponse) {
+
+    	if(StringUtils.isEmpty(locale)){
+    		
+            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+        }
+    		
+    	// Return matches which are in new or in comm.
+    	Set<String>	statuses = new HashSet<String>();
+    	statuses.add(MatchStatus.NEW.name().toLowerCase(Locale.US));
+    	statuses.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
+    	statuses.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
+    	statuses.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
+       
+        resultSize = (resultSize == null ? FIVE : resultSize.intValue());  //Setting the default result size to 5.
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
+                .setAllowedSeePhotos(true)
+                .setLocale(locale)
+                .setPageSize(resultSize)
+                .setStartPage(ONE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
+                .setStatuses(statuses)
+                .setUserId(userId)
+                .setViewHidden(viewHidden).build();
+
+        log.debug("fetching teaser match feed for user ={}", userId);
+        requesthandler.getMatchesFeed(requestContext, asyncResponse, true);
     }
 
     private Set<String> toLowerCase(Set<String> values) {
