@@ -58,7 +58,7 @@
 		<property name="comparator" ref="matchesComparator" />
 	</bean>
 	
-	<bean id="teaserFeedPaginationFilter" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" >
+	<bean id="teaserFeedPaginationFilter" class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.TeaserResultSizeFilter" >
 		<property name="comparator" ref="matcheScoreComparator" />
 	</bean>
 

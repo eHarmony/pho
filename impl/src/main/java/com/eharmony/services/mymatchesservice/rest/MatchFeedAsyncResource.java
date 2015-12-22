@@ -51,6 +51,8 @@ public class MatchFeedAsyncResource {
     
     private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
     
+    private static final int TEASER_MATCH_DEFAULT_PAGE_SIZE = 100;
+    
     private static final String COMM_MATCH_STATUS = "COMM";
     
     @GET
@@ -135,12 +137,13 @@ public class MatchFeedAsyncResource {
 
 		resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
 
-        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
+		MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(true)
-                .setPageSize(resultSize)
+                .setPageSize(TEASER_MATCH_DEFAULT_PAGE_SIZE)   // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
                 .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
                 .setStatuses(statusSet)
                 .setUserId(userId)
+                .setTeaserResultSize(resultSize)		// This is the number of results to be returned back to the client/user.
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);

@@ -117,5 +117,5 @@ public class MatchFeedRequestContext {
         }
         return storeFeedItems;
     }
-
+    
 }

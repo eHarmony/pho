@@ -13,6 +13,7 @@ public interface MatchFeedQueryContext {
     public Set<String> getStatuses();
     public boolean isViewHidden();
     public boolean isAllowedSeePhotos();
+    public int getTeaserResultSize();
 
     // Internal test flags.
     public DataServiceStateEnum getVoldyState();

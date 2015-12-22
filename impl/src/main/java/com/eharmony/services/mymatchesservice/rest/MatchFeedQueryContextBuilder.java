@@ -13,6 +13,7 @@ public class MatchFeedQueryContextBuilder {
     private Set<String> statuses;
     private boolean viewHidden;
     private boolean allowedSeePhotos;
+    private int teaserResultSize;
 
     // Internal test flags
     private DataServiceStateEnum voldyState;
@@ -22,7 +23,7 @@ public class MatchFeedQueryContextBuilder {
     }
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-                allowedSeePhotos, voldyState);
+                allowedSeePhotos, voldyState, teaserResultSize);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -34,6 +35,7 @@ public class MatchFeedQueryContextBuilder {
         private final Set<String> statuses;
         private final boolean viewHidden;
         private final boolean allowedSeePhotos;
+        private final int teaserResultSize;
 
         private final DataServiceStateEnum voldyState;
 
@@ -76,11 +78,16 @@ public class MatchFeedQueryContextBuilder {
         @Override
         public boolean isAllowedSeePhotos() {
             return allowedSeePhotos;
-        }        
+        }    
+        
+        @Override
+        public int getTeaserResultSize() {
+            return teaserResultSize;
+        } 
         
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden, 
-                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState) {
+                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState, int teaserResultSize) {
 
         	this.userId = userId;
             this.locale = locale;
@@ -89,6 +96,7 @@ public class MatchFeedQueryContextBuilder {
             this.statuses = statuses;
             this.viewHidden = viewHidden;
             this.allowedSeePhotos = allowedSeePhotos;
+            this.teaserResultSize = teaserResultSize;
             
             this.voldyState = (voldyState == null ? DataServiceStateEnum.ENABLED : voldyState);
         }
@@ -134,6 +142,11 @@ public class MatchFeedQueryContextBuilder {
     
 	public MatchFeedQueryContextBuilder setVoldyState(DataServiceStateEnum voldyState) {
 		this.voldyState = voldyState;
+		return this;
+	}
+	
+	public MatchFeedQueryContextBuilder setTeaserResultSize(int teaserResultSize) {
+		this.teaserResultSize = teaserResultSize;
 		return this;
 	}
 

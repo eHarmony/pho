@@ -141,7 +141,7 @@ public class MatchFeedAsyncRequestHandler {
     
     
     /**
-     * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
+     * Teaser Matches will be returned after applying the filters and enriching the data from feed stores. Feed will be
      * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
      * 
      * This handler uses safe methods, will return valid results as long as at least one of the stores available and
@@ -164,7 +164,7 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
                 voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
                 Schedulers.from(executorServiceProvider.getTaskExecutor()));
-
+        
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
                 matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
 
