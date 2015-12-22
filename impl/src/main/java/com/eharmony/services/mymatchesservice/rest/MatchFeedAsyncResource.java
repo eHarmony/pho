@@ -93,7 +93,7 @@ public class MatchFeedAsyncResource {
      * score returned from the scorer service. 
      *  
      * @param userId  Id of the logged in user
-     * @param status  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
+     * @param statuses  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
      * @param resultSize  number of matches to be returned
      * @param asyncResponse Asynchronous response stream
      */

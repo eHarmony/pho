@@ -17,7 +17,7 @@ import com.eharmony.matching.common.value.ScoredUserListProtoBuffs.ScoredUserLis
 import com.eharmony.protorest.RestClientImpl;
 
 @RunWith(MockitoJUnitRunner.class)
-//@Ignore
+@Ignore
 public class ScoreServiceClientIntegrationTest {
 
 	private String host = "r4-scorer-service.np.vip.dc1.eharmony.com";

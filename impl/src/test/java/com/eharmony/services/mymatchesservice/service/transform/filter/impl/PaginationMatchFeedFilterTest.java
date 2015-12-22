@@ -30,7 +30,6 @@ public class PaginationMatchFeedFilterTest {
 		legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
 		ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		PaginationMatchFeedFilter filter = new PaginationMatchFeedFilter();
-		filter.setComparator(new StatusDateIdMatchInfoComparator());
 		
 		
 		return filter.processMatchFeed(ctx);
