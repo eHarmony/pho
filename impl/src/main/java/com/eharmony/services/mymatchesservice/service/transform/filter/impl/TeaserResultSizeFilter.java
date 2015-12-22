@@ -1,7 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -15,13 +14,14 @@ import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.IMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.filter.impl.comparator.MatchScoreComparator;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 public class TeaserResultSizeFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(TeaserResultSizeFilter.class);
       
-    private Comparator comparator;
+    private MatchScoreComparator comparator = new MatchScoreComparator();
     
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
@@ -81,9 +81,5 @@ public class TeaserResultSizeFilter implements IMatchFeedTransformer {
         return context;
 
     }
-
-	public void setComparator(Comparator comparator) {
-		this.comparator = comparator;
-	}
 	
 }
