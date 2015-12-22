@@ -31,7 +31,6 @@ import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyMa
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
-import com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
