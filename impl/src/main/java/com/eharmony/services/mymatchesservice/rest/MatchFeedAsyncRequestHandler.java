@@ -106,13 +106,11 @@ public class MatchFeedAsyncRequestHandler {
      *            MatchFeedQueryContext
      * @param asyncResponse
      *            AsyncResponse
-     * @param teaserMatches  boolean indicating if the request is for teaser matches or real matches
      */
 
-    public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, boolean teaserMatches) {
+    public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
 
-        String timerName = getClass().getCanonicalName() + ".getMatchesFeedAsync" + (teaserMatches == true ? TEASER:EMPTY_STRING);
-    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(timerName).time();
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsync").time();
         long userId = matchFeedQueryContext.getUserId();
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
@@ -128,7 +126,57 @@ public class MatchFeedAsyncRequestHandler {
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
-                handleFeedResponse(response, teaserMatches);
+                handleFeedResponse(response);
+            } catch (ResourceNotFoundException e) {
+                feedNotFound = true;
+            }
+
+            long duration = t.stop();
+            logger.debug("Match feed created for user {}, duration {}", userId, duration);
+            ResponseBuilder builder = buildResponse(response, feedNotFound);
+            asyncResponse.resume(builder.build());
+        }, (throwable) -> {
+            long duration = t.stop();
+            logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
+            asyncResponse.resume(throwable);
+        }, () -> {
+            asyncResponse.resume("");
+        });
+    }
+    
+    
+    /**
+     * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
+     * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+     * 
+     * This handler uses safe methods, will return valid results as long as at least one of the stores available and
+     * respond with feed on time.
+     * 
+     * @param matchFeedQueryContext
+     *            MatchFeedQueryContext
+     * @param asyncResponse
+     *            AsyncResponse
+     */
+
+    public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsyncTeaser").time();
+        long userId = matchFeedQueryContext.getUserId();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
+
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                Schedulers.from(executorServiceProvider.getTaskExecutor()));
+
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
+                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+
+        matchQueryRequestObservable.subscribe(response -> {
+            boolean feedNotFound = false;
+            try {
+                handleTeaserFeedResponse(response);
             } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
             }
@@ -207,27 +255,37 @@ public class MatchFeedAsyncRequestHandler {
         return matchQueryRequestObservable;
     }
 
-    private void handleFeedResponse(MatchFeedRequestContext context, boolean teaserMatches) {
+    private void handleFeedResponse(MatchFeedRequestContext context) {
         refreshEventSender.sendRefreshEvent(context);
         executeFallbackIfRequired(context);
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
-        throwExceptionIfFeedIsNotAvailable(context);
         
-		if (!teaserMatches) {
-			
-			getMatchesFeedFilterChain.execute(context);
-		
-		} else {
-		
-			getTeaserMatchesFeedFilterChain.execute(context);
+        throwExceptionIfFeedIsNotAvailable(context);
 
-		}
+        getMatchesFeedFilterChain.execute(context);
         
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        
         getMatchesFeedEnricherChain.execute(context);
     }
+    
+    private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
+        executeFallbackIfRequired(context);
+        // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
+        // need to do this here to honor the pagination
+        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        
+        throwExceptionIfFeedIsNotAvailable(context);
+        
+        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+		
+        getTeaserMatchesFeedFilterChain.execute(context);
+        
+        getMatchesFeedEnricherChain.execute(context);
+    }
+
 
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
         if (context.getLegacyMatchDataFeedDtoWrapper() != null

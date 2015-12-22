@@ -47,9 +47,11 @@ public class MatchFeedAsyncResource {
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
 
-    private static final int ONE = 1;
+    private static final int TEASER_MATCH_DEFAULT_PAGINATION_SIZE = 1;
     
-    private static final int FIVE = 5;
+    private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
+    
+    private static final String COMM_MATCH_STATUS = "COMM";
     
     @GET
     @Path("/users/{userId}/matches")
@@ -79,7 +81,7 @@ public class MatchFeedAsyncResource {
                 .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
-        requesthandler.getMatchesFeed(requestContext, asyncResponse, false);
+        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
     }
     
     
@@ -88,8 +90,7 @@ public class MatchFeedAsyncResource {
      * score returned from the scorer service. 
      *  
      * @param userId  Id of the logged in user
-     * @param locale  Locale of the logged in user
-     * @param viewHidden view hidden profiles
+     * @param status  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
      * @param resultSize  number of matches to be returned
      * @param asyncResponse Asynchronous response stream
      */
@@ -98,36 +99,52 @@ public class MatchFeedAsyncResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void getTeaserMatches(
     		@PathParam("userId") long userId, 
-    		@MatrixParam("locale") String locale,
-            @QueryParam("viewHidden") boolean viewHidden,
+    		@MatrixParam("status") Set<String> statuses,
             @QueryParam("resultSize") Integer resultSize, 
             @Suspended final AsyncResponse asyncResponse) {
 
-    	if(StringUtils.isEmpty(locale)){
-    		
-            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-        }
-    		
-    	// Return matches which are in new or in comm.
-    	Set<String>	statuses = new HashSet<String>();
-    	statuses.add(MatchStatus.NEW.name().toLowerCase(Locale.US));
-    	statuses.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
-    	statuses.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
-    	statuses.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
-       
-        resultSize = (resultSize == null ? FIVE : resultSize.intValue());  //Setting the default result size to 5.
+    	
+    	Set<String>	statusSet = new HashSet<String>();
+		if (!CollectionUtils.isEmpty(statuses)) {
+
+			statuses.forEach(status -> {
+
+				if (status.equalsIgnoreCase(MatchStatus.NEW.name())) {
+					
+					statusSet.add(MatchStatus.NEW.name().toLowerCase());
+					
+				} else if (status.equalsIgnoreCase(COMM_MATCH_STATUS)) {
+					
+					statusSet.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
+					statusSet.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
+					statusSet.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
+					
+				}
+			});
+
+			if (CollectionUtils.isEmpty(statuses)) {
+				throw new WebApplicationException("Invalid status code sent. Valid value set are 'new', 'comm'", Status.BAD_REQUEST);
+			}
+			
+		} else {
+			
+			//By default the search pool will include only the new matches.
+			statusSet.add(MatchStatus.NEW.name().toLowerCase());
+			
+		}
+
+		resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(true)
-                .setLocale(locale)
                 .setPageSize(resultSize)
-                .setStartPage(ONE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
-                .setStatuses(statuses)
+                .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
+                .setStatuses(statusSet)
                 .setUserId(userId)
-                .setViewHidden(viewHidden).build();
+                .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
-        requesthandler.getMatchesFeed(requestContext, asyncResponse, true);
+        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
     }
 
     private Set<String> toLowerCase(Set<String> values) {
