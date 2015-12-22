@@ -122,7 +122,7 @@ public class MatchFeedAsyncResource {
 				}
 			});
 
-			if (CollectionUtils.isEmpty(statuses)) {
+			if (CollectionUtils.isEmpty(statusSet)) {
 				throw new WebApplicationException("Invalid status code sent. Valid value set are 'new', 'comm'", Status.BAD_REQUEST);
 			}
 			
