@@ -79,7 +79,7 @@ public class MatchTeaserCandidatesFilter implements IMatchFeedTransformer {
         result = filterRecentMatchesByDays(entries, MatchFeedModel.SECTIONS.MATCH, MatchFeedModel.MATCH.DELIVERED_DATE);
         
        /* 
-        TODO: Need to dicuss with Product to see if we need to bring in the candidates with whom the user commed into the scoring pool. 
+        TODO: Need to discuss with Product to see if we need to bring in the candidates with whom the user commed into the scoring pool. 
         Collections.sort(entries,  commDateCompartor);
         result.putAll(filterRecentMatchesByDays(entries, MatchFeedModel.SECTIONS.COMMUNICATION, MatchFeedModel.COMMUNICATION.LAST_COMM_DATE));
        */
@@ -114,6 +114,13 @@ public class MatchTeaserCandidatesFilter implements IMatchFeedTransformer {
 			 Entry<String, Map<String, Map<String, Object>>> entry = it.next();
 			 Map<String, Object> sectionMap = entry.getValue().get(sectionName);
 			 Long dateAsLong = (Long)sectionMap.get(fieldName);
+			 
+			//This will be null only if we take into account people who were delivered earlier than the given time range but were communicated recently.
+			//For phase 1 , this scenario might never happen as we are only looking as delivered_date field.
+			if (dateAsLong == null) {
+				return result;
+			}
+			 
 			 DateTime date = new DateTime(dateAsLong,DateTimeZone.UTC);
 			 if(!processedFirstRecord){
 			 
@@ -137,5 +144,5 @@ public class MatchTeaserCandidatesFilter implements IMatchFeedTransformer {
 		 entries = new LinkedList<Map.Entry<String, Map<String, Map<String, Object>>>>(filteredMap.entrySet());
 		 return result;
 	}
-
+	
 }
