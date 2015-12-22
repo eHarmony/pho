@@ -56,10 +56,6 @@ import rx.schedulers.Schedulers;
 @Component
 public class MatchFeedAsyncRequestHandler {
 
-    private static final String TEASER = "Teaser";
-
-	private static final String EMPTY_STRING = "";
-
 	private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
 
     @Resource
@@ -271,6 +267,7 @@ public class MatchFeedAsyncRequestHandler {
         getMatchesFeedEnricherChain.execute(context);
     }
     
+
     private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
         executeFallbackIfRequired(context);
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
