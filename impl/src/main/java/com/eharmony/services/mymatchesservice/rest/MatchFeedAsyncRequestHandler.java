@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
@@ -65,6 +66,8 @@ import rx.schedulers.Schedulers;
 public class MatchFeedAsyncRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
+    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName(); 
+    private static final String METRICS_GETMATCHUSER_ASYNC = "getSimpleMatchedUserList";
     
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
@@ -98,6 +101,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private MapToMatchedUserDtoTransformer mapToMatchedUserDtoTransformer;
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
@@ -166,6 +172,7 @@ public class MatchFeedAsyncRequestHandler {
     public void getSimpleMatchedUserList(final MatchFeedQueryContext matchFeedQueryContext,
             final AsyncResponse asyncResponse, final String sortBy) {
 
+        Timer.Context t = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GETMATCHUSER_ASYNC);
         long userId = matchFeedQueryContext.getUserId();
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(
                 matchFeedQueryContext);
@@ -209,8 +216,11 @@ public class MatchFeedAsyncRequestHandler {
                 if (sortComparator != null) {
                     result.sort(sortComparator);
                 }
+                long duration = t.stop();
+                logger.debug("Fetching all matched user for user {}, duration {}", userId, duration);
                 ResponseBuilder builder = Response.ok().entity(result);
                 asyncResponse.resume(builder.build());
+                
             }
         });
     }
