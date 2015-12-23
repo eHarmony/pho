@@ -155,7 +155,12 @@ public class MatchFeedAsyncRequestHandler {
                 matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
         return matchQueryRequestObservable;
     }
-    
+    /**
+     * Similar to {@link getMatchesFeed}, but take out all the matched users and return them as a list.
+     * @param matchFeedQueryContext Query context
+     * @param asyncResponse  async RS response.
+     * @param sortBy sort by criteria
+     */
     public void getSimpleMatchedUserList(final MatchFeedQueryContext matchFeedQueryContext,
             final AsyncResponse asyncResponse, final String sortBy) {
 
@@ -169,8 +174,9 @@ public class MatchFeedAsyncRequestHandler {
         Func1<MatchFeedRequestContext, Observable<SimpleMatchedUserDto>> extractUserFunc = new Func1<MatchFeedRequestContext, Observable<SimpleMatchedUserDto>>() {
             @Override
             public Observable<SimpleMatchedUserDto> call(MatchFeedRequestContext context) {
-                handleFeedResponse(context);
+                
                 try {
+                    handleFeedResponse(context);
                     List<SimpleMatchedUserDto> localResult = context.getLegacyMatchDataFeedDto()
                         .getMatches()
                         .entrySet()
@@ -180,6 +186,8 @@ public class MatchFeedAsyncRequestHandler {
                         .map(new MapToMatchedUserDtoTransformer())
                         .collect(Collectors.toList());
                     return Observable.from(localResult);
+                } catch(ResourceNotFoundException notFound) {
+                    return Observable.empty();
                 } catch (Exception exp) {
                     logger.warn("Error while organizing the user list ", exp);
                     //re-throw so subscriber will catch it.
@@ -193,11 +201,16 @@ public class MatchFeedAsyncRequestHandler {
         } , (throwable) -> {
             asyncResponse.resume(throwable);
         } , () -> {
-            if (sortComparator != null) {
-                result.sort(sortComparator);
+            if (CollectionUtils.isEmpty(result)) {
+                ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+                asyncResponse.resume(builder.build());
+            } else {
+                if (sortComparator != null) {
+                    result.sort(sortComparator);
+                }
+                ResponseBuilder builder = Response.ok().entity(result);
+                asyncResponse.resume(builder.build());
             }
-            ResponseBuilder builder = Response.ok().entity(result);
-            asyncResponse.resume(builder.build());
         });
     }
 

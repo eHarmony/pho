@@ -63,7 +63,6 @@ public class MatchFeedAsyncResource {
         if(CollectionUtils.isEmpty(statuses)){
             throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
         }
-        
         if(StringUtils.isEmpty(locale)){
             throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
         }
@@ -89,6 +88,8 @@ public class MatchFeedAsyncResource {
             @Suspended final AsyncResponse asyncResponse) {
         if (CollectionUtils.isEmpty(statuses)) {
             statuses = ALL;
+        } else {
+            statuses = toLowerCase(statuses);
         }
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
