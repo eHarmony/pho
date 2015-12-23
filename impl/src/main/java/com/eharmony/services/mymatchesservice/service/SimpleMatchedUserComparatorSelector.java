@@ -22,6 +22,7 @@ public class SimpleMatchedUserComparatorSelector {
         keyExtractorMap.put("userid", SimpleMatchedUserDto::getMatchUserId);
         keyExtractorMap.put("name", SimpleMatchedUserDto::getMatchUserFirstName);
         keyExtractorMap.put("age", SimpleMatchedUserDto::getAge);
+        keyExtractorMap.put("deliveredDate", SimpleMatchedUserDto::getDeliveredDate);
     }
     public  Comparator<SimpleMatchedUserDto> selectComparator(String sortBy) {
         if (StringUtils.isEmpty(sortBy)) {

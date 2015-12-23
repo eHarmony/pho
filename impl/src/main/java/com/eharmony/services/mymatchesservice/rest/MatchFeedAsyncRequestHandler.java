@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -182,7 +183,6 @@ public class MatchFeedAsyncRequestHandler {
                         .entrySet()
                         .stream()
                         .map(Map.Entry<String, Map<String, Map<String, Object>>>::getValue)
-                        .map(map -> map.get(MATCHED_USER_KEY))
                         .map(new MapToMatchedUserDtoTransformer())
                         .collect(Collectors.toList());
                     return Observable.from(localResult);

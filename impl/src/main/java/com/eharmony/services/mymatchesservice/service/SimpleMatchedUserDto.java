@@ -1,6 +1,7 @@
 package com.eharmony.services.mymatchesservice.service;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class SimpleMatchedUserDto implements Serializable{
     
@@ -13,6 +14,7 @@ public class SimpleMatchedUserDto implements Serializable{
     private String encryptedMatchUserId;
     private Boolean hasPrimaryPhoto;
     private Integer age;
+    private Date deliveredDate;
     
 
     public Boolean getHasPrimaryPhoto() {
@@ -45,5 +47,12 @@ public class SimpleMatchedUserDto implements Serializable{
     public void setAge(Integer age) {
         this.age = age;
     }
+	public Date getDeliveredDate() {
+		return deliveredDate;
+	}
+	public void setDeliveredDate(Date deliveredDate) {
+		this.deliveredDate = deliveredDate;
+	}
 
+    
 }
