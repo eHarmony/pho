@@ -66,8 +66,6 @@ public class MatchFeedAsyncRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
     
-    private static final String MATCHED_USER_KEY = "matchedUser";
-
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
 
@@ -97,6 +95,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private SimpleMatchedUserComparatorSelector simpleMatchedUserComparatorSelector;
+    
+    @Resource
+    private MapToMatchedUserDtoTransformer mapToMatchedUserDtoTransformer;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
@@ -183,7 +184,7 @@ public class MatchFeedAsyncRequestHandler {
                         .entrySet()
                         .stream()
                         .map(Map.Entry<String, Map<String, Map<String, Object>>>::getValue)
-                        .map(new MapToMatchedUserDtoTransformer())
+                        .map(mapToMatchedUserDtoTransformer)
                         .collect(Collectors.toList());
                     return Observable.from(localResult);
                 } catch(ResourceNotFoundException notFound) {
