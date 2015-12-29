@@ -37,6 +37,8 @@ public class MapToMatchedUserDtoTransformerTest {
 		userMap.put(AGE_KEY, 99);
 		userMap.put(PHOTO_KEY, true);
 		
+		transformer.initCache();
+		
 		SimpleMatchedUserDto result = transformer.apply(matchFeedMap);
 		assertNotNull(result);
 		

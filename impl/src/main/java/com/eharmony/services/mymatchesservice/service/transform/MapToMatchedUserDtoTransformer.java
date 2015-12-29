@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
@@ -12,10 +13,17 @@ import org.springframework.stereotype.Component;
 
 import com.eharmony.photoclient.security.PhotosSecurityDelegate;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserDto;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 @Component
 public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map<String, Object>>, SimpleMatchedUserDto> {
     @Resource
     private PhotosSecurityDelegate photosSecurityDelegate;
+
+    static private long CACHE_SIZE = 1024L;
+
 
     private static final Logger logger = LoggerFactory.getLogger(MapToMatchedUserDtoTransformer.class);
     
@@ -27,7 +35,19 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
     static public final String PHOTO_KEY = "hasPhoto";
     static public final String AGE_KEY = "age";
     
+    private LoadingCache<String, String> encryptedIdCache;
 
+    @PostConstruct
+    public void initCache() {
+        encryptedIdCache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE)
+                .build(new CacheLoader<String, String>() {
+                    @Override
+                    public String load(String key) throws Exception {
+                        return photosSecurityDelegate.encode(key);
+                    }
+                });
+    }
+    
     @Override
     public SimpleMatchedUserDto apply(Map<String, Map<String, Object>> matchMap) {
         SimpleMatchedUserDto userItem = new SimpleMatchedUserDto();
@@ -35,7 +55,7 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
             Map<String, Object> userMap = matchMap.get(MATCHED_USER_KEY);
             Long deliveredDateLong = (Long) matchMap.get(MATCH_KEY).get(DELIVERED_DATE_KEY);
             String userId = Long.toString((Long) userMap.get(USER_ID_KEY));
-            String encryptedId = photosSecurityDelegate.encode(userId);
+            String encryptedId = encryptedIdCache.get(userId);
             Date deliveredDate = new Date(deliveredDateLong);
             
             userItem.setMatchUserFirstName((String) userMap .get(NAME_KEY));
