@@ -17,12 +17,18 @@ public class SimpleMatchedUserComparatorSelector {
     private static final Logger log = LoggerFactory.getLogger(SimpleMatchedUserComparatorSelector.class);
     
     static Map<String, Function<? super SimpleMatchedUserDto, ? extends Comparable>> keyExtractorMap = new HashMap<>();
+    
+    private static final String USER_ID_CRITERIA = "userid";
+    private static final String NAME_CRITERIA = "userid";
+    private static final String AGE_CRITERIA = "userid";
+    private static final String DELIVERED_DATE_CRITERIA = "userid";
+    
     @PostConstruct
     private void initialzeMap() {
-        keyExtractorMap.put("userid", SimpleMatchedUserDto::getMatchUserId);
-        keyExtractorMap.put("name", SimpleMatchedUserDto::getMatchUserFirstName);
-        keyExtractorMap.put("age", SimpleMatchedUserDto::getAge);
-        keyExtractorMap.put("deliveredDate", SimpleMatchedUserDto::getDeliveredDate);
+        keyExtractorMap.put(USER_ID_CRITERIA, SimpleMatchedUserDto::getMatchUserId);
+        keyExtractorMap.put(NAME_CRITERIA, SimpleMatchedUserDto::getMatchUserFirstName);
+        keyExtractorMap.put(AGE_CRITERIA, SimpleMatchedUserDto::getAge);
+        keyExtractorMap.put(DELIVERED_DATE_CRITERIA, SimpleMatchedUserDto::getDeliveredDate);
     }
     public  Comparator<SimpleMatchedUserDto> selectComparator(String sortBy) {
         if (StringUtils.isEmpty(sortBy)) {
@@ -30,7 +36,7 @@ public class SimpleMatchedUserComparatorSelector {
         }
         Function<? super SimpleMatchedUserDto, ? extends Comparable> keyExtractor =  keyExtractorMap.get(sortBy);
         if (keyExtractor == null) {
-            log.warn("unkown sortby crteria {}", sortBy);
+            log.warn("unkown sortBy criteria {}", sortBy);
             return null;
         }
         return Comparator.comparing(keyExtractor);
