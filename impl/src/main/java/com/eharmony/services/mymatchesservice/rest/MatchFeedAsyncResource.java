@@ -84,7 +84,7 @@ public class MatchFeedAsyncResource {
                 .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
-        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
+        requesthandler.getMatchesFeed(requestContext, asyncResponse);
     }
     
     
