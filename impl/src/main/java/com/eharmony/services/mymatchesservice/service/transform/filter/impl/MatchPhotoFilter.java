@@ -23,9 +23,9 @@ public class MatchPhotoFilter extends AbstractProfileFilter {
 			return false;
 		
 		}
-		Map<String, Object> photoMap = (Map<String, Object>) profileSection.get(MatchFeedModel.PROFILE.PHOTO);
+		Integer photo = (Integer)profileSection.get(MatchFeedModel.PROFILE.PHOTO);
 
-		return MapUtils.isNotEmpty(photoMap);
+		return photo != null;
 		
 	}
 }
