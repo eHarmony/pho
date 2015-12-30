@@ -19,9 +19,9 @@ public class SimpleMatchedUserComparatorSelector {
     static Map<String, Function<? super SimpleMatchedUserDto, ? extends Comparable>> keyExtractorMap = new HashMap<>();
     
     private static final String USER_ID_CRITERIA = "userid";
-    private static final String NAME_CRITERIA = "userid";
-    private static final String AGE_CRITERIA = "userid";
-    private static final String DELIVERED_DATE_CRITERIA = "userid";
+    private static final String NAME_CRITERIA = "name";
+    private static final String AGE_CRITERIA = "age";
+    private static final String DELIVERED_DATE_CRITERIA = "deliveredDate";
     
     @PostConstruct
     private void initialzeMap() {
