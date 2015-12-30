@@ -16,6 +16,7 @@ import com.eharmony.event.CommandEvent;
 import com.eharmony.event.Event;
 import com.eharmony.event.EventSender;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.google.common.collect.ImmutableList;
 
 @Component
 public class MatchQueryEventService {
@@ -62,12 +63,8 @@ public class MatchQueryEventService {
         String matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches().toString();
 
         context.put(MATCH_COUNT, matchCount);
-        List<String> matchIdList = matchesFeedContext.getLegacyMatchDataFeedDto()
-                .getMatches()
-                .entrySet()
-                .stream()
-                .map(matchEntry -> matchEntry.getValue().get("match").get("id").toString())
-                .collect(Collectors.toList());
+        List<String> matchIdList = ImmutableList
+                .copyOf(matchesFeedContext.getLegacyMatchDataFeedDto().getMatches().keySet());
         context.put(MATCH_ID_LIST, matchIdList.toString());
         return context;
     }
