@@ -45,7 +45,7 @@ public class MatchQueryEventService {
         long userId = matchesFeedContext.getUserId();
         String userIdStr = String.valueOf(userId);
 
-        Map<String, String> context = extractEventContext(matchesFeedContext, userIdStr);
+        Map<String, String> context = extractTeaserEventContext(matchesFeedContext, userIdStr);
         Event teaserMatchShownEven = new CommandEvent.Builder().setCategory(TEASER_MATCH_EVENT_CATEGORY)
                 .setProducer(PRODUCER).setInstance(instance).setContext(context).setFrom(userIdStr).setUid(userIdStr)
                 .build();
@@ -54,18 +54,22 @@ public class MatchQueryEventService {
         eventSender.send(teaserMatchShownEven);
     }
 
-    private Map<String, String> extractEventContext(final MatchFeedRequestContext matchesFeedContext,
+    private Map<String, String> extractTeaserEventContext(final MatchFeedRequestContext matchesFeedContext,
             final String userIdStr) {
         Map<String, String> context = new HashMap<String, String>();
         String locale = matchesFeedContext.getMatchFeedQueryContext().getLocale();
         context.put(LOCALE, locale);
         context.put(USER_ID, userIdStr);
-        String matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches().toString();
+        try {
+            String matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches().toString();
 
-        context.put(MATCH_COUNT, matchCount);
-        List<String> matchIdList = ImmutableList
+            context.put(MATCH_COUNT, matchCount);
+            List<String> matchIdList = ImmutableList
                 .copyOf(matchesFeedContext.getLegacyMatchDataFeedDto().getMatches().keySet());
-        context.put(MATCH_ID_LIST, matchIdList.toString());
+            context.put(MATCH_ID_LIST, matchIdList.toString());
+        } catch (Exception exp) {
+            log.warn("Error while extract teaser event context: userId[{}]", userIdStr, exp);
+        }
         return context;
     }
 }
