@@ -24,6 +24,7 @@ public class MapToMatchedUserDtoTransformerTest {
 		PhotosSecurityDelegate psDelegate = mock(PhotosSecurityDelegate.class);
 		when(psDelegate.encode("100")).thenReturn("hundred");
 		ReflectionTestUtils.setField(transformer, "photosSecurityDelegate", psDelegate);
+		ReflectionTestUtils.setField(transformer, "encryptionCacheEnabled", false);
 		
 		Map<String, Map<String, Object>> matchFeedMap = new HashMap<>();
 		Map<String, Object> userMap = new HashMap<>();

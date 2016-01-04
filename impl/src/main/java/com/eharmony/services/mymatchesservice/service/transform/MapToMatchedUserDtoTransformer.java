@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.eharmony.photoclient.security.PhotosSecurityDelegate;
@@ -23,6 +24,9 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
     private PhotosSecurityDelegate photosSecurityDelegate;
 
     static private long CACHE_SIZE = 1024L;
+    
+    @Value("${encrypted.id.cache.enabled:false}") 
+    private Boolean encryptionCacheEnabled;
 
 
     private static final Logger logger = LoggerFactory.getLogger(MapToMatchedUserDtoTransformer.class);
@@ -39,6 +43,9 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
 
     @PostConstruct
     public void initCache() {
+        if (!encryptionCacheEnabled) {
+            return;
+        }
         encryptedIdCache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE)
                 .build(new CacheLoader<String, String>() {
                     @Override
@@ -55,7 +62,8 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
             Map<String, Object> userMap = matchMap.get(MATCHED_USER_KEY);
             Long deliveredDateLong = (Long) matchMap.get(MATCH_KEY).get(DELIVERED_DATE_KEY);
             String userId = Long.toString((Long) userMap.get(USER_ID_KEY));
-            String encryptedId = encryptedIdCache.get(userId);
+            String encryptedId = encryptionCacheEnabled ? encryptedIdCache.get(userId)
+                    : photosSecurityDelegate.encode(userId);
             Date deliveredDate = new Date(deliveredDateLong);
             
             userItem.setMatchUserFirstName((String) userMap .get(NAME_KEY));
