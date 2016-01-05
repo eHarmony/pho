@@ -44,7 +44,10 @@ public class MatchQueryEventService {
         long userId = matchesFeedContext.getUserId();
         String userIdStr = String.valueOf(userId);
 
-        Map<String, String> context = extractTeaserEventContext(matchesFeedContext, userIdStr);
+        Map<String, String> context = buildTeaserEventContext(matchesFeedContext);
+        if (context == null) {
+            return;
+        }
         Event teaserMatchShownEven = new CommandEvent.Builder().setCategory(TEASER_MATCH_EVENT_CATEGORY)
                 .setProducer(PRODUCER).setInstance(instance).setContext(context).setFrom(userIdStr).setUid(userIdStr)
                 .build();
@@ -53,21 +56,28 @@ public class MatchQueryEventService {
         eventSender.send(teaserMatchShownEven);
     }
 
-    private Map<String, String> extractTeaserEventContext(final MatchFeedRequestContext matchesFeedContext,
-            final String userIdStr) {
+    private Map<String, String> buildTeaserEventContext(final MatchFeedRequestContext matchesFeedContext) {
         Map<String, String> context = new HashMap<String, String>();
         String locale = matchesFeedContext.getMatchFeedQueryContext().getLocale();
+        long userId = matchesFeedContext.getUserId();
+        String userIdStr = String.valueOf(userId);
+
         context.put(LOCALE, locale);
         context.put(USER_ID, userIdStr);
         try {
-            String matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches().toString();
+            Integer matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches();
+            if (matchCount == 0) {
+                log.info("user[{}] doesn't have teaser matches.", userIdStr);
+                return null;
+            }
 
-            context.put(MATCH_COUNT, matchCount);
+            context.put(MATCH_COUNT, matchCount.toString());
             List<String> matchIdList = ImmutableList
                 .copyOf(matchesFeedContext.getLegacyMatchDataFeedDto().getMatches().keySet());
             context.put(MATCH_ID_LIST, matchIdList.toString());
         } catch (Exception exp) {
-            log.warn("Error while extract teaser event context: userId[{}]", userIdStr, exp);
+            log.warn("Error while building teaser match event context: userId[{}]", userIdStr, exp);
+            return null;
         }
         return context;
     }
