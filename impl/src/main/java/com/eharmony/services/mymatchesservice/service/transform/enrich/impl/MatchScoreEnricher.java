@@ -112,6 +112,8 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 			Map<String, Object> matchSection = matchInfo.get(MatchFeedModel.SECTIONS.MATCH);
 			Integer candidateId = (Integer) matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID);
 			
+			Integer distance = (Integer) matchSection.get(MatchFeedModel.MATCH.DISTANCE);
+			
 			PairingRelaxTypeProto userRelaxType = PairingRelaxTypeProto.RELAXED;
 
 			Optional<Object> userRelaxTypeOptional = Optional.ofNullable(matchSection.get(MatchFeedModel.MATCH.RELAXED));
@@ -126,6 +128,13 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 			pppBuilder.setCandRelaxedState(PairingRelaxTypeProto.STRICT);  // Explicitly setting the value to STRICT as the feed does not have information on candidate relax type.
 			//Based on conversation with matching team. The relax types are not used in What-If model. So, hard coding candidate relax state to STRICT is fine.
 			pppBuilder.setUserRelaxedState(userRelaxType);
+			
+			if (distance != null) {
+				
+				pppBuilder.setDistance(distance);
+			
+			}
+			
 			partialPairingsProtoList.add(pppBuilder.build());
 		});
 		
