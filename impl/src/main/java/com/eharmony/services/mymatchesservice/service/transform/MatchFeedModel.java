@@ -93,6 +93,8 @@ public abstract class MatchFeedModel {
        static final String ICON = "icon";
        static final String STATE_CODE = "stateCode";
        static final String VERSION = "version";
+       
+       static final String PHOTO_COUNT = "photoCount";
 
    }
 

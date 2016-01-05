@@ -23,9 +23,9 @@ public class MatchPhotoFilter extends AbstractProfileFilter {
 			return false;
 		
 		}
-		Integer photo = (Integer)profileSection.get(MatchFeedModel.PROFILE.PHOTO);
+		Integer photo = (Integer)profileSection.get(MatchFeedModel.PROFILE.PHOTO_COUNT);
 
-		return photo != null;
+		return photo != null && photo.intValue() > 0 ;
 		
 	}
 }

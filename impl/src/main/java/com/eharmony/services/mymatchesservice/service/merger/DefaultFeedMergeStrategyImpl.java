@@ -7,8 +7,8 @@ import static com.eharmony.services.mymatchesservice.service.transform.MatchFeed
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.GENDER;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.STATE_CODE;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.USERID;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.PHOTO_COUNT;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE;
-import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.PHOTO;
 
 import java.util.Map;
 import java.util.Set;
@@ -114,7 +114,7 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
                 log.info("birthdate must not be null in HBase for user {} and match {}", matchedUserId, matchId);
             }
 			if (profile.getPhotos() > 0) {
-				feedProfile.put(PHOTO, (Integer)profile.getPhotos());
+				feedProfile.put(PHOTO_COUNT, (Integer)profile.getPhotos());
 			} else {
 				log.info("no photo information found in HBase for user {} and match {}", matchedUserId, matchId);
 			}

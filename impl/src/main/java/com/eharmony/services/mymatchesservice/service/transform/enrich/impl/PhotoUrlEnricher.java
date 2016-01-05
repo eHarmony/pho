@@ -43,7 +43,7 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
         MatchFeedRequestContext context) {
         // Throw away photo from feed
         @SuppressWarnings("unchecked")
-        Integer photoCount = (Integer) profile.remove(MatchFeedModel.PROFILE.PHOTO);
+        Map<String, Object> photo = (Map<String, Object>) profile.remove(MatchFeedModel.PROFILE.PHOTO);
         
         if(!context.getMatchFeedQueryContext().isAllowedSeePhotos()){
         	logger.debug("allowedSeePhotos=false, returning without enriching.");
@@ -54,7 +54,7 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
         profile.put(MatchFeedModel.PROFILE.PHOTOICON, null);
         profile.put(MatchFeedModel.PROFILE.PHOTOTHUMB, null);
 
-        boolean hasPhoto = (photoCount != null);
+        boolean hasPhoto = MapUtils.isNotEmpty(photo);
 
         profile.put(MatchFeedModel.PROFILE.HAS_PHOTO, hasPhoto);
 
