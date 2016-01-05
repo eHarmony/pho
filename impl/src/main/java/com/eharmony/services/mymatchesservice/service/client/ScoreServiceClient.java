@@ -26,7 +26,7 @@ public class ScoreServiceClient {
 	
 	private final String SCORE_SERVICE_URL_TEMPLATE = "http://{host}:{port}/scorer-service/";
 
-	private final String MATCH_ATTRACT_SCORE_PATH = "1.0/pairings/{pairingPurpose}/users/{userId}/model/matching-whatif/score/";
+	private final String MATCH_ATTRACT_SCORE_PATH = "1.0/pairings/{pairingPurpose}/users/{userId}/score/";
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScoreServiceClient.class);
 
