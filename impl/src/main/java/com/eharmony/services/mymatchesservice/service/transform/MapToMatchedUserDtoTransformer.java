@@ -2,6 +2,7 @@ package com.eharmony.services.mymatchesservice.service.transform;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
@@ -61,7 +62,7 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
         try {
             Map<String, Object> userMap = matchMap.get(MATCHED_USER_KEY);
             Long deliveredDateLong = (Long) matchMap.get(MATCH_KEY).get(DELIVERED_DATE_KEY);
-            String userId = Long.toString((Long) userMap.get(USER_ID_KEY));
+            String userId = Objects.toString(userMap.get(USER_ID_KEY));
             String encryptedId = encryptionCacheEnabled ? encryptedIdCache.get(userId)
                     : photosSecurityDelegate.encode(userId);
             Date deliveredDate = new Date(deliveredDateLong);
