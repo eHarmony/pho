@@ -135,6 +135,13 @@ public class MatchFeedAsyncResource {
 			statusSet.add(MatchStatus.NEW.name().toLowerCase());
 			
 		}
+		
+		if(resultSize != null && resultSize <= 0 ){
+			
+			throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
+		
+		}
+		
 
 		resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
 
