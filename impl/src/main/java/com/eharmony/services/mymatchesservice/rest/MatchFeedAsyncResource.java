@@ -12,6 +12,8 @@
  */
 package com.eharmony.services.mymatchesservice.rest;
 
+import static com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum.ENABLED;
+
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -35,14 +37,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.codahale.metrics.annotation.Timed;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
 import com.eharmony.singles.common.status.MatchStatus;
+import com.google.common.collect.ImmutableSet;
 
 @Component
 @Path("/v1")
 public class MatchFeedAsyncResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    private Set<String> ALL = ImmutableSet.of("all");
 
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
@@ -64,16 +70,7 @@ public class MatchFeedAsyncResource {
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
             @QueryParam("voldyState") DataServiceStateEnum voldyState) {
-
-        //TODO remove this check and assume user requesting all matches if this field is empty
-    	if(CollectionUtils.isEmpty(statuses)){
-            throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
-    	}
-    	
-    	if(StringUtils.isEmpty(locale)){
-            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-        }
-
+        validateMatchFeedRequest(statuses, locale);
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
@@ -86,8 +83,8 @@ public class MatchFeedAsyncResource {
         log.info("fetching match feed for user ={}", userId);
         requesthandler.getMatchesFeed(requestContext, asyncResponse);
     }
-    
-    
+
+
     /**
      * Returns matches with photos and with match status not in (archived or closed) or passed via 'status' param. The matches are sorted in the order of their 
      * score returned from the scorer service. 
@@ -106,56 +103,87 @@ public class MatchFeedAsyncResource {
             @QueryParam("resultSize") Integer resultSize, 
             @Suspended final AsyncResponse asyncResponse) {
 
-    	
-    	Set<String>	statusSet = new HashSet<String>();
-		if (!CollectionUtils.isEmpty(statuses)) {
 
-			statuses.forEach(status -> {
+        Set<String> statusSet = new HashSet<String>();
+        if (!CollectionUtils.isEmpty(statuses)) {
 
-				if (status.equalsIgnoreCase(MatchStatus.NEW.name())) {
-					
-					statusSet.add(MatchStatus.NEW.name().toLowerCase());
-					
-				} else if (status.equalsIgnoreCase(COMM_MATCH_STATUS)) {
-					
-					statusSet.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
-					statusSet.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
-					statusSet.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
-					
-				}
-			});
+            statuses.forEach(status -> {
 
-			if (CollectionUtils.isEmpty(statusSet)) {
-				throw new WebApplicationException("Invalid status code sent. Valid value set are 'new', 'comm'", Status.BAD_REQUEST);
-			}
-			
-		} else {
-			
-			//By default the search pool will include only the new matches.
-			statusSet.add(MatchStatus.NEW.name().toLowerCase());
-			
-		}
-		
-		if(resultSize != null && resultSize <= 0 ){
-			
-			throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
-		
-		}
-		
+                if (status.equalsIgnoreCase(MatchStatus.NEW.name())) {
 
-		resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
+                    statusSet.add(MatchStatus.NEW.name().toLowerCase());
 
-		MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
+                } else if (status.equalsIgnoreCase(COMM_MATCH_STATUS)) {
+
+                    statusSet.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
+                    statusSet.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
+                    statusSet.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
+
+                }
+            });
+
+            if (CollectionUtils.isEmpty(statusSet)) {
+                throw new WebApplicationException("Invalid status code sent. Valid value set are 'new', 'comm'", Status.BAD_REQUEST);
+            }
+
+        } else {
+
+            //By default the search pool will include only the new matches.
+            statusSet.add(MatchStatus.NEW.name().toLowerCase());
+
+        }
+
+        if (resultSize != null && resultSize <= 0) {
+
+            throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
+
+        }
+
+
+        resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(true)
                 .setPageSize(teaserHbaseFetchSize)   // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
                 .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
                 .setStatuses(statusSet)
                 .setUserId(userId)
-                .setTeaserResultSize(resultSize)		// This is the number of results to be returned back to the client/user.
+                .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
         requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
+    }
+
+    private void validateMatchFeedRequest(Set<String> statuses, String locale) {
+        //TODO remove this check and assume user requesting all matches if this field is empty
+        if(CollectionUtils.isEmpty(statuses)){
+            throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
+        }
+        if(StringUtils.isEmpty(locale)){
+            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+        }
+    }
+
+    @GET
+    @Path("/users/{userId}/matchedusers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Timed(name="getSimpleMatchedUserList")
+    public void getSimpleMatchedUserList(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
+            @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden, @QueryParam("sortBy") String sortBy,
+            @Suspended final AsyncResponse asyncResponse) {
+        if (CollectionUtils.isEmpty(statuses)) {
+            statuses = ALL;
+        } else {
+            statuses = toLowerCase(statuses);
+        }
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
+                .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
+                .setViewHidden(false).setVoldyState(ENABLED).build();
+
+        log.info("fetching matched users for user ={}", userId);
+        requesthandler.getSimpleMatchedUserList(requestContext, asyncResponse, sortBy);
     }
 
     private Set<String> toLowerCase(Set<String> values) {
