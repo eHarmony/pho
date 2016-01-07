@@ -25,7 +25,7 @@
 		<photos.client.version>2.0.3</photos.client.version>
 		<event.proto.client.version>2.2.7</event.proto.client.version>
 		<powermock.version>1.6.4</powermock.version>
-		 
+		<matching-protobuf-version>1.0.33</matching-protobuf-version>
 	</properties>
 
 	<dependencies>
@@ -965,6 +965,30 @@
 			<artifactId>cglib</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.eharmony.matching</groupId>
+			<artifactId>matching-protobuf-2.5.0</artifactId>
+			<version>${matching-protobuf-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.sonatype.spice</groupId>
+					<artifactId>jersey-ahc-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jersey.contribs</groupId>
+					<artifactId>jersey-apache-client4</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jersey</groupId>
+					<artifactId>jersey-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.clapper</groupId>
+					<artifactId>javautil</artifactId>					
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
 	</dependencies>
 
 	<scm>

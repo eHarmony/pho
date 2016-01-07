@@ -15,6 +15,7 @@ package com.eharmony.services.mymatchesservice.rest;
 import static com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum.ENABLED;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+import com.eharmony.singles.common.status.MatchStatus;
 import com.google.common.collect.ImmutableSet;
 
 @Component
@@ -51,6 +53,15 @@ public class MatchFeedAsyncResource {
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
 
+    private static final int TEASER_MATCH_DEFAULT_PAGINATION_SIZE = 1;
+    
+    private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
+    
+    @Resource
+    private Integer teaserHbaseFetchSize;
+    
+    private static final String COMM_MATCH_STATUS = "COMM";
+    
     @GET
     @Path("/users/{userId}/matches")
     @Produces(MediaType.APPLICATION_JSON)
@@ -72,7 +83,78 @@ public class MatchFeedAsyncResource {
         log.info("fetching match feed for user ={}", userId);
         requesthandler.getMatchesFeed(requestContext, asyncResponse);
     }
-    
+
+
+    /**
+     * Returns matches with photos and with match status not in (archived or closed) or passed via 'status' param. The matches are sorted in the order of their 
+     * score returned from the scorer service. 
+     *  
+     * @param userId  Id of the logged in user
+     * @param statuses  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
+     * @param resultSize  number of matches to be returned
+     * @param asyncResponse Asynchronous response stream
+     */
+    @GET
+    @Path("/users/{userId}/teasermatches")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void getTeaserMatches(
+    		@PathParam("userId") long userId, 
+    		@MatrixParam("status") Set<String> statuses,
+            @QueryParam("resultSize") Integer resultSize, 
+            @Suspended final AsyncResponse asyncResponse) {
+
+
+        Set<String> statusSet = new HashSet<String>();
+        if (!CollectionUtils.isEmpty(statuses)) {
+
+            statuses.forEach(status -> {
+
+                if (status.equalsIgnoreCase(MatchStatus.NEW.name())) {
+
+                    statusSet.add(MatchStatus.NEW.name().toLowerCase());
+
+                } else if (status.equalsIgnoreCase(COMM_MATCH_STATUS)) {
+
+                    statusSet.add(MatchStatus.MYTURN.name().toLowerCase(Locale.US));
+                    statusSet.add(MatchStatus.OPENCOMM.name().toLowerCase(Locale.US));
+                    statusSet.add(MatchStatus.THEIRTURN.name().toLowerCase(Locale.US));
+
+                }
+            });
+
+            if (CollectionUtils.isEmpty(statusSet)) {
+                throw new WebApplicationException("Invalid status code sent. Valid value set are 'new', 'comm'", Status.BAD_REQUEST);
+            }
+
+        } else {
+
+            //By default the search pool will include only the new matches.
+            statusSet.add(MatchStatus.NEW.name().toLowerCase());
+
+        }
+
+        if (resultSize != null && resultSize <= 0) {
+
+            throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
+
+        }
+
+
+        resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
+                .setAllowedSeePhotos(true)
+                .setPageSize(teaserHbaseFetchSize)   // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
+                .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
+                .setStatuses(statusSet)
+                .setUserId(userId)
+                .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
+                .build();
+
+        log.debug("fetching teaser match feed for user ={}", userId);
+        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
+    }
+
     private void validateMatchFeedRequest(Set<String> statuses, String locale) {
         //TODO remove this check and assume user requesting all matches if this field is empty
         if(CollectionUtils.isEmpty(statuses)){
