@@ -12,6 +12,8 @@
  */
 package com.eharmony.services.mymatchesservice.rest;
 
+import static com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum.ENABLED;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,13 +36,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.codahale.metrics.annotation.Timed;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+import com.google.common.collect.ImmutableSet;
 
 @Component
 @Path("/v1")
 public class MatchFeedAsyncResource {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    private Set<String> ALL = ImmutableSet.of("all");
 
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
@@ -53,16 +59,7 @@ public class MatchFeedAsyncResource {
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
             @QueryParam("voldyState") DataServiceStateEnum voldyState) {
-
-        //TODO remove this check and assume user requesting all matches if this field is empty
-    	if(CollectionUtils.isEmpty(statuses)){
-            throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
-    	}
-    	
-    	if(StringUtils.isEmpty(locale)){
-            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-        }
-
+        validateMatchFeedRequest(statuses, locale);
         Set<String> normalizedStatuses = toLowerCase(statuses);
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
@@ -74,6 +71,37 @@ public class MatchFeedAsyncResource {
 
         log.info("fetching match feed for user ={}", userId);
         requesthandler.getMatchesFeed(requestContext, asyncResponse);
+    }
+    
+    private void validateMatchFeedRequest(Set<String> statuses, String locale) {
+        //TODO remove this check and assume user requesting all matches if this field is empty
+        if(CollectionUtils.isEmpty(statuses)){
+            throw new WebApplicationException("Missing status.", Status.BAD_REQUEST);
+        }
+        if(StringUtils.isEmpty(locale)){
+            throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+        }
+    }
+
+    @GET
+    @Path("/users/{userId}/matchedusers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Timed(name="getSimpleMatchedUserList")
+    public void getSimpleMatchedUserList(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
+            @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden, @QueryParam("sortBy") String sortBy,
+            @Suspended final AsyncResponse asyncResponse) {
+        if (CollectionUtils.isEmpty(statuses)) {
+            statuses = ALL;
+        } else {
+            statuses = toLowerCase(statuses);
+        }
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
+                .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
+                .setViewHidden(false).setVoldyState(ENABLED).build();
+
+        log.info("fetching matched users for user ={}", userId);
+        requesthandler.getSimpleMatchedUserList(requestContext, asyncResponse, sortBy);
     }
 
     private Set<String> toLowerCase(Set<String> values) {
