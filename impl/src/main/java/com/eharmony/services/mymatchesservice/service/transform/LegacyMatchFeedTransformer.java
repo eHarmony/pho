@@ -73,8 +73,10 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, emptyStringIfNull(elem.getStateCode()));
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
-        profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
-
+        if(elem.getPhotos() != 0 ){
+        	
+        	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
+        }
         return profile;
     }
 
