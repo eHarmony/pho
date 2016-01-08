@@ -1,11 +1,14 @@
 package com.eharmony.services.mymatchesservice.event;
 
 import java.util.HashMap;
+import static com.eharmony.services.mymatchesservice.event.EventConstant.*;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,14 +24,6 @@ import com.google.common.collect.ImmutableList;
 public class MatchQueryEventService {
     private Logger log = LoggerFactory.getLogger(MatchQueryEventService.class);
 
-    public static final String PRODUCER = "MQS";
-
-    private static final String LOCALE = "locale";
-    private static final String USER_ID = "userId";
-    private static final String MATCH_COUNT = "matchCount";
-    private static final String MATCH_ID_LIST = "matchIdList";
-    private static final String TEASER_MATCH_EVENT_CATEGORY = "user.teaser.match.shown";
-
     @Value("${instance}")
     private String instance;
 
@@ -40,7 +35,7 @@ public class MatchQueryEventService {
      * 
      * @param matchesFeedContext
      */
-    public void sendTeaserMatchShownEvent(final MatchFeedRequestContext matchesFeedContext) {
+    public void sendTeaserMatchShownEvent(final MatchFeedRequestContext matchesFeedContext, final Map<String,String> eventContextInfo) {
         long userId = matchesFeedContext.getUserId();
         String userIdStr = String.valueOf(userId);
 
@@ -48,6 +43,15 @@ public class MatchQueryEventService {
         if (context == null) {
             return;
         }
+        
+        if(MapUtils.isNotEmpty(eventContextInfo)){
+        
+	        eventContextInfo.entrySet().forEach(item ->{
+	        	context.put(item.getKey(), item.getValue());
+	        });
+        
+        }
+        
         Event teaserMatchShownEven = new CommandEvent.Builder().setCategory(TEASER_MATCH_EVENT_CATEGORY)
                 .setProducer(PRODUCER).setInstance(instance).setContext(context).setFrom(userIdStr).setUid(userIdStr)
                 .build();

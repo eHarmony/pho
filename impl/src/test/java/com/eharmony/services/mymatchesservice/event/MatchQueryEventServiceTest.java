@@ -42,7 +42,10 @@ public class MatchQueryEventServiceTest {
 		ReflectionTestUtils.setField(mqsEventSvc, "eventSender", eventSender);
 		ReflectionTestUtils.setField(mqsEventSvc, "instance", "instance1");
 		
-		mqsEventSvc.sendTeaserMatchShownEvent(ctx);
+		Map<String,String> eventContextInfo = new HashMap<String,String>();
+		eventContextInfo.put("user-agent","Mozilla");
+		
+		mqsEventSvc.sendTeaserMatchShownEvent(ctx,eventContextInfo);
 		verify(eventSender).send(any(Event.class));
 	}
 

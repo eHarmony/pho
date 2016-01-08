@@ -157,7 +157,7 @@ public class MatchFeedAsyncRequestHandler {
      *            AsyncResponse
      */
 
-    public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+    public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, Map<String,String> eventContextInfo) {
 
     	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsyncTeaser").time();
         long userId = matchFeedQueryContext.getUserId();
@@ -184,7 +184,7 @@ public class MatchFeedAsyncRequestHandler {
             logger.debug("Match feed created for user {}, duration {}", userId, duration);
             ResponseBuilder builder = buildResponse(response, feedNotFound);
             if (!feedNotFound) {
-                matchQueryEventService.sendTeaserMatchShownEvent(response);
+                matchQueryEventService.sendTeaserMatchShownEvent(response, eventContextInfo);
             }
             asyncResponse.resume(builder.build());
         }, (throwable) -> {

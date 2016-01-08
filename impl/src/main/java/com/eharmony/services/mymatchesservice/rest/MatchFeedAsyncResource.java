@@ -12,12 +12,15 @@
  */
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.MatrixParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -35,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.eharmony.services.mymatchesservice.event.EventConstant;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
 import com.eharmony.singles.common.status.MatchStatus;
 
@@ -103,7 +107,7 @@ public class MatchFeedAsyncResource {
     public void getTeaserMatches(
     		@PathParam("userId") long userId, 
     		@MatrixParam("status") Set<String> statuses,
-            @QueryParam("resultSize") Integer resultSize, 
+            @QueryParam("resultSize") Integer resultSize, @HeaderParam("user-agent") String userAgent,
             @Suspended final AsyncResponse asyncResponse) {
 
     	
@@ -136,6 +140,7 @@ public class MatchFeedAsyncResource {
 			
 		}
 
+		
 		resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
 
 		MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
@@ -148,7 +153,14 @@ public class MatchFeedAsyncResource {
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
-        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
+        Map<String,String> eventContextInfo = new HashMap<String,String>();
+        if(StringUtils.isNotBlank(userAgent)){
+
+        	eventContextInfo.put(EventConstant.USER_AGENT, userAgent);
+        
+        }
+       
+        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
 
     private Set<String> toLowerCase(Set<String> values) {
