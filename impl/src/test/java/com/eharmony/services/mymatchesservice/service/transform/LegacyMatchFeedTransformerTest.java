@@ -67,7 +67,40 @@ public class LegacyMatchFeedTransformerTest {
 
             assertEquals(relaxedCodes.get(relaxedCode), section.get(MatchFeedModel.MATCH.RELAXED));
         }
+    }
+    
+    @Test
+    public void testStateCodeIsEmptyStringWhenNull(){
 
+        Long matchId = 9999L;
+
+        MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+        hbaseFeedItem.getMatch().setMatchId(matchId);
+
+        Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+        feedItems.add(hbaseFeedItem);
+        
+        MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1)
+                .build();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+        Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsMap = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
+        feedItemsMap.put(MatchStatusGroupEnum.NEW, feedItems);
+        request.setHbaseFeedItemsByStatusGroup(feedItemsMap);
+        
+        LegacyMatchFeedTransformer transformer = new LegacyMatchFeedTransformer();
+      
+        LegacyMatchDataFeedDto feed = transformer.transform(request);
+
+        Map<String, Map<String, Map<String, Object>>> matches = feed.getMatches();
+        assertNotNull(matches);
+
+        Map<String, Map<String, Object>> aMatch = matches.get(String.valueOf(matchId));
+        assertNotNull(aMatch);
+
+        Map<String, Object> section = aMatch.get(MatchFeedModel.SECTIONS.PROFILE);
+        assertNotNull(section);
+
+        assertEquals("", section.get(MatchFeedModel.PROFILE.STATE_CODE));
     }
 
     @Test

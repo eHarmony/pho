@@ -1,10 +1,12 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.ws.rs.container.AsyncResponse;
@@ -14,35 +16,43 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import rx.Observable;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
 import com.codahale.metrics.Timer;
-import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
+import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserComparatorSelector;
+import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.MapToMatchedUserDtoTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
+import com.google.common.collect.Lists;
+
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
+
+import rx.Observable;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -59,7 +69,9 @@ import com.eharmony.singles.common.util.ResourceNotFoundException;
 public class MatchFeedAsyncRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchFeedAsyncRequestHandler.class);
-
+    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName(); 
+    private static final String METRICS_GETMATCHUSER_ASYNC = "getSimpleMatchedUserList";
+    
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
 
@@ -75,6 +87,9 @@ public class MatchFeedAsyncRequestHandler {
     @Resource(name = "getMatchesFeedFilterChain")
     private MatchFeedTransformerChain getMatchesFeedFilterChain;
 
+    @Resource(name= "getTeaserMatchesFeedFilterChain")
+    private MatchFeedTransformerChain  getTeaserMatchesFeedFilterChain;
+    
     @Resource
     private RefreshEventSender refreshEventSender;
 
@@ -86,6 +101,15 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource
     private HBASEToLegacyFeedTransformer hbaseToLegacyFeedTransformer;
+    
+    @Resource
+    private SimpleMatchedUserComparatorSelector simpleMatchedUserComparatorSelector;
+    
+    @Resource
+    private MapToMatchedUserDtoTransformer mapToMatchedUserDtoTransformer;
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
@@ -105,24 +129,13 @@ public class MatchFeedAsyncRequestHandler {
 
     public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
 
-        Timer.Context t = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsync").time();
         long userId = matchFeedQueryContext.getUserId();
-        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
-
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
-                Schedulers.from(executorServiceProvider.getTaskExecutor()));
-
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(matchFeedQueryContext);
 
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
-                // aggregateHBaseFeedItems(response);
                 handleFeedResponse(response);
             } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
@@ -138,6 +151,134 @@ public class MatchFeedAsyncRequestHandler {
             asyncResponse.resume(throwable);
         }, () -> {
             asyncResponse.resume("");
+        });
+    }
+    
+
+    /**
+     * Teaser Matches will be returned after applying the filters and enriching the data from feed stores. Feed will be
+     * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+     * 
+     * This handler uses safe methods, will return valid results as long as at least one of the stores available and
+     * respond with feed on time.
+     * 
+     * @param matchFeedQueryContext
+     *            MatchFeedQueryContext
+     * @param asyncResponse
+     *            AsyncResponse
+     */
+
+    public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsyncTeaser").time();
+        long userId = matchFeedQueryContext.getUserId();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
+
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                Schedulers.from(executorServiceProvider.getTaskExecutor()));
+
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
+                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+
+        matchQueryRequestObservable.subscribe(response -> {
+            boolean feedNotFound = false;
+            try {
+                handleTeaserFeedResponse(response);
+            } catch (ResourceNotFoundException e) {
+                feedNotFound = true;
+            }
+
+            long duration = t.stop();
+            logger.debug("Match feed created for user {}, duration {}", userId, duration);
+            ResponseBuilder builder = buildResponse(response, feedNotFound);
+            asyncResponse.resume(builder.build());
+        }, (throwable) -> {
+            long duration = t.stop();
+            logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
+            asyncResponse.resume(throwable);
+        }, () -> {
+            asyncResponse.resume("");
+        });
+    }
+
+
+
+    protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
+        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
+
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                Schedulers.from(executorServiceProvider.getTaskExecutor()));
+
+        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
+                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+        return matchQueryRequestObservable;
+    }
+
+    /**
+     * Similar to {@link getMatchesFeed}, but take out all the matched users and return them as a list.
+     * @param matchFeedQueryContext Query context
+     * @param asyncResponse  async RS response.
+     * @param sortBy sort by criteria
+     */
+    public void getSimpleMatchedUserList(final MatchFeedQueryContext matchFeedQueryContext,
+            final AsyncResponse asyncResponse, final String sortBy) {
+
+        Timer.Context t = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GETMATCHUSER_ASYNC);
+        long userId = matchFeedQueryContext.getUserId();
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(
+                matchFeedQueryContext);
+        Comparator<SimpleMatchedUserDto> sortComparator = simpleMatchedUserComparatorSelector.selectComparator(sortBy);
+        /*
+         * Function to extract user list from match feed context, make them Observable object 
+         */
+        Func1<MatchFeedRequestContext, Observable<SimpleMatchedUserDto>> extractUserFunc = new Func1<MatchFeedRequestContext, Observable<SimpleMatchedUserDto>>() {
+            @Override
+            public Observable<SimpleMatchedUserDto> call(MatchFeedRequestContext context) {
+                
+                try {
+                    handleFeedResponse(context);
+                    List<SimpleMatchedUserDto> localResult = context.getLegacyMatchDataFeedDto()
+                        .getMatches()
+                        .entrySet()
+                        .stream()
+                        .map(Map.Entry<String, Map<String, Map<String, Object>>>::getValue)
+                        .map(mapToMatchedUserDtoTransformer)
+                        .collect(Collectors.toList());
+                    return Observable.from(localResult);
+                } catch(ResourceNotFoundException notFound) {
+                    return Observable.empty();
+                } catch (Exception exp) {
+                    logger.warn("Error while organizing the user list ", exp);
+                    //re-throw so subscriber will catch it.
+                    throw exp;
+                }
+            }
+        };
+        List<SimpleMatchedUserDto> result = Lists.newArrayList();
+        matchQueryRequestObservable.flatMap(extractUserFunc).subscribe(response -> {
+            result.add(response);
+        } , (throwable) -> {
+            asyncResponse.resume(throwable);
+        } , () -> {
+            if (CollectionUtils.isEmpty(result)) {
+                ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+                asyncResponse.resume(builder.build());
+            } else {
+                if (sortComparator != null) {
+                    result.sort(sortComparator);
+                }
+                long duration = t.stop();
+                logger.debug("Fetching all matched user for user {}, duration {}", userId, duration);
+                ResponseBuilder builder = Response.ok().entity(result);
+                asyncResponse.resume(builder.build());
+                
+            }
         });
     }
 
@@ -208,11 +349,32 @@ public class MatchFeedAsyncRequestHandler {
         // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        
         throwExceptionIfFeedIsNotAvailable(context);
+
         getMatchesFeedFilterChain.execute(context);
+        
         FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        
         getMatchesFeedEnricherChain.execute(context);
     }
+    
+
+    private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
+        executeFallbackIfRequired(context);
+        // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
+        // need to do this here to honor the pagination
+        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        
+        throwExceptionIfFeedIsNotAvailable(context);
+        
+        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+		
+        getTeaserMatchesFeedFilterChain.execute(context);
+        
+        getMatchesFeedEnricherChain.execute(context);
+    }
+
 
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
         if (context.getLegacyMatchDataFeedDtoWrapper() != null
@@ -268,7 +430,9 @@ public class MatchFeedAsyncRequestHandler {
 
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
+
             ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+            
             return builder;
         }
         LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();

@@ -65,6 +65,32 @@
 			</util:list>
 		</constructor-arg>
 	</bean>
+	
+	<bean id="teaserHbaseFetchSize" class="java.lang.Integer">
+        <constructor-arg value="${teaser.hbase.fetch.size}" />
+      </bean>
+	
+	<bean id="getTeaserMatchesFeedFilterChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchPhotoFilter" /> 
+				<bean 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.MatchScoreEnricher">
+					<constructor-arg index="0" ref="scoreServiceClient" />
+				</bean>
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.TeaserResultSizeFilter" />
+			</util:list>
+		</constructor-arg>
+	</bean>
 
 	<bean id="getMatchesFeedEnricherChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
@@ -89,8 +115,7 @@
 				<bean id="commNextStepEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
 				</bean>
-
-				
+			
 			</util:list>
 		</constructor-arg>
 	</bean>

@@ -70,10 +70,13 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.COUNTRY, elem.getCountry());
         profile.put(MatchFeedModel.PROFILE.FIRSTNAME, elem.getFirstName());
         profile.put(MatchFeedModel.PROFILE.GENDER, elem.getGender());
-        profile.put(MatchFeedModel.PROFILE.STATE_CODE, elem.getStateCode());
+        profile.put(MatchFeedModel.PROFILE.STATE_CODE, emptyStringIfNull(elem.getStateCode()));
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
-
+        if(elem.getPhotos() != 0 ){
+        	
+        	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
+        }
         return profile;
     }
 
@@ -124,6 +127,10 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.MATCH_FIRST_NAME, profileElem.getFirstName());
 
         return match;
+    }
+    
+    private String emptyStringIfNull(String value){
+    	return value == null ? "" : value;
     }
 
     private Map<String, Object> createMatchFeedCommunication(MatchDataFeedItemDto item) {

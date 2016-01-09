@@ -48,7 +48,7 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
         LegacyMatchDataFeedDtoWrapper feedWrapper = buildWrapperForMockRequest(queryContext);
         // Return the feed if the request is mock request
         if (feedWrapper != null) {
-            logger.warn("Recieved the mock volde feed request for user {}, please verify this is intended?", userId);
+            logger.warn("Received the mock voldy feed request for user {}, please verify this is intended?", userId);
             return feedWrapper;
         }
         Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_VOLDY_SAFE);

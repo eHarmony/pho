@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,46 +26,45 @@ import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
-@ContextConfiguration
+@RunWith( SpringJUnit4ClassRunner.class )
+@ContextConfiguration(locations = {"/application-context-test.xml"})
 public class RefreshEventSenderTest {
 
-//TODO: fix PropertySource issue
+	@Autowired
+	RefreshEventSender refreshEventSender;
+	
+	@Autowired
+	MockEventSender eventSender;
+
 	@Test
 	public void testDefaultHBaseRefreshEvent(){
-//		
-//		// set up Voldy feed, no HBase.
-//		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().build();
-//		MatchFeedRequestContext ctx = new MatchFeedRequestContext(queryCtx);
-//		
-//		long matchId = 11790420914L;
-//		LegacyMatchDataFeedDto legacy = new LegacyMatchDataFeedDto();
-//		Map<String, Map<String, Map<String, Object>>> matches = new HashMap<>();
-//		matches.put(String.valueOf(matchId), new HashMap<String, Map<String, Object>>());
-//		legacy.setMatches(matches);
-//		
-//		long userId = 62837673;
-//		
-//		ctx.setLegacyMatchDataFeedDtoWrapper(new LegacyMatchDataFeedDtoWrapper(userId));
-//		LegacyMatchDataFeedDtoWrapper wrapper = ctx.getLegacyMatchDataFeedDtoWrapper();
-//
-//		wrapper.setLegacyMatchDataFeedDto(legacy);
-//		wrapper.setFeedAvailable(true);
-//		wrapper.setVoldyMatchesCount(1);
-//			
-//		MockEventSender eventSender = new MockEventSender();
-//		
-//		RefreshEventSender target = new RefreshEventSender();
-//		target.setEventSender(eventSender);
-//		ReflectionTestUtils.setField(target, "sendRefreshEvent", true);
-//		ReflectionTestUtils.setField(target, "instance", "junit-test");
-//		
-//		target.sendRefreshEvent(ctx);
-//		
-//		Event sentEvent = eventSender.getLastEvent();
-//		
-//		assertNotNull(sentEvent);
-//		assertEquals("user.match.feed.request.new", sentEvent.getCategory());
-//	
+		
+		// set up Voldy feed, no HBase.
+		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().build();
+		MatchFeedRequestContext ctx = new MatchFeedRequestContext(queryCtx);
+		
+		long matchId = 11790420914L;
+		LegacyMatchDataFeedDto legacy = new LegacyMatchDataFeedDto();
+		Map<String, Map<String, Map<String, Object>>> matches = new HashMap<>();
+		matches.put(String.valueOf(matchId), new HashMap<String, Map<String, Object>>());
+		legacy.setMatches(matches);
+		
+		long userId = 62837673;
+		
+		ctx.setLegacyMatchDataFeedDtoWrapper(new LegacyMatchDataFeedDtoWrapper(userId));
+		LegacyMatchDataFeedDtoWrapper wrapper = ctx.getLegacyMatchDataFeedDtoWrapper();
+
+		wrapper.setLegacyMatchDataFeedDto(legacy);
+		wrapper.setFeedAvailable(true);
+		wrapper.setVoldyMatchesCount(1);
+					
+		refreshEventSender.sendRefreshEvent(ctx);
+		
+		Event sentEvent = eventSender.getLastEvent();
+		
+		assertNotNull(sentEvent);
+		assertEquals("user.match.feed.refresh.new", sentEvent.getCategory());
+	
 	}
 	
 	static class MockEventSender implements EventSender{
@@ -88,14 +88,14 @@ public class RefreshEventSenderTest {
 		}
 	}
 	
-	@Configuration
+   @Configuration
     public static class SpringConfiguration {
-		
-		@org.springframework.context.annotation.Bean
-		public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
-		    PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
-		    ppc.setIgnoreResourceNotFound(true);
-		    return ppc;
-		}
+        
+	   @org.springframework.context.annotation.Bean
+	   public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
+	       PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
+	       ppc.setIgnoreResourceNotFound(true);
+	       return ppc;
+	   }
     }
 }
