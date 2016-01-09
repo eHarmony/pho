@@ -13,4 +13,5 @@ public class EventConstant {
     public static final String MATCH_ID_LIST = "matchIdList";
     public static final String TEASER_MATCH_EVENT_CATEGORY = "user.teaser.match.shown";
     public static final String USER_AGENT = "userAgent";
+    public static final String PLATFORM = "platform";
 }

@@ -107,7 +107,9 @@ public class MatchFeedAsyncResource {
     public void getTeaserMatches(
     		@PathParam("userId") long userId, 
     		@MatrixParam("status") Set<String> statuses,
-            @QueryParam("resultSize") Integer resultSize, @HeaderParam("user-agent") String userAgent,
+            @QueryParam("resultSize") Integer resultSize, 
+            @HeaderParam(EventConstant.USER_AGENT) String userAgent,
+            @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
     	
@@ -154,9 +156,16 @@ public class MatchFeedAsyncResource {
 
         log.debug("fetching teaser match feed for user ={}", userId);
         Map<String,String> eventContextInfo = new HashMap<String,String>();
+        
         if(StringUtils.isNotBlank(userAgent)){
 
         	eventContextInfo.put(EventConstant.USER_AGENT, userAgent);
+        
+        }
+        
+        if(StringUtils.isNotBlank(platform)){
+
+        	eventContextInfo.put(EventConstant.PLATFORM, platform);
         
         }
        
