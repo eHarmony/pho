@@ -14,12 +14,15 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import static com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum.ENABLED;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.MatrixParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -38,6 +41,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
+
+import com.eharmony.services.mymatchesservice.event.EventConstant;
+
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
 import com.eharmony.singles.common.status.MatchStatus;
 import com.google.common.collect.ImmutableSet;
@@ -101,6 +107,8 @@ public class MatchFeedAsyncResource {
     		@PathParam("userId") long userId, 
     		@MatrixParam("status") Set<String> statuses,
             @QueryParam("resultSize") Integer resultSize, 
+            @HeaderParam(EventConstant.USER_AGENT) String userAgent,
+            @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
 
@@ -152,7 +160,21 @@ public class MatchFeedAsyncResource {
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
-        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse);
+        Map<String,String> eventContextInfo = new HashMap<String,String>();
+        
+        if(StringUtils.isNotBlank(userAgent)){
+
+        	eventContextInfo.put(EventConstant.USER_AGENT, userAgent);
+        
+        }
+        
+        if(StringUtils.isNotBlank(platform)){
+
+        	eventContextInfo.put(EventConstant.PLATFORM, platform);
+        
+        }
+       
+        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
 
     private void validateMatchFeedRequest(Set<String> statuses, String locale) {
