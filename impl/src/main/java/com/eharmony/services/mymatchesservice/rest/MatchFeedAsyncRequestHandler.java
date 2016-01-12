@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.Timer;
+import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
@@ -110,6 +111,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    
+    @Resource
+    private MatchQueryEventService matchQueryEventService;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
@@ -194,6 +198,9 @@ public class MatchFeedAsyncRequestHandler {
             long duration = t.stop();
             logger.debug("Match feed created for user {}, duration {}", userId, duration);
             ResponseBuilder builder = buildResponse(response, feedNotFound);
+            if (!feedNotFound) {
+                matchQueryEventService.sendTeaserMatchShownEvent(response);
+            }
             asyncResponse.resume(builder.build());
         }, (throwable) -> {
             long duration = t.stop();
