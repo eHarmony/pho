@@ -108,7 +108,7 @@ public class MatchFeedAsyncResource {
     		@PathParam("userId") long userId, 
     		@MatrixParam("status") Set<String> statuses,
             @QueryParam("resultSize") Integer resultSize, 
-            @HeaderParam(EventConstant.USER_AGENT) String userAgent,
+            @HeaderParam("user-agent") String userAgent,
             @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
