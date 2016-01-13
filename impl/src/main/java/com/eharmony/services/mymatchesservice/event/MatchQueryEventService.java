@@ -1,13 +1,17 @@
 package com.eharmony.services.mymatchesservice.event;
 
+import static com.eharmony.services.mymatchesservice.event.EventConstant.MATCH_COUNT;
+import static com.eharmony.services.mymatchesservice.event.EventConstant.MATCH_ID_LIST;
+import static com.eharmony.services.mymatchesservice.event.EventConstant.PRODUCER;
+import static com.eharmony.services.mymatchesservice.event.EventConstant.TEASER_MATCH_EVENT_CATEGORY;
+import static com.eharmony.services.mymatchesservice.event.EventConstant.USER_ID;
+
 import java.util.HashMap;
-import static com.eharmony.services.mymatchesservice.event.EventConstant.*;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,11 +66,9 @@ public class MatchQueryEventService {
 
     private Map<String, String> buildTeaserEventContext(final MatchFeedRequestContext matchesFeedContext) {
         Map<String, String> context = new HashMap<String, String>();
-        String locale = matchesFeedContext.getMatchFeedQueryContext().getLocale();
         long userId = matchesFeedContext.getUserId();
         String userIdStr = String.valueOf(userId);
 
-        context.put(LOCALE, locale);
         context.put(USER_ID, userIdStr);
         try {
             Integer matchCount = matchesFeedContext.getLegacyMatchDataFeedDto().getTotalMatches();
