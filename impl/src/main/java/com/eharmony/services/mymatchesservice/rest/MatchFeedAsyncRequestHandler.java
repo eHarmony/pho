@@ -133,7 +133,7 @@ public class MatchFeedAsyncRequestHandler {
 
     public void getMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
 
-    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsync").time();
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
         long userId = matchFeedQueryContext.getUserId();
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(matchFeedQueryContext);
 
@@ -174,7 +174,7 @@ public class MatchFeedAsyncRequestHandler {
 
     public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, Map<String,String> eventContextInfo) {
 
-    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(".getMatchesFeedAsyncTeaser").time();
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsyncTeaser").time();
         long userId = matchFeedQueryContext.getUserId();
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
