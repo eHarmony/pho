@@ -54,6 +54,7 @@ public class TeaserResultSizeFilter implements IMatchFeedTransformer {
 
             log.debug("Match feed context doesn't request pagination (pageNum={}), returning without processing. Context={}",
                       pageNum, context);
+            feed.setTotalMatches(feed.getMatches().size());
             return context;
 
         }
