@@ -48,13 +48,12 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
         }
 
-        feed.setTotalMatches(matches.size());
-        
         int pageNum = context.getMatchFeedQueryContext().getStartPage();
         if (pageNum < 1) {
 
             log.debug("Match feed context doesn't request pagination (pageNum={}), returning without processing. Context={}",
                       pageNum, context);
+            feed.setTotalMatches(feed.getMatches().size());
             return context;
 
         }
@@ -100,8 +99,8 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         }
 
         // 4. re-wire ordered map into the context
-        context.getLegacyMatchDataFeedDto()
-               .setMatches(result);
+        context.getLegacyMatchDataFeedDto().setMatches(result);
+        feed.setTotalMatches(result.size());
 
         return context;
 
