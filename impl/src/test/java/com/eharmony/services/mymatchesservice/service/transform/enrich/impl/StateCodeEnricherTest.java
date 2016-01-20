@@ -6,6 +6,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.slf4j.LoggerFactory;
@@ -17,6 +22,7 @@ import com.eharmony.services.mymatchesservice.MatchTestUtils;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContextBuilder;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
@@ -63,6 +69,17 @@ public class StateCodeEnricherTest {
 			        		.contains(expectedLogMessage);
 			      }
 			    }));	
+			
+			Map<String, Map<String, Map<String, Object>>> matches = ctx.
+											getLegacyMatchDataFeedDtoWrapper()
+											.getLegacyMatchDataFeedDto().getMatches();
+			
+			for(Map<String, Map<String, Object>> matchVals : matches.values()){
+				
+				assertEquals(StringUtils.EMPTY, (String) matchVals
+						.get(MatchFeedModel.SECTIONS.PROFILE)
+						.get(MatchFeedModel.PROFILE.STATE_CODE));				
+			}
 		}
 		
 	}

@@ -21,8 +21,13 @@ public class StateCodeEnricher extends AbstractProfileEnricher {
     	
     	if(StringUtils.isBlank(stateCode)){
     		logger.warn("State code for userId {} is blank.", profile.get(MatchFeedModel.PROFILE.USERID));							
+ 
+    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, "");
+    		
     	}else if(stateCode.contains("???")){
     		logger.warn("State code for userId {} is unresolved: \"{}\".", profile.get(MatchFeedModel.PROFILE.USERID), stateCode);							
+    		
+    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, "");
     	}
     	
     	return true;
