@@ -11,6 +11,9 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.service.transform.enrich.AbstractProfileEnricher;
 
 public class StateCodeEnricher extends AbstractProfileEnricher {
+	
+	private static final String STATE_CODE_UNKNOWN_PREFIX = "???";
+	
     private static final Logger logger = LoggerFactory.getLogger(StateCodeEnricher.class);
 
     @Override
@@ -22,12 +25,12 @@ public class StateCodeEnricher extends AbstractProfileEnricher {
     	if(StringUtils.isBlank(stateCode)){
     		logger.warn("State code for userId {} is blank.", profile.get(MatchFeedModel.PROFILE.USERID));							
  
-    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, "");
+    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, StringUtils.EMPTY);
     		
-    	}else if(stateCode.contains("???")){
+    	}else if(stateCode.startsWith(STATE_CODE_UNKNOWN_PREFIX)){
     		logger.warn("State code for userId {} is unresolved: \"{}\".", profile.get(MatchFeedModel.PROFILE.USERID), stateCode);							
     		
-    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, "");
+    		profile.put(MatchFeedModel.PROFILE.STATE_CODE, StringUtils.EMPTY);
     	}
     	
     	return true;
