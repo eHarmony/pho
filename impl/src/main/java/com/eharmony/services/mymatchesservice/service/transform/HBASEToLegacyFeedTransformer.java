@@ -22,6 +22,11 @@ public class HBASEToLegacyFeedTransformer {
     		return;
     	}
     	
+    	transformHBASEFeedToLegacyFeed(context);
+	}
+	
+	public void transformHBASEFeedToLegacyFeed(MatchFeedRequestContext context) {
+
     	// transform the hbase data
     	LegacyMatchDataFeedDto legacyMatchFeedDto = legacyMatchFeedTransformer.transform(context);
     	

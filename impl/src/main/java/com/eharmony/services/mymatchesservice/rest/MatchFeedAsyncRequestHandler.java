@@ -21,16 +21,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
+
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
+import com.eharmony.services.mymatchesservice.service.RedisStoreFeedResponse;
+import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserComparatorSelector;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
@@ -45,15 +53,6 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
 import com.google.common.collect.Lists;
-
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
-import rx.Observable;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -114,6 +113,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private MatchQueryEventService matchQueryEventService;
+    
+    @Resource
+    private RedisStoreFeedService redisStoreFeedService;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
@@ -135,12 +137,12 @@ public class MatchFeedAsyncRequestHandler {
 
     	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
         long userId = matchFeedQueryContext.getUserId();
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(matchFeedQueryContext);
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservableV2(matchFeedQueryContext);
 
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
             try {
-                handleFeedResponse(response);
+                handleFeedResponseV2(response);
             } catch (ResourceNotFoundException e) {
                 feedNotFound = true;
             }
@@ -226,7 +228,23 @@ public class MatchFeedAsyncRequestHandler {
                 matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
         return matchQueryRequestObservable;
     }
+    
+    protected Observable<MatchFeedRequestContext> makeMqsRequestObservableV2(
+			final MatchFeedQueryContext matchFeedQueryContext) {
 
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+		request.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE);
+		
+		Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+		
+		matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
+		matchFeedQueryContext, FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE, false);
+		matchQueryRequestObservable = chainRedisFeedRequestsByStatusGroup(matchQueryRequestObservable,
+		matchFeedQueryContext, FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE);
+		
+		return matchQueryRequestObservable;
+	}
+ 
     /**
      * Similar to {@link getMatchesFeed}, but take out all the matched users and return them as a list.
      * @param matchFeedQueryContext Query context
@@ -350,6 +368,38 @@ public class MatchFeedAsyncRequestHandler {
         return matchQueryRequestObservable;
     }
 
+    
+    protected Observable<MatchFeedRequestContext> chainRedisFeedRequestsByStatusGroup(
+			Observable<MatchFeedRequestContext> matchQueryRequestObservable,
+			final MatchFeedQueryContext matchFeedQueryContext, 
+			FeedMergeStrategyType feedMergeStrategyType){
+
+		Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> requestedMatchStatusGroups = matchStatusGroupResolver
+		.buildMatchesStatusGroups(matchFeedQueryContext.getUserId(), matchFeedQueryContext.getStatuses());
+		
+		if (MapUtils.isEmpty(requestedMatchStatusGroups)) {
+			logger.warn(
+			"somethig is wrong, request doesn't contain valid match statuses to fetch feed from HBase for user {}",
+			matchFeedQueryContext.getUserId());
+			return matchQueryRequestObservable;
+			}
+			
+			for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
+			logger.debug("create observable to fetch matches for group {} and user {}", entry.getKey(),
+			matchFeedQueryContext.getUserId());
+			BasicStoreFeedRequestContext requestContext = new BasicStoreFeedRequestContext(matchFeedQueryContext);
+			requestContext.setFeedMergeType(feedMergeStrategyType);
+			requestContext.setMatchStatuses(entry.getValue());
+			requestContext.setMatchStatusGroup(entry.getKey());
+			matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+					redisStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext), populateRedisMatchesFeed)
+					.subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+		}
+		return matchQueryRequestObservable;
+	
+	}    
+
+    
     private void handleFeedResponse(MatchFeedRequestContext context) {
         refreshEventSender.sendRefreshEvent(context);
         executeFallbackIfRequired(context);
@@ -366,6 +416,16 @@ public class MatchFeedAsyncRequestHandler {
         getMatchesFeedEnricherChain.execute(context);
     }
     
+    private void handleFeedResponseV2(MatchFeedRequestContext context) {
+
+        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
+
+        getMatchesFeedFilterChain.execute(context);
+        
+        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        
+        getMatchesFeedEnricherChain.execute(context);
+    }
 
     private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
         executeFallbackIfRequired(context);
@@ -452,7 +512,7 @@ public class MatchFeedAsyncRequestHandler {
             return builder;
         }
     }
-
+    
     private Func2<MatchFeedRequestContext, HBaseStoreFeedResponse, MatchFeedRequestContext> populateHBaseMatchesFeed = (
             request, matchesFeedResponse) -> {
         if (CollectionUtils.isNotEmpty(matchesFeedResponse.getHbaseStoreFeedItems())) {
@@ -470,4 +530,14 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
+    private Func2<MatchFeedRequestContext, RedisStoreFeedResponse, MatchFeedRequestContext> populateRedisMatchesFeed = (
+            request, matchesFeedResponse) -> {
+
+	    	 if (matchesFeedResponse.isDataAvailable() && MapUtils.isNotEmpty(matchesFeedResponse.getRedisStoreFeedDto().getMatches())) {
+	             request.putFeedItemsInMapByStatusGroup(matchesFeedResponse.getMatchStatusGroup(),
+	                     matchesFeedResponse.getRedisStoreFeedDto());
+	         }        
+            	 
+            return request;
+    };
 }
