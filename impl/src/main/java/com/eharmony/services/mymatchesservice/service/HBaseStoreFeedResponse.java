@@ -8,9 +8,10 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 public class HBaseStoreFeedResponse extends AbstractStoreFeedResponse{
 
     private Set<MatchDataFeedItemDto> hbaseStoreFeedItems;
+    private final MatchStatusGroupEnum matchStatusGroup;
 
     public HBaseStoreFeedResponse(final MatchStatusGroupEnum matchStatusGroup) {
-    	super(matchStatusGroup);
+    	this.matchStatusGroup = matchStatusGroup;
     }
 
     public Set<MatchDataFeedItemDto> getHbaseStoreFeedItems() {
@@ -19,5 +20,9 @@ public class HBaseStoreFeedResponse extends AbstractStoreFeedResponse{
 
     public void setHbaseStoreFeedItems(Set<MatchDataFeedItemDto> hbaseStoreFeedItems) {
         this.hbaseStoreFeedItems = hbaseStoreFeedItems;
+    }
+    
+    public MatchStatusGroupEnum getMatchStatusGroup() {
+        return matchStatusGroup;
     }
 }

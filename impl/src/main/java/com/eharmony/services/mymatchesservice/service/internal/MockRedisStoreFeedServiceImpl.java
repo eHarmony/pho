@@ -29,7 +29,7 @@ public class MockRedisStoreFeedServiceImpl implements RedisStoreFeedService {
     private static final Logger log = LoggerFactory.getLogger(MockRedisStoreFeedServiceImpl.class);
 
 	@Override
-	public Observable<RedisStoreFeedResponse> getUserMatchesByStatusGroupSafe(
+	public Observable<RedisStoreFeedResponse> getUserMatchesSafe(
 			BasicStoreFeedRequestContext request) {
 
 		// TODO: integrate with Redis DataStoreApi
@@ -69,7 +69,7 @@ public class MockRedisStoreFeedServiceImpl implements RedisStoreFeedService {
 		
 		mockDto.getMatches().get(String.valueOf(matchId)).get(MatchFeedModel.SECTIONS.MATCH).put("updatedAt", String.valueOf(System.currentTimeMillis()));
 		
-		RedisStoreFeedResponse response = new RedisStoreFeedResponse(request.getMatchStatusGroup());
+		RedisStoreFeedResponse response = new RedisStoreFeedResponse();
 		response.setDataAvailable(true);
 		response.setRedisStoreFeedDto(mockDto);
 		

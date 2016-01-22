@@ -4,6 +4,6 @@ import rx.Observable;
 
 public interface RedisStoreFeedService {
     
-    public Observable<RedisStoreFeedResponse> getUserMatchesByStatusGroupSafe(BasicStoreFeedRequestContext request);
+    public Observable<RedisStoreFeedResponse> getUserMatchesSafe(BasicStoreFeedRequestContext request);
 
 }

@@ -4,17 +4,9 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
 public abstract class AbstractStoreFeedResponse {
 
-    private final MatchStatusGroupEnum matchStatusGroup;
     private Throwable error;
     private boolean dataAvailable;
 
-    public AbstractStoreFeedResponse(final MatchStatusGroupEnum matchStatusGroup) {
-        this.matchStatusGroup = matchStatusGroup;
-    }
-
-    public MatchStatusGroupEnum getMatchStatusGroup() {
-        return matchStatusGroup;
-    }
 
     public Throwable getError() {
         return error;

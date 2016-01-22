@@ -373,30 +373,16 @@ public class MatchFeedAsyncRequestHandler {
 			Observable<MatchFeedRequestContext> matchQueryRequestObservable,
 			final MatchFeedQueryContext matchFeedQueryContext, 
 			FeedMergeStrategyType feedMergeStrategyType){
-
-		Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> requestedMatchStatusGroups = matchStatusGroupResolver
-		.buildMatchesStatusGroups(matchFeedQueryContext.getUserId(), matchFeedQueryContext.getStatuses());
-		
-		if (MapUtils.isEmpty(requestedMatchStatusGroups)) {
-			logger.warn(
-			"somethig is wrong, request doesn't contain valid match statuses to fetch feed from HBase for user {}",
-			matchFeedQueryContext.getUserId());
-			return matchQueryRequestObservable;
-			}
 			
-			for (Entry<MatchStatusGroupEnum, Set<MatchStatusEnum>> entry : requestedMatchStatusGroups.entrySet()) {
-			logger.debug("create observable to fetch matches for group {} and user {}", entry.getKey(),
+			logger.debug("create observable to fetch matches for user {}",
 			matchFeedQueryContext.getUserId());
 			BasicStoreFeedRequestContext requestContext = new BasicStoreFeedRequestContext(matchFeedQueryContext);
 			requestContext.setFeedMergeType(feedMergeStrategyType);
-			requestContext.setMatchStatuses(entry.getValue());
-			requestContext.setMatchStatusGroup(entry.getKey());
 			matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-					redisStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext), populateRedisMatchesFeed)
+					redisStoreFeedService.getUserMatchesSafe(requestContext), populateRedisMatchesFeed)
 					.subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-		}
-		return matchQueryRequestObservable;
-	
+		
+			return matchQueryRequestObservable;	
 	}    
 
     

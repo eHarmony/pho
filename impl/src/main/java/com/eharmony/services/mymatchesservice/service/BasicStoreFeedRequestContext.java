@@ -12,8 +12,6 @@ public class BasicStoreFeedRequestContext {
 
     private FeedMergeStrategyType feedMergeType;
     private final MatchFeedQueryContext matchFeedQueryContext;
-    private MatchStatusGroupEnum matchStatusGroup;
-    private Set<MatchStatusEnum> matchStatuses;
 
     public BasicStoreFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
@@ -26,22 +24,6 @@ public class BasicStoreFeedRequestContext {
 
     public void setFeedMergeType(FeedMergeStrategyType feedMergeType) {
         this.feedMergeType = feedMergeType;
-    }
-
-    public MatchStatusGroupEnum getMatchStatusGroup() {
-        return matchStatusGroup;
-    }
-
-    public void setMatchStatusGroup(MatchStatusGroupEnum matchStatusGroup) {
-        this.matchStatusGroup = matchStatusGroup;
-    }
-
-    public Set<MatchStatusEnum> getMatchStatuses() {
-        return matchStatuses;
-    }
-
-    public void setMatchStatuses(Set<MatchStatusEnum> matchStatuses) {
-        this.matchStatuses = matchStatuses;
     }
 
     public MatchFeedQueryContext getMatchFeedQueryContext() {
