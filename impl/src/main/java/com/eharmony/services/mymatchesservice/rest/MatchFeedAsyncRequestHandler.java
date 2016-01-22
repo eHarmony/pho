@@ -418,6 +418,8 @@ public class MatchFeedAsyncRequestHandler {
     
     private void handleFeedResponseV2(MatchFeedRequestContext context) {
 
+    	// Downstream Filter/Enricher chains work against legacy feed format,
+    	// so transform HBase data straightaway. 
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
 
         getMatchesFeedFilterChain.execute(context);
@@ -534,8 +536,7 @@ public class MatchFeedAsyncRequestHandler {
             request, matchesFeedResponse) -> {
 
 	    	 if (matchesFeedResponse.isDataAvailable() && MapUtils.isNotEmpty(matchesFeedResponse.getRedisStoreFeedDto().getMatches())) {
-	             request.putFeedItemsInMapByStatusGroup(matchesFeedResponse.getMatchStatusGroup(),
-	                     matchesFeedResponse.getRedisStoreFeedDto());
+	             request.setRedisFeed(matchesFeedResponse.getRedisStoreFeedDto());
 	         }        
             	 
             return request;

@@ -62,6 +62,7 @@ public abstract class MatchFeedModel {
        static final String STAGE = "stage";
        static final String TURN_OWNER = "turnOwner";
        static final String USER_ID = "userId";
+       static final String LAST_MODIFIED_DATE = "lastModifiedDate";
        
        static final String MATCH_ATTRACTIVENESS_SCORE = "matchAttractivenessScore";
    }
