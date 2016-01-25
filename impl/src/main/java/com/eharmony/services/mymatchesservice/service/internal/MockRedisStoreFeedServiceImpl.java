@@ -33,7 +33,7 @@ public class MockRedisStoreFeedServiceImpl implements RedisStoreFeedService {
 			BasicStoreFeedRequestContext request) {
 
 		// TODO: integrate with Redis DataStoreApi
-		log.warn("REDIS STORE NOT YET IMPLEMENTED, RETURNING MOCK DATA FOR USERID 63177222 MATCHID 11790513735");
+		log.warn("REDIS STORE NOT YET IMPLEMENTED, RETURNING MOCK DATA FOR R3 USERID=63177222 MATCHID=11790513735");
 		
 		Set<MatchDataFeedItemDto> mockData = new HashSet<MatchDataFeedItemDto>();
 		MatchDataFeedItemDto mockItem = new MatchDataFeedItemDto();

@@ -1,6 +1,5 @@
 package com.eharmony.services.mymatchesservice.service;
 
-import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
 public abstract class AbstractStoreFeedResponse {
 
