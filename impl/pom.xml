@@ -846,7 +846,17 @@
 			</exclusions>
 		</dependency>
 		<!-- LOGGING END -->
-
+		<!-- Redis Start -->
+		<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-redis</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>redis.clients</groupId>
+				<artifactId>jedis</artifactId>
+			</dependency>
+		<!-- Redis End -->
+		
 		<!-- TEST SCOPE START -->
 		<dependency>
 			<groupId>org.mockito</groupId>
