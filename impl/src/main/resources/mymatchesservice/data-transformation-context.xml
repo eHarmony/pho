@@ -37,6 +37,7 @@
 		<value>id</value>
 		<value>relaxed</value>
 		<value>status</value>
+		<value>stage</value>
 	</util:set>
 	
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -118,7 +119,10 @@
 
 				<bean id="stateCodeEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.StateCodeEnricher">
-				</bean>			
+				</bean>		
+				<bean id="commStageEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
+				</bean>	
 			</util:list>
 		</constructor-arg>
 	</bean>
