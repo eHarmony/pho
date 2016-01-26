@@ -17,9 +17,11 @@
                <property name="hashKeySerializer" ref="stringSerializer" />
                <property name="hashValueSerializer" ref="stringSerializer" />
         </bean>
+        <bean id ="matchDataFeedSerializer" class="com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer"/>
+        
         <bean id="redisMatchDataStore" class="com.eharmony.services.mymatchesservice.store.MatchFeedRedisStore">
            <constructor-arg name="redisMatchDataTemplate" ref="redisMatchDataTemplate"/>
-           <constructor-arg name="matchDataTTLSecs" value="${match.data.ttlInSeconds}" />
+           <constructor-arg name="matchDataFeedSerializer" ref="matchDataFeedSerializer"/>
         </bean>
         
     </beans>
