@@ -48,6 +48,8 @@ public class TeaserResultSizeFilter implements IMatchFeedTransformer {
             return context;
 
         }
+        
+        feed.setTotalMatches(matches.size());
 
         int pageNum = context.getMatchFeedQueryContext().getStartPage();
         if (pageNum < 1) {
@@ -77,8 +79,6 @@ public class TeaserResultSizeFilter implements IMatchFeedTransformer {
 
         context.getLegacyMatchDataFeedDto().setMatches(result);
         
-        feed.setTotalMatches(result.size());
-
         return context;
 
     }
