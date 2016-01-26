@@ -40,7 +40,7 @@ public class PaginationMatchFeedFilterTest {
 		
 		MatchFeedRequestContext paginated = doPaginationFilter("json/getMatches_40_matches.json", 1, 10);
 		assertEquals(10, paginated.getLegacyMatchDataFeedDto().getMatches().size());
-		assertEquals(40, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
+		assertEquals(10, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
 	}
 	
 	@Test
@@ -56,7 +56,7 @@ public class PaginationMatchFeedFilterTest {
 		
 		MatchFeedRequestContext paginated = doPaginationFilter("json/getMatches_40_matches.json", 2, 10);
 		assertEquals(10, paginated.getLegacyMatchDataFeedDto().getMatches().size());
-		assertEquals(40, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
+		assertEquals(10, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
 	}
 	
 	@Test
@@ -72,7 +72,7 @@ public class PaginationMatchFeedFilterTest {
 		
 		MatchFeedRequestContext paginated = doPaginationFilter("json/getMatches_40_matches.json", 100, 100);
 		assertEquals(0, paginated.getLegacyMatchDataFeedDto().getMatches().size());
-		assertEquals(40, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
+		assertEquals(0, paginated.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
 	}
 	
 	@Test

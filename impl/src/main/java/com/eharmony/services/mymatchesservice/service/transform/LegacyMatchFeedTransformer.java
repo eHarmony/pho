@@ -111,7 +111,8 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.STATUS, deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()));
         match.put(MatchFeedModel.MATCH.USER_ID, matchElem.getUserId());
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
-        match.put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE, matchElem.getLastModifiedDate().getTime());
+        Date lastModifiedDate = matchElem.getLastModifiedDate();
+        match.put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE, lastModifiedDate != null ? lastModifiedDate.getTime() : 0L);
 
         // pulled from commElement
         match.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, getTimeInMillisNullSafe(commElem.getChooseMhcsDate()));
