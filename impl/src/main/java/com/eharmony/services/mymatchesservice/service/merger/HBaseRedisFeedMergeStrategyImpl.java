@@ -30,14 +30,16 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         if(hbaseFeed == null || MapUtils.isEmpty(hbaseFeed.getMatches())){
         	if(redisFeed == null || MapUtils.isEmpty(redisFeed.getMatches())){        		
         		handleHBaseIsEmptyRedisIsEmpty(userId);
-        	}       	
-        	handleHBaseIsEmptyRedisHasMatches(userId, request, redisFeed);
+        	} else {
+        	    handleHBaseIsEmptyRedisHasMatches(userId, request, redisFeed);
+        	}
         	
         }else{
         	if(redisFeed == null || MapUtils.isEmpty(redisFeed.getMatches())){
         		handleHBaseHasMatchesRedisIsEmpty(userId);
-        	}        	
-        	handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
+        	} else {
+        	    handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
+        	}
         }
 	}
 	

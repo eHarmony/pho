@@ -23,7 +23,7 @@ import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedT
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
-@Component
+
 public class MockRedisStoreFeedServiceImpl implements RedisStoreFeedService {
 
     private static final Logger log = LoggerFactory.getLogger(MockRedisStoreFeedServiceImpl.class);
