@@ -14,7 +14,11 @@ import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFe
 import com.google.common.base.Preconditions;
 
 import rx.Observable;
-
+/**
+ * Redis repository to get the 
+ * @author gwang
+ *
+ */
 public class MatchFeedRedisStore implements RedisStoreFeedService{
     private static final Logger log = LoggerFactory.getLogger(MatchFeedRedisStore.class);
     private RedisTemplate<String, String> redisMatchDataTemplate;
@@ -37,22 +41,28 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     public Observable<RedisStoreFeedResponse> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
         String userid = String.valueOf(request.getMatchFeedQueryContext().getUserId());
         RedisStoreFeedResponse response = new RedisStoreFeedResponse();
-        LegacyMatchDataFeedDto feedDto = response.getRedisStoreFeedDto();
+        
         try {
             HashOperations<String, String, String> hashOps = redisMatchDataTemplate.opsForHash();
             Map<String, String> hashEntries = hashOps.entries(userid);
-            hashEntries.forEach((key, value) -> {
+            LegacyMatchDataFeedDto feedDto = response.getRedisStoreFeedDto();
+            for (Map.Entry<String, String> entry:hashEntries.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
                 
                 LegacyMatchDataFeedDto matchDto = matchDataFeedSerializer.fromJson(value);
                 if (feedDto == null) {
                     response.setRedisStoreFeedDto(matchDto);
+                    feedDto = matchDto;
                 } else {
                     Map<String, Map<String, Object>> singleUpdatedMatch = matchDto.getMatches().get(key);
                     feedDto.getMatches().put(key, singleUpdatedMatch);
                 }
-            });
+            };
+            
             if (feedDto != null) {
                 feedDto.setTotalMatches(hashEntries.size());
+                response.setDataAvailable(true);
             }
         } catch (Exception exp) {
             log.warn("Error while getting feed for user{} from Redis", userid, exp);
