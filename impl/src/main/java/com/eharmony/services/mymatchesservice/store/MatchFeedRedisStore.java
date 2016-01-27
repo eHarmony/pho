@@ -19,6 +19,9 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     private static final Logger log = LoggerFactory.getLogger(MatchFeedRedisStore.class);
     private RedisTemplate<String, String> redisMatchDataTemplate;
     private LegacyMatchDataFeedDtoSerializer matchDataFeedSerializer;
+    
+    MatchFeedRedisStore () {
+    }
 
     public MatchFeedRedisStore(RedisTemplate<String, String> redisMatchDataTemplate,
             LegacyMatchDataFeedDtoSerializer matchDataFeedSerializer) {
