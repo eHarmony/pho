@@ -58,7 +58,9 @@ public class CommunicationStageResolver {
             return commWorkFlow.get(DEFAULT_WORKFLOW_ID);
         }
 
-        log.debug("returning communication stage for workflowid {}", workFlowId);
+        if(log.isDebugEnabled()){
+        	log.debug("returning communication stage for workflowid {}", workFlowId);
+        }
         return commWorkFlow.get(workFlowId);
     }
 

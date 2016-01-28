@@ -33,8 +33,7 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 			matchSection.remove(MatchFeedModel.MATCH.STAGE);
 			if (logger.isDebugEnabled()) {
 	            logger.debug("Enriched comm section={} , subsection={} for userId={}",
-	                      new Object[] { commStage.getSectionId(), commStage.getSubSectionId(), userId });
-
+	                      commStage.getSectionId(), commStage.getSubSectionId(), userId );
 	        }
 		}
 		return true;
