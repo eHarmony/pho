@@ -18,6 +18,7 @@
 	<import resource="match-store-redis.xml"/>
 	<context:annotation-config />
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
+	<context:component-scan base-package="com.eharmony.services.profile.client" />
 
 	<bean
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">

@@ -119,6 +119,9 @@ public class MatchFeedAsyncRequestHandler {
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
+    
+    @Resource
+    private FeedMergeStrategyManager feedMergeStrategyManager;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -397,7 +400,7 @@ public class MatchFeedAsyncRequestHandler {
 
         getMatchesFeedFilterChain.execute(context);
         
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
         
         getMatchesFeedEnricherChain.execute(context);
     }
@@ -410,7 +413,7 @@ public class MatchFeedAsyncRequestHandler {
 
         getMatchesFeedFilterChain.execute(context);
         
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
         
         getMatchesFeedEnricherChain.execute(context);
     }
@@ -423,7 +426,7 @@ public class MatchFeedAsyncRequestHandler {
         
         throwExceptionIfFeedIsNotAvailable(context);
         
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
 		
         getTeaserMatchesFeedFilterChain.execute(context);
         

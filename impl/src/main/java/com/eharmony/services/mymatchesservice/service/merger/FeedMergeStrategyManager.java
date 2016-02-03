@@ -1,16 +1,20 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
-import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import javax.annotation.Resource;
 
+import org.springframework.stereotype.Component;
+
+import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+@Component
 public class FeedMergeStrategyManager {
 
-	private static FeedMergeStrategy VOLDY_WITH_PROFILE_MERGE_STRATEGY = new DefaultFeedMergeStrategyImpl();
+	private FeedMergeStrategy VOLDY_WITH_PROFILE_MERGE_STRATEGY = new DefaultFeedMergeStrategyImpl();
 	
-	private static FeedMergeStrategy HBASE_FEED_ONLY_STRATEGY = new DefaultFeedMergeStrategyImpl();
-	
-	private static FeedMergeStrategy HBASE_WITH_REDIS_MERGE_STRATEGY = new HBaseRedisFeedMergeStrategyImpl();
+	private FeedMergeStrategy HBASE_FEED_ONLY_STRATEGY = new DefaultFeedMergeStrategyImpl();
+	@Resource
+	private FeedMergeStrategy HBASE_WITH_REDIS_MERGE_STRATEGY;
     
-    public static FeedMergeStrategy getMergeStrategy(MatchFeedRequestContext requestContext){
+    public FeedMergeStrategy getMergeStrategy(MatchFeedRequestContext requestContext){
     	
     	switch(requestContext.getFeedMergeType()){
     	

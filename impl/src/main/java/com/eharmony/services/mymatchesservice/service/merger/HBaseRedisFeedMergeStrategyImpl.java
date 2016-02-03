@@ -4,16 +4,23 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import com.google.common.collect.Sets;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
-
+import com.eharmony.services.profile.client.ProfileServiceClient;
+import com.eharmony.singles.common.enumeration.Gender;
+import com.eharmony.singles.common.profile.BasicPublicProfileDto;
+@Component
 public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMergeStrategyImpl.class);
@@ -21,6 +28,9 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
     public static final String HBASE_TIMESTAMP_NAME = "lastModifiedDate";
     public static final String REDIS_TIMESTAMP_NAME = "updatedAt";
 
+    @Resource
+    ProfileServiceClient profileService;
+    
     @Override
     public void merge(MatchFeedRequestContext request) {
 
@@ -43,6 +53,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
                 handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
             }
         }
+        attachLocaleGenderToHbaseFeed(request);
     }
 
     private void handleHBaseHasMatchesRedisIsEmpty(long userId) {
@@ -105,6 +116,21 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
                 deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
         log.info("match {} updated by delta.", matchId);
 
+    }
+    
+    protected void attachLocaleGenderToHbaseFeed(MatchFeedRequestContext request) {
+        int userId = (int) request.getUserId();
+        try {
+            BasicPublicProfileDto profile = profileService.findBasicPublicProfileForUser(userId);
+            String locale = profile.getLocale();
+            Integer gender = profile.getGender();
+            String genderStr = Gender.fromInt(gender).toString();
+        
+            request.getLegacyMatchDataFeedDto().setGender(genderStr);
+            request.getLegacyMatchDataFeedDto().setLocale(locale);
+        } catch (Exception exp) {
+            log.warn("Error while adding locale and gender to feed, userid{}.", exp);
+        }
     }
 
     protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch,
