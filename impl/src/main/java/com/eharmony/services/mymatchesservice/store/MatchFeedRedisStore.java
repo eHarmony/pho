@@ -38,21 +38,22 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         this.matchDataFeedSerializer = matchDataFeedSerializer;
     }
 
-    public Observable<RedisStoreFeedResponse> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
-        String userid = String.valueOf(request.getMatchFeedQueryContext().getUserId());
-        RedisStoreFeedResponse response = new RedisStoreFeedResponse();
+    protected LegacyMatchDataFeedDtoWrapper getUserMatchesSafeFromRedis(BasicStoreFeedRequestContext request) {
+        long userIdLong = request.getMatchFeedQueryContext().getUserId();
+        String userid = String.valueOf(userIdLong);
+        LegacyMatchDataFeedDtoWrapper response = new LegacyMatchDataFeedDtoWrapper(userIdLong);
         
         try {
             HashOperations<String, String, String> hashOps = redisMatchDataTemplate.opsForHash();
             Map<String, String> hashEntries = hashOps.entries(userid);
-            LegacyMatchDataFeedDto feedDto = response.getRedisStoreFeedDto();
+            LegacyMatchDataFeedDto feedDto = response.getLegacyMatchDataFeedDto();
             for (Map.Entry<String, String> entry:hashEntries.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
                 
                 LegacyMatchDataFeedDto matchDto = matchDataFeedSerializer.fromJson(value);
                 if (feedDto == null) {
-                    response.setRedisStoreFeedDto(matchDto);
+                    response.setLegacyMatchDataFeedDto(matchDto);
                     feedDto = matchDto;
                 } else {
                     Map<String, Map<String, Object>> singleUpdatedMatch = matchDto.getMatches().get(key);
@@ -62,14 +63,18 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
             
             if (feedDto != null) {
                 feedDto.setTotalMatches(hashEntries.size());
-                response.setDataAvailable(true);
+                response.setFeedAvailable(true);
             }
         } catch (Exception exp) {
             log.warn("Error while getting feed for user{} from Redis", userid, exp);
             //re throw exception so the down stream observer can deal with it.
             throw exp;
         }
+        return response;
 
-        return Observable.just(response);
+    }
+    
+    public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
+        return Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(request)));
     }
 }

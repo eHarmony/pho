@@ -24,11 +24,10 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 
-public class MockRedisStoreFeedServiceImpl implements RedisStoreFeedService {
+public class MockRedisStoreFeedServiceImpl {
 
     private static final Logger log = LoggerFactory.getLogger(MockRedisStoreFeedServiceImpl.class);
 
-	@Override
 	public Observable<RedisStoreFeedResponse> getUserMatchesSafe(
 			BasicStoreFeedRequestContext request) {
 
