@@ -22,6 +22,8 @@ public abstract class MatchFeedModel {
        static final String LAST_COMM_DATE = "lastCommDate";
        static final String NEW_MESSAGE_COUNT = "newMessageCount";
        static final String VIEWED_PROFILE = "viewedProfile";
+       static final String SECTION="section";
+       static final String SUB_SECTION="subSection";
 
    }
 
