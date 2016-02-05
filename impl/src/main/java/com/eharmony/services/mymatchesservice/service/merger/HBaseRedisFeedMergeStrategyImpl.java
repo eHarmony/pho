@@ -14,7 +14,7 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.google.common.collect.Sets;
-@Component
+@Component("HBaseRedisFeedMergeStrategy")
 public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
     public static final String TIMESTAMP_NAME = "lastModifiedDate";
 
@@ -46,7 +46,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         }
         LegacyMatchDataFeedDto mergedFeed = request.getLegacyMatchDataFeedDto();
 
-        //merge gender and locale
+        //merge gender and locale, this is attached to Redis feed.
         if ((mergedFeed != null) && (redisFeed != null)){
             mergedFeed.setGender(redisFeed.getGender());
             mergedFeed.setLocale(redisFeed.getLocale());
