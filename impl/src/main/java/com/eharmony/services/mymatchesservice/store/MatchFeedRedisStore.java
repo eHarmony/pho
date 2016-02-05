@@ -2,11 +2,15 @@ package com.eharmony.services.mymatchesservice.store;
 
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import com.codahale.metrics.Timer;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
@@ -23,7 +27,13 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     private static final Logger log = LoggerFactory.getLogger(MatchFeedRedisStore.class);
     private RedisTemplate<String, String> redisMatchDataTemplate;
     private LegacyMatchDataFeedDtoSerializer matchDataFeedSerializer;
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
     
+    private static final String METRICS_HIERARCHY_PREFIX = MatchDataFeedVoldyStore.class.getCanonicalName();
+    
+    private static final String METRICS_GET_REDIS_SAFE = "getMatchesFromRedisSafe";
+
     MatchFeedRedisStore () {
     }
 
@@ -42,7 +52,9 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         long userIdLong = request.getMatchFeedQueryContext().getUserId();
         String userid = String.valueOf(userIdLong);
         LegacyMatchDataFeedDtoWrapper response = new LegacyMatchDataFeedDtoWrapper(userIdLong);
-        
+        Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_REDIS_SAFE);
+        long startTime = System.currentTimeMillis();
+
         try {
             HashOperations<String, String, String> hashOps = redisMatchDataTemplate.opsForHash();
             Map<String, String> hashEntries = hashOps.entries(userid);
@@ -69,6 +81,10 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
             log.warn("Error while getting feed for user{} from Redis", userid, exp);
             //re throw exception so the down stream observer can deal with it.
             throw exp;
+        } finally {
+            timerContext.stop();
+            long endTime = System.currentTimeMillis();
+            log.info("Total time to get the feed from Redis for user {} is {} MS", userid, (endTime - startTime));
         }
         return response;
 
