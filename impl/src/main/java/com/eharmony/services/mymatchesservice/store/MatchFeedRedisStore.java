@@ -1,5 +1,6 @@
 package com.eharmony.services.mymatchesservice.store;
 
+import java.util.Date;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -15,7 +16,7 @@ import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestConte
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer;
 import com.google.common.base.Preconditions;
-
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH;
 import rx.Observable;
 /**
  * Redis repository to get the delta matches
@@ -23,6 +24,7 @@ import rx.Observable;
  *
  */
 public class MatchFeedRedisStore implements RedisStoreFeedService{
+	public static final String TIMESTAMP_NAME = "lastModifiedDate";
     private static final Logger log = LoggerFactory.getLogger(MatchFeedRedisStore.class);
     private RedisTemplate<String, String> redisMatchDataTemplate;
     private LegacyMatchDataFeedDtoSerializer matchDataFeedSerializer;
@@ -63,13 +65,19 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
                 String value = entry.getValue();
                 
                 LegacyMatchDataFeedDto matchDto = matchDataFeedSerializer.fromJson(value);
+                Date updateAt = matchDto.getUpdatedAt();
+                Map<String, Map<String, Object>> singleUpdatedMatch;
                 if (feedDto == null) {
                     response.setLegacyMatchDataFeedDto(matchDto);
                     feedDto = matchDto;
+                    singleUpdatedMatch = matchDto.getMatches().get(key);
                 } else {
-                    Map<String, Map<String, Object>> singleUpdatedMatch = matchDto.getMatches().get(key);
+                	singleUpdatedMatch = matchDto.getMatches().get(key);
                     feedDto.getMatches().put(key, singleUpdatedMatch);
                 }
+                
+                //add time stamp to each match level
+                singleUpdatedMatch.get(MATCH).put(TIMESTAMP_NAME, updateAt.getTime());
             };
             
             if (feedDto != null) {

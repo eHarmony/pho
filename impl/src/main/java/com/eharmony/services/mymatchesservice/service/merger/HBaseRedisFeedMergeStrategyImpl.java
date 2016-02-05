@@ -1,5 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +16,8 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.google.common.collect.Sets;
 @Component
 public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
+    public static final String TIMESTAMP_NAME = "lastModifiedDate";
+
 
     private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMergeStrategyImpl.class);
 
@@ -90,7 +93,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
             if (redisMatch != null) {
                 Map<String, Map<String, Object>> hbaseMatch = hbaseMatches.get(matchId);
-                mergeRedisToHbase(matchId, hbaseMatch, redisMatch);
+                mergeMatchByTimestamp(matchId, hbaseMatch, redisMatch);
             }
         });
         
@@ -110,5 +113,27 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
                 deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
         log.info("match {} updated by delta.", matchId);
 
+    }
+    
+    protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch, 
+            Map<String, Map<String, Object>> deltaMatch) {
+
+        Map<String, Object> targetMatchSection = targetMatch.get(MatchFeedModel.SECTIONS.MATCH);
+        Map<String, Object> deltaMatchSection = deltaMatch.get(MatchFeedModel.SECTIONS.MATCH);
+
+        Date targetTs = new Date((Long) targetMatchSection.get(TIMESTAMP_NAME));
+        Date deltaTs = new Date((Long) deltaMatchSection.get(TIMESTAMP_NAME));
+
+        if (targetTs == null || deltaTs == null) {
+            log.warn("match {} missing one or more timestamps: target {}, delta {}.", matchId, targetTs, deltaTs);
+            return;
+        }
+
+        if (deltaTs.after(targetTs)) {
+            targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
+            targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
+                    deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
+            log.info("match {} updated by delta.", matchId);
+        }
     }
 }
