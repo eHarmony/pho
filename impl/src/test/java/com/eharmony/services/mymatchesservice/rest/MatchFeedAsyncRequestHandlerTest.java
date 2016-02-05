@@ -2,18 +2,36 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.container.AsyncResponse;
+
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
+import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
+import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
+import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
+import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
+import com.google.common.collect.ImmutableSet;
 
+import rx.Observable;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+
+import static org.mockito.Mockito.never;
 public class MatchFeedAsyncRequestHandlerTest {
 
 	@Test
@@ -227,5 +245,79 @@ public class MatchFeedAsyncRequestHandlerTest {
 		boolean shouldFallback = handler.shouldFallbackToHBase(ctx);
 		
 		assertTrue(shouldFallback);
+	}
+	
+	@Test
+	public void testRedisHbase(){
+		
+		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder
+				.newInstance()
+				.setUserId(62837673)
+				.setStatuses(ImmutableSet.of("all"))
+				.build();
+		
+		MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		
+		RedisStoreFeedService redisStoreFeedService = mock(RedisStoreFeedService.class);
+		LegacyMatchDataFeedDtoWrapper feed = new LegacyMatchDataFeedDtoWrapper(100L);
+		Observable<LegacyMatchDataFeedDtoWrapper> observable = Observable.just(feed);
+		when(redisStoreFeedService.getUserMatchesSafe(any())).thenReturn(observable);
+		
+		//ExecutorServiceProvider executorServiceProvider = mock(ExecutorServiceProvider.class);
+		ExecutorServiceProvider executorServiceProvider =new ExecutorServiceProvider(1);
+		
+		HBaseStoreFeedService hbaseStoreFeedService = mock(HBaseStoreFeedService.class);
+		MatchStatusGroupResolver matchStatusGroupResolver = new MatchStatusGroupResolver();
+		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
+		ReflectionTestUtils.setField(handler, "redisMergeMode", true);
+		ReflectionTestUtils.setField(handler, "executorServiceProvider", executorServiceProvider);
+		ReflectionTestUtils.setField(handler, "matchStatusGroupResolver", matchStatusGroupResolver);
+		ReflectionTestUtils.setField(handler, "redisStoreFeedService", redisStoreFeedService);
+		ReflectionTestUtils.setField(handler, "hbaseStoreFeedService", hbaseStoreFeedService);
+		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
+		
+		AsyncResponse httpAsycRes = mock(AsyncResponse.class);
+		handler.getMatchesFeed(queryCtx, httpAsycRes);
+		
+		//verify that we queried redis store but not the voldy
+		verify(redisStoreFeedService).getUserMatchesSafe(any());
+		verify(voldemortStore, never()).getMatchesObservableSafe(any());
+	}
+	
+	@Test
+	public void testRedisHbaseFalse(){
+		
+		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder
+				.newInstance()
+				.setUserId(62837673)
+				.setStatuses(ImmutableSet.of("all"))
+				.build();
+		
+		MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		
+		RedisStoreFeedService redisStoreFeedService = mock(RedisStoreFeedService.class);
+		LegacyMatchDataFeedDtoWrapper feed = new LegacyMatchDataFeedDtoWrapper(100L);
+		Observable<LegacyMatchDataFeedDtoWrapper> observable = Observable.just(feed);
+		when(redisStoreFeedService.getUserMatchesSafe(any())).thenReturn(observable);
+		
+		//ExecutorServiceProvider executorServiceProvider = mock(ExecutorServiceProvider.class);
+		ExecutorServiceProvider executorServiceProvider =new ExecutorServiceProvider(1);
+		
+		HBaseStoreFeedService hbaseStoreFeedService = mock(HBaseStoreFeedService.class);
+		MatchStatusGroupResolver matchStatusGroupResolver = new MatchStatusGroupResolver();
+		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
+		ReflectionTestUtils.setField(handler, "redisMergeMode", false);
+		ReflectionTestUtils.setField(handler, "executorServiceProvider", executorServiceProvider);
+		ReflectionTestUtils.setField(handler, "matchStatusGroupResolver", matchStatusGroupResolver);
+		ReflectionTestUtils.setField(handler, "redisStoreFeedService", redisStoreFeedService);
+		ReflectionTestUtils.setField(handler, "hbaseStoreFeedService", hbaseStoreFeedService);
+		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
+		
+		AsyncResponse httpAsycRes = mock(AsyncResponse.class);
+		handler.getMatchesFeed(queryCtx, httpAsycRes);
+		
+		//verify that we queried voldy store but not the Redis
+		verify(redisStoreFeedService, never()).getUserMatchesSafe(any());
+		verify(voldemortStore).getMatchesObservableSafe(any());
 	}
 }
