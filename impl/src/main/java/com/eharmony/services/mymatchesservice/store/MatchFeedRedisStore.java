@@ -12,14 +12,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.RedisStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer;
 import com.google.common.base.Preconditions;
 
 import rx.Observable;
 /**
- * Redis repository to get the 
+ * Redis repository to get the delta matches
  * @author gwang
  *
  */
