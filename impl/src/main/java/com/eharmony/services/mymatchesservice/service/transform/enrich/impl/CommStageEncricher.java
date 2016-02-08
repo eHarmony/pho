@@ -32,7 +32,7 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 			CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
 			commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
 			commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
-			commSection.put(MatchFeedModel.COMMUNICATION.TURN_OWNER, getTurnOwner(context, match, commStage));
+			commSection.put(MatchFeedModel.COMMUNICATION.TURN_OWNER, getTurnOwner(match, commStage));
 			if (logger.isDebugEnabled()) {
 				logger.debug("Enriched comm section={} , subSection={} , turnOwner={} for userId={}",
 						commStage.getSectionId(), commStage.getSubSectionId(),
@@ -43,8 +43,7 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 		return true;
 	}
 
-	private String getTurnOwner(MatchFeedRequestContext context, Map<String, Map<String, Object>> match,
-			CommunicationStage commStage) {
+	private String getTurnOwner(Map<String, Map<String, Object>> match, CommunicationStage commStage) {
 		Map<String, Object> matchStatusCallParams = new HashMap<>();
 		Map<String, Object> matchSection = match.get(MatchFeedModel.SECTIONS.MATCH);
 		matchStatusCallParams.put("closedStatus", matchSection.get(MatchFeedModel.MATCH.CLOSED_STATUS));
