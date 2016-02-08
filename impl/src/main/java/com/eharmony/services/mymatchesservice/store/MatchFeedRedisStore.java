@@ -59,24 +59,28 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         try {
             HashOperations<String, String, String> hashOps = redisMatchDataTemplate.opsForHash();
             Map<String, String> hashEntries = hashOps.entries(userid);
-            LegacyMatchDataFeedDto feedDto = response.getLegacyMatchDataFeedDto();
+            LegacyMatchDataFeedDto feedDto = null;
+            //if Redis has several feeds, take the match out for each feed and
+            // combine them as one match feed DTO, copy the time stamp at the 
+            // feed level to match level
             for (Map.Entry<String, String> entry:hashEntries.entrySet()) {
+                //key is the match id
                 String key = entry.getKey();
                 String value = entry.getValue();
                 
                 LegacyMatchDataFeedDto matchDto = matchDataFeedSerializer.fromJson(value);
                 Date updateAt = matchDto.getUpdatedAt();
-                Map<String, Map<String, Object>> singleUpdatedMatch;
+                Map<String, Map<String, Object>> singleUpdatedMatch = matchDto.getMatches().get(key);
                 if (feedDto == null) {
+                    //first match under this user, set it to response
                     response.setLegacyMatchDataFeedDto(matchDto);
                     feedDto = matchDto;
-                    singleUpdatedMatch = matchDto.getMatches().get(key);
                 } else {
-                	singleUpdatedMatch = matchDto.getMatches().get(key);
+                    //add match to response.
                     feedDto.getMatches().put(key, singleUpdatedMatch);
                 }
                 
-                //add time stamp to each match level
+                //add time stamp to match level
                 singleUpdatedMatch.get(MATCH).put(TIMESTAMP_NAME, updateAt.getTime());
             };
             
