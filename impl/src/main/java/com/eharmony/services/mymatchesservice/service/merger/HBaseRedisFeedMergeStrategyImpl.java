@@ -31,19 +31,26 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         log.info("Merging HBase, Redis feeds for userId {}", userId);
 
         if (hbaseFeed == null || MapUtils.isEmpty(hbaseFeed.getMatches())) {
+            //No Hbase feed
             if (redisFeed == null || MapUtils.isEmpty(redisFeed.getMatches())) {
+                //Both are empty.
                 handleHBaseIsEmptyRedisIsEmpty(userId);
             } else {
+                //Redis is the only feed we have. use it.
                 handleHBaseIsEmptyRedisHasMatches(userId, request, redisFeed);
             }
 
         } else {
             if (redisFeed == null || MapUtils.isEmpty(redisFeed.getMatches())) {
+                //Hbase has the updated data
                 handleHBaseHasMatchesRedisIsEmpty(userId);
             } else {
+                //apply delta in Redis to Hbase
                 handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
             }
         }
+        
+        //
         LegacyMatchDataFeedDto mergedFeed = request.getLegacyMatchDataFeedDto();
 
         //merge gender and locale, this is attached to Redis feed.
@@ -53,6 +60,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         }
     }
 
+    //following two cases are delta are empty, does nothing.
     private void handleHBaseHasMatchesRedisIsEmpty(long userId) {
         log.info("Redis has no data for userId {}, nothing to merge.", userId);
         return;
@@ -65,6 +73,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     }
 
+    //take all Redis feed and put them to Hbase feeds
     private void handleHBaseIsEmptyRedisHasMatches(long userId, MatchFeedRequestContext request,
             LegacyMatchDataFeedDto redisFeed) {
 
@@ -76,6 +85,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     }
 
+    //actual merge, check time stamp on both sides and take the latest.
     private void handleHBaseHasMatchesRedisHasMatches(LegacyMatchDataFeedDto hbaseFeed,
             LegacyMatchDataFeedDto redisFeed) {
 
