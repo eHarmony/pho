@@ -37,7 +37,6 @@
 		<value>id</value>
 		<value>relaxed</value>
 		<value>status</value>
-		<value>stage</value>
 	</util:set>
 	
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -104,6 +103,9 @@
 				<bean id="commNextStepEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
 				</bean>
+				<bean id="commStageEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
+				</bean>	
 				<bean id="profileFieldsReadRemover"
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">
 					<constructor-arg index="0" ref="profileSectionName" />
@@ -120,9 +122,7 @@
 				<bean id="stateCodeEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.StateCodeEnricher">
 				</bean>		
-				<bean id="commStageEnricher" 
-					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
-				</bean>	
+				
 			</util:list>
 		</constructor-arg>
 	</bean>
