@@ -32,11 +32,11 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 			CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
 			commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
 			commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
-			commSection.put(MatchFeedModel.COMMUNICATION.TURN_OWNER, getTurnOwner(match, commStage));
+			commSection.put(MatchFeedModel.COMMUNICATION.STATUS, getTurnOwner(match, commStage));
 			if (logger.isDebugEnabled()) {
 				logger.debug("Enriched comm section={} , subSection={} , turnOwner={} for userId={}",
 						commStage.getSectionId(), commStage.getSubSectionId(),
-						commSection.get(MatchFeedModel.COMMUNICATION.TURN_OWNER), userId);
+						commSection.get(MatchFeedModel.COMMUNICATION.STATUS), userId);
 			}
 
 		}
