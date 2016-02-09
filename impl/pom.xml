@@ -26,6 +26,8 @@
 		<event.proto.client.version>2.2.7</event.proto.client.version>
 		<powermock.version>1.6.4</powermock.version>
 		<matching-protobuf-version>1.0.33</matching-protobuf-version>
+		<jersey.client.version>1.19</jersey.client.version>
+		<apache.httpclient.version>4.5.1</apache.httpclient.version>
 	</properties>
 
 	<dependencies>
@@ -880,21 +882,22 @@
             </exclusions>
 		</dependency>
         <dependency>
+            <!-- TODO: try to see how to use jersey 2 client instead.-->
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.19</version>
+            <version>${jersey.client.version}</version>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jsr311-api</artifactId>
-            		<groupId>javax.ws.rs</groupId>
-            	</exclusion>
+                <exclusion>
+                   <artifactId>jsr311-api</artifactId>
+                   <groupId>javax.ws.rs</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         
         <dependency>
 	        <groupId>org.apache.httpcomponents</groupId>
 	        <artifactId>httpclient</artifactId>
-	        <version>4.5.1</version>
+	        <version>${apache.httpclient.version}</version>
         </dependency>
         
 		

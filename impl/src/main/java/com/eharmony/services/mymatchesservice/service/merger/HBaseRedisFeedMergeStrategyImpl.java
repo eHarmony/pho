@@ -28,7 +28,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         LegacyMatchDataFeedDto redisFeed = request.getRedisFeed();
         
         long userId = request.getUserId();
-        log.info("Merging HBase, Redis feeds for userId {}", userId);
+        log.debug("Merging HBase, Redis feeds for userId {}", userId);
 
         if (hbaseFeed == null || MapUtils.isEmpty(hbaseFeed.getMatches())) {
             //No Hbase feed
@@ -62,7 +62,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     //following two cases are delta are empty, does nothing.
     private void handleHBaseHasMatchesRedisIsEmpty(long userId) {
-        log.info("Redis has no data for userId {}, nothing to merge.", userId);
+        log.debug("Redis has no data for userId {}, nothing to merge.", userId);
         return;
 
     }
@@ -97,7 +97,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         Set<String> commonIdSet = Sets.intersection(hbaseMatchIdSet, redisMatchIdSet);
         Set<String> suplementryIdSet = Sets.difference(redisMatchIdSet, commonIdSet);
-        hbaseMatchIdSet.stream().forEach((matchId) -> {
+        hbaseMatchIdSet.parallelStream().forEach((matchId) -> {
 
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
 
@@ -121,7 +121,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
         targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
                 deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
-        log.info("match {} updated by delta.", matchId);
+        log.debug("match {} updated by delta.", matchId);
 
     }
     
@@ -143,7 +143,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
             targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
             targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
                     deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
-            log.info("match {} updated by delta.", matchId);
+            log.debug("match {} updated by delta.", matchId);
         }
     }
 }

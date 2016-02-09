@@ -126,11 +126,11 @@ public class MatchFeedAsyncRequestHandler {
     @Resource
     private FeedMergeStrategyManager feedMergeStrategyManager;
     
-    @Value("${redis.merge.enabled:False}")
-    private Boolean redisMergeMode;
+    @Value("${redis.merge.enabled:false}")
+    private boolean redisMergeMode;
     
     @Resource
-    ProfileServiceClient profileService;
+    private ProfileServiceClient profileService;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be

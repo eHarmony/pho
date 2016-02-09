@@ -35,7 +35,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     
     private static final String METRICS_GET_REDIS_SAFE = "getMatchesFromRedisSafe";
 
-    MatchFeedRedisStore () {
+    public MatchFeedRedisStore () {
     }
 
     public MatchFeedRedisStore(RedisTemplate<String, String> redisMatchDataTemplate,
