@@ -1,6 +1,9 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +15,13 @@ import com.eharmony.services.mymatchesservice.service.transform.filter.AbstractM
 public class OpenMatchFilter extends AbstractMatchFilter {
 
 	private static final int OPEN = 0;
-	
+
+	private static final int REOPENED_CLOSED_MATCH_BY_CANDIDATE = 10;
+
+	private static final int REOPENED_CLOSED_MATCH_BY_USER = 11;
+
+	private Set<Integer> statusSet = new HashSet<Integer>(Arrays.asList(OPEN, REOPENED_CLOSED_MATCH_BY_CANDIDATE, REOPENED_CLOSED_MATCH_BY_USER));
+
 	private static final Logger logger = LoggerFactory.getLogger(OpenMatchFilter.class);
 
 	@Override
@@ -21,9 +30,9 @@ public class OpenMatchFilter extends AbstractMatchFilter {
 		// Verify the status of the match.
 		Object closedStatusObj = matchSection.get(MatchFeedModel.MATCH.CLOSED_STATUS);
 
-		int closedStatus = (closedStatusObj == null) ? OPEN : (int) closedStatusObj;
+		Integer closedStatus = (closedStatusObj == null) ? OPEN : (int) closedStatusObj;
 		logger.debug("Match closed Status for match Id -{} = {}", matchSection.get(MatchFeedModel.MATCH.ID), closedStatus);
-		return closedStatus == OPEN;
+		return statusSet.contains(closedStatus);
 	}
 
 }
