@@ -20,6 +20,8 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.rest.MatchCountContext;
+import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
@@ -63,6 +65,10 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             return response;
         });
         return hbaseStoreFeedResponse;
+    }
+    
+    public MatchCountContext getMatchCount() {
+        return null;
     }
 
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
@@ -160,4 +166,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
     }
 
+    @Override
+    public MatchCountContext getUserMatchesCount(MatchCountRequestContext request) {
+        MatchCountContext result = new MatchCountContext();
+        return result;
+    }
 }
