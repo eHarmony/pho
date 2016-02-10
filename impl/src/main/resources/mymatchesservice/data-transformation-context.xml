@@ -76,6 +76,8 @@
 		<constructor-arg>
 			<util:list>
 				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.OpenMatchFilter" />
+				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
 				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
