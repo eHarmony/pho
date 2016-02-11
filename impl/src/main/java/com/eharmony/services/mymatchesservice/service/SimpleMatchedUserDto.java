@@ -10,12 +10,12 @@ public class SimpleMatchedUserDto implements Serializable{
      */
     private static final long serialVersionUID = 2966839896754261974L;
     private String matchId;
-    private String matchUserFirstName;
-    private String encryptedMatchUserId;
+    private String matchedUserFirstName;
+    private String encryptedMatchedUserId;
     private Boolean hasPrimaryPhoto;
     private Integer age;
     private Date deliveredDate;
-    
+    private String matchedUserId;
 
     public Boolean getHasPrimaryPhoto() {
         return hasPrimaryPhoto;
@@ -30,19 +30,25 @@ public class SimpleMatchedUserDto implements Serializable{
 	public void setMatchId(String matchId) {
 		this.matchId = matchId;
 	}
-	public String getMatchUserFirstName() {
-        return matchUserFirstName;
-    }
-    public void setMatchUserFirstName(String matchUserFirstName) {
-        this.matchUserFirstName = matchUserFirstName;
-    }
-    public String getEncryptedMatchUserId() {
-        return encryptedMatchUserId;
-    }
-    public void setEncryptedMatchUserId(String encryptedMatchUserId) {
-        this.encryptedMatchUserId = encryptedMatchUserId;
-    }
-    public Integer getAge() {
+	public String getMatchedUserId() {
+		return matchedUserId;
+	}
+	public void setMatchedUserId(String matchedUserId) {
+		this.matchedUserId = matchedUserId;
+	}
+	public String getMatchedUserFirstName() {
+		return matchedUserFirstName;
+	}
+	public void setMatchedUserFirstName(String matchedUserFirstName) {
+		this.matchedUserFirstName = matchedUserFirstName;
+	}
+	public String getEncryptedMatchedUserId() {
+		return encryptedMatchedUserId;
+	}
+	public void setEncryptedMatchedUserId(String encryptedMatchedUserId) {
+		this.encryptedMatchedUserId = encryptedMatchedUserId;
+	}
+	public Integer getAge() {
         return age;
     }
     public void setAge(Integer age) {

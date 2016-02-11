@@ -45,8 +45,9 @@ public class MapToMatchedUserDtoTransformerTest {
 		assertNotNull(result);
 		
 		assertEquals("60000", result.getMatchId());
+		assertEquals("100", result.getMatchedUserId());
 
-		assertEquals("hundred", result.getEncryptedMatchUserId());
+		assertEquals("hundred", result.getEncryptedMatchedUserId());
 		
 	}
 

@@ -63,17 +63,17 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
             Map<String, Object> userMap = matchMap.get(MATCHED_USER_KEY);
             Map<String, Object> matchInfoMap = matchMap.get(MATCH_KEY);
             Long deliveredDateLong = (Long) matchMap.get(MATCH_KEY).get(DELIVERED_DATE_KEY);
-            String userId = Objects.toString(userMap.get(USER_ID_KEY));
-            String encryptedId = encryptionCacheEnabled ? encryptedIdCache.get(userId)
-                    : photosSecurityDelegate.encode(userId);
+            String matchedUserId = Objects.toString(userMap.get(USER_ID_KEY));
+            String encryptedId = encryptionCacheEnabled ? encryptedIdCache.get(matchedUserId)
+                    : photosSecurityDelegate.encode(matchedUserId);
             Date deliveredDate = new Date(deliveredDateLong);
-            
-            userItem.setMatchUserFirstName((String) userMap .get(NAME_KEY));
+            userItem.setMatchedUserId(matchedUserId);
+            userItem.setMatchedUserFirstName((String) userMap .get(NAME_KEY));
             userItem.setMatchId(Objects.toString(matchInfoMap.get(MatchFeedModel.MATCH.ID)));
             userItem.setHasPrimaryPhoto((Boolean) userMap.get(PHOTO_KEY));
             userItem.setAge((Integer) userMap.get(AGE_KEY));
             userItem.setDeliveredDate(deliveredDate);
-            userItem.setEncryptedMatchUserId(encryptedId);
+            userItem.setEncryptedMatchedUserId(encryptedId);
         } catch (Exception exp) {
             logger.warn("Error while transforming match map to matched user {}", matchMap, exp);
             return null;
