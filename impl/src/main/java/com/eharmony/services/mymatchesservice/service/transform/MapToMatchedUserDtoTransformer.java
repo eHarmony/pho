@@ -61,6 +61,7 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
         SimpleMatchedUserDto userItem = new SimpleMatchedUserDto();
         try {
             Map<String, Object> userMap = matchMap.get(MATCHED_USER_KEY);
+            Map<String, Object> matchInfoMap = matchMap.get(MATCH_KEY);
             Long deliveredDateLong = (Long) matchMap.get(MATCH_KEY).get(DELIVERED_DATE_KEY);
             String userId = Objects.toString(userMap.get(USER_ID_KEY));
             String encryptedId = encryptionCacheEnabled ? encryptedIdCache.get(userId)
@@ -68,7 +69,7 @@ public class MapToMatchedUserDtoTransformer implements Function< Map<String, Map
             Date deliveredDate = new Date(deliveredDateLong);
             
             userItem.setMatchUserFirstName((String) userMap .get(NAME_KEY));
-            userItem.setMatchUserId(userId);
+            userItem.setMatchId(Objects.toString(matchInfoMap.get(MatchFeedModel.MATCH.ID)));
             userItem.setHasPrimaryPhoto((Boolean) userMap.get(PHOTO_KEY));
             userItem.setAge((Integer) userMap.get(AGE_KEY));
             userItem.setDeliveredDate(deliveredDate);
