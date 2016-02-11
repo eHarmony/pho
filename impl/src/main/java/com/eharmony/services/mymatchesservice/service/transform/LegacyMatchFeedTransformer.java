@@ -118,6 +118,7 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.STAGE, commElem.getStage());
         match.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, getTimeInMillisNullSafe(commElem.getCommStartedDate()));
         match.put(MatchFeedModel.MATCH.NUDGE_STATUS, commElem.getNudgeStatus());
+        match.put(MatchFeedModel.MATCH.READ_MATCH_DETAILS, (commElem.getReadDetailsDate() != null));
         match.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, getTimeInMillisNullSafe(commElem.getReadDetailsDate()));
         match.put(MatchFeedModel.MATCH.TURN_OWNER, commElem.getTurnOwner());
         match.put(MatchFeedModel.MATCH.INITIALIZER, commElem.getInitializer());
