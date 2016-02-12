@@ -187,44 +187,7 @@ public class MatchFeedAsyncRequestHandler {
      */
 
     public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, Map<String,String> eventContextInfo) {
-
-//    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsyncTeaser").time();
-//        long userId = matchFeedQueryContext.getUserId();
-//        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-//        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
-//
-//        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-//        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-//                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
-//                Schedulers.from(executorServiceProvider.getTaskExecutor()));
-//
-//        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-//                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
-//
-//        matchQueryRequestObservable.subscribe(response -> {
-//            boolean feedNotFound = false;
-//            try {
-//                handleTeaserFeedResponse(response);
-//            } catch (ResourceNotFoundException e) {
-//                feedNotFound = true;
-//            }
-//
-//            long duration = t.stop();
-//            logger.debug("Match feed created for user {}, duration {}", userId, duration);
-//            ResponseBuilder builder = buildResponse(response, feedNotFound);
-//            if (!feedNotFound) {
-//                matchQueryEventService.sendTeaserMatchShownEvent(response, eventContextInfo);
-//            }
-//            asyncResponse.resume(builder.build());
-//        }, (throwable) -> {
-//            long duration = t.stop();
-//            logger.error("Exception creating match feed for user {}, duration {}", userId, duration, throwable);
-//            asyncResponse.resume(throwable);
-//        }, () -> {
-//            asyncResponse.resume("");
-//        });
-        
-        
+   
     	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsyncTeaser").time();
         long userId = matchFeedQueryContext.getUserId();
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(matchFeedQueryContext);
