@@ -17,6 +17,7 @@ import com.codahale.metrics.Timer;
 import com.codahale.metrics.Histogram;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
@@ -169,6 +170,14 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     @Override
     public MatchCountContext getUserMatchesCount(MatchCountRequestContext request) {
         MatchCountContext result = new MatchCountContext();
+        Long userId = request.getUserId();
+        MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
+        try {
+            queryRepository.getMatchCountDto(queryRequest);
+        } catch (Exception exp) {
+            logger.warn("Exception while fetching the matches count from HBase store for user {}",
+                userId, exp);
+        }
         return result;
     }
 }
