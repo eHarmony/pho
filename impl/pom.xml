@@ -18,7 +18,7 @@
 		<commons.logging.version>1.2</commons.logging.version>
 		<singles-protobuf-version>2.4</singles-protobuf-version>
 		<opencsv-version>2.3</opencsv-version>
-		<singles-business.version>20</singles-business.version>
+		<singles-business.version>22</singles-business.version>
 		<crypto-library.version>15</crypto-library.version>
 		<protobuf-version>2.5.0</protobuf-version>
 		<datastore-version>15</datastore-version>
@@ -26,6 +26,8 @@
 		<event.proto.client.version>2.2.7</event.proto.client.version>
 		<powermock.version>1.6.4</powermock.version>
 		<matching-protobuf-version>1.0.33</matching-protobuf-version>
+		<jersey.client.version>1.19</jersey.client.version>
+		<apache.httpclient.version>4.5.1</apache.httpclient.version>
 	</properties>
 
 	<dependencies>
@@ -468,6 +470,10 @@
 					<artifactId>protobuf-java</artifactId>
 					<groupId>com.google.protobuf</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>httpclient</artifactId>
+					<groupId>org.apache.httpcomponents</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
         <!--  HBASE DEPS END -->
@@ -596,6 +602,10 @@
 				<exclusion>
 					<artifactId>jersey-common</artifactId>
 					<groupId>org.glassfish.jersey.core</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>bean-validator</artifactId>
+					<groupId>org.glassfish.hk2.external</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -850,7 +860,47 @@
 			</exclusions>
 		</dependency>
 		<!-- LOGGING END -->
-
+		<!-- Redis Start -->
+		<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-redis</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>redis.clients</groupId>
+				<artifactId>jedis</artifactId>
+			</dependency>
+		<!-- Redis End -->
+		
+		<dependency>
+			<groupId>com.eharmony.services.profile</groupId>
+            <artifactId>profile-service-client</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>httpclient</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            </exclusions>
+		</dependency>
+        <dependency>
+            <!-- TODO: try to see how to use jersey 2 client instead.-->
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.client.version}</version>
+            <exclusions>
+                <exclusion>
+                   <artifactId>jsr311-api</artifactId>
+                   <groupId>javax.ws.rs</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        <dependency>
+	        <groupId>org.apache.httpcomponents</groupId>
+	        <artifactId>httpclient</artifactId>
+	        <version>${apache.httpclient.version}</version>
+        </dependency>
+        
+		
 		<!-- TEST SCOPE START -->
 		<dependency>
 			<groupId>org.mockito</groupId>
