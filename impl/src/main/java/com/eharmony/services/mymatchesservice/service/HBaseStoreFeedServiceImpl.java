@@ -173,7 +173,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
         try {
-            queryRepository.getMatchCountDto(queryRequest);
+           result.setMatchCountDto(queryRepository.getMatchCountDto(queryRequest));
         } catch (Exception exp) {
             logger.warn("Exception while fetching the matches count from HBase store for user {}",
                 userId, exp);

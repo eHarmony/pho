@@ -30,9 +30,9 @@ public class MatchCountAsyncRequestHandler {
                 .map(fetchCount)
                 .subscribeOn(
                         Schedulers.from(executorServiceProvider.getTaskExecutor()));
-        matchCountRequestObservable.subscribe(response -> {
+        matchCountRequestObservable.subscribe( response -> {
 
-            ResponseBuilder builder = Response.ok().entity(response);
+            ResponseBuilder builder = Response.ok().entity(response.getMatchCountDto());
 
             asyncResponse.resume(builder.build());
         } , (throwable) -> {
