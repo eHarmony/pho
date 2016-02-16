@@ -428,8 +428,13 @@ public class MatchFeedAsyncRequestHandler {
             return;
         }
         if(context.getLegacyMatchDataFeedDtoWrapper() != null && context.getLegacyMatchDataFeedDtoWrapper().getLegacyMatchDataFeedDto() != null) {
-            return;
+            //can be non null but have zero matches
+            LegacyMatchDataFeedDto dto = context.getLegacyMatchDataFeedDtoWrapper().getLegacyMatchDataFeedDto();
+            if (!MapUtils.isEmpty(dto.getMatches())) {
+                return;
+            };
         }
+        
         throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
 
     }
@@ -516,6 +521,9 @@ public class MatchFeedAsyncRequestHandler {
     
     private Func2<LegacyMatchDataFeedDtoWrapper,BasicPublicProfileDto, LegacyMatchDataFeedDtoWrapper>  appendUserLocaleGender = (request, profileDto) ->{
         LegacyMatchDataFeedDto feedDto = request.getLegacyMatchDataFeedDto();
+        if (profileDto == null) {
+            return request;
+        }
         //Redis doesn't have the feed, create a dummy feed to carry locale and gender.
         if (feedDto == null) {
              feedDto = new LegacyMatchDataFeedDto();
