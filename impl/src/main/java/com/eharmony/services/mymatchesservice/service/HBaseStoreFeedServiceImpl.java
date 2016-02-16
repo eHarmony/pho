@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import rx.Observable;
@@ -45,6 +46,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    @Value("${mqs.newmatch.threshold.days}")
+    private int newMatchThresholdDays;
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
     //private static final String COMM_SORT_BY_FIELD = "lastCommDate";
@@ -172,6 +175,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         MatchCountContext result = new MatchCountContext();
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
+        queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
         try {
            result.setMatchCountDto(queryRepository.getMatchCountDto(queryRequest));
         } catch (Exception exp) {
