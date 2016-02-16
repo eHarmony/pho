@@ -43,11 +43,13 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 	private String getTurnOwner(Map<String, Map<String, Object>> match, CommunicationStage commStage) {
 		Map<String, Object> matchStatusCallParams = new HashMap<>();
 		Map<String, Object> matchSection = match.get(MatchFeedModel.SECTIONS.MATCH);
+		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
+
 		matchStatusCallParams.put("closedStatus", matchSection.get(MatchFeedModel.MATCH.CLOSED_STATUS));
 		matchStatusCallParams.put("initializer", matchSection.get(MatchFeedModel.MATCH.INITIALIZER));
 		matchStatusCallParams.put("isUser", matchSection.get(MatchFeedModel.MATCH.IS_USER));
 		matchStatusCallParams.put("archiveStatus", matchSection.get(MatchFeedModel.MATCH.ARCHIVE_STATUS));
-		matchStatusCallParams.put("commLastSent", matchSection.get(MatchFeedModel.MATCH.COMM_LAST_SENT));
+		matchStatusCallParams.put("commLastSent", commSection.get(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE));
 		matchStatusCallParams.put("fastTrackStatus", matchSection.get(MatchFeedModel.MATCH.FAST_TRACK_STATUS));
 		matchStatusCallParams.put("turnOwner", matchSection.get(MatchFeedModel.MATCH.TURN_OWNER));
 		matchStatusCallParams.put("userId", matchSection.get(MatchFeedModel.MATCH.USER_ID));
