@@ -330,5 +330,16 @@ public class MatchFeedAsyncRequestHandlerTest {
 		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10008L));   // flag is true, in range
 		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10009L));   // flag is true, border of range
 		assertFalse(handler.isRedisSamplingEnabled(true, 10, 10010L));  // flag is true, one step over
+		
+		// all accepted
+		assertTrue(handler.isRedisSamplingEnabled(true, 100, 100L));
+		assertTrue(handler.isRedisSamplingEnabled(true, 100, 0L));
+		assertTrue(handler.isRedisSamplingEnabled(true, 100, 50L));
+		
+		// none accepted
+		assertFalse(handler.isRedisSamplingEnabled(true, 0, 100L));
+		assertFalse(handler.isRedisSamplingEnabled(true, 0, 0L));
+		assertFalse(handler.isRedisSamplingEnabled(true, 0, 50L));
+
 	}
 }
