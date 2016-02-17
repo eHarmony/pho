@@ -1,6 +1,7 @@
 package com.eharmony.services.mymatchesservice.rest;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -17,6 +18,8 @@ import javax.ws.rs.container.AsyncResponse;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import rx.Observable;
+
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
@@ -27,8 +30,6 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.collect.ImmutableSet;
-
-import rx.Observable;
 
 public class MatchFeedAsyncRequestHandlerTest {
 
@@ -272,6 +273,7 @@ public class MatchFeedAsyncRequestHandlerTest {
 		ReflectionTestUtils.setField(handler, "redisStoreFeedService", redisStoreFeedService);
 		ReflectionTestUtils.setField(handler, "hbaseStoreFeedService", hbaseStoreFeedService);
 		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
+		ReflectionTestUtils.setField(handler, "redisSamplingPct", 100);
 		
 		AsyncResponse httpAsycRes = mock(AsyncResponse.class);
 		handler.getMatchesFeed(queryCtx, httpAsycRes);
@@ -312,5 +314,21 @@ public class MatchFeedAsyncRequestHandlerTest {
 		handler.getMatchesFeed(queryCtx, httpAsycRes);
 		verify(redisStoreFeedService, never()).getUserMatchesSafe(any());
 		verify(voldemortStore).getMatchesObservableSafe(any());
+	}
+	
+	@Test
+	public void testRedisSamplingEnabled(){
+		
+		MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		
+		assertFalse(handler.isRedisSamplingEnabled(false, 10, 12345L)); // flag is false
+		
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10000L));   // flag is true, in range
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10002L));   // flag is true, in range
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10004L));   // flag is true, in range
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10006L));   // flag is true, in range
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10008L));   // flag is true, in range
+		assertTrue(handler.isRedisSamplingEnabled(true, 10, 10009L));   // flag is true, border of range
+		assertFalse(handler.isRedisSamplingEnabled(true, 10, 10010L));  // flag is true, one step over
 	}
 }

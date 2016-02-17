@@ -128,6 +128,9 @@ public class MatchFeedAsyncRequestHandler {
     
     @Value("${redis.merge.enabled:false}")
     private boolean redisMergeMode;
+ 
+    @Value("${redis.merge.sampling.percent:0}")
+    private int redisSamplingPct;
     
     @Resource
     private ProfileServiceClient profileService;
@@ -230,7 +233,7 @@ public class MatchFeedAsyncRequestHandler {
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         FeedMergeStrategyType mergeType;
-        if (redisMergeMode) {
+        if (isRedisSamplingEnabled(redisMergeMode, redisSamplingPct, request.getMatchFeedQueryContext().getUserId())) {
             mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
         } else {
             mergeType = FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE;
@@ -239,7 +242,7 @@ public class MatchFeedAsyncRequestHandler {
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = null;
         
-        if (redisMergeMode) {
+        if (isRedisSamplingEnabled(redisMergeMode, redisSamplingPct, request.getMatchFeedQueryContext().getUserId())) {
             BasicStoreFeedRequestContext basicRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
             Observable<BasicPublicProfileDto> profileObservable = Observable.defer(
                 ()->
@@ -384,7 +387,7 @@ public class MatchFeedAsyncRequestHandler {
 
     
     private void handleFeedResponse(MatchFeedRequestContext context) {
-        if (redisMergeMode) {
+        if (isRedisSamplingEnabled(redisMergeMode, redisSamplingPct, context.getUserId())) {
         
             hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
         
@@ -509,7 +512,7 @@ public class MatchFeedAsyncRequestHandler {
             request, legacyMatchDataFeedDtoWrapper) -> {
 
         logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
-        if (redisMergeMode) {
+        if (isRedisSamplingEnabled(redisMergeMode, redisSamplingPct, request.getMatchFeedQueryContext().getUserId())) {
             request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
         } else {
             request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
@@ -534,4 +537,14 @@ public class MatchFeedAsyncRequestHandler {
         feedDto.setGender(genderStr);
         return request;
     };
+    
+    protected boolean isRedisSamplingEnabled(boolean redisFlag, int samplingPercentage, long userId){
+    	
+    	if(!redisFlag){
+    		return false;
+    	}
+    	
+        int mod = (int) (userId % 100);
+        return (mod < samplingPercentage);
+    }
 }
