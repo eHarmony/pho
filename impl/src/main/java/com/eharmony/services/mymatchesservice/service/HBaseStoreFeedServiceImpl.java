@@ -135,16 +135,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
-        int pageSize = request.getMatchFeedQueryContext().getPageSize();
-        int pageNumber = request.getMatchFeedQueryContext().getStartPage();
 
-        Integer feedLimit = null;
+            Integer feedLimit = null;
 
-        if (pageSize > 0) {
-            feedLimit = pageSize * (pageNumber > 0 ? pageNumber : 1);
-        }
-
-        if (feedLimit == null || feedLimit <= 0) {
             if (request.isFallbackRequest()) {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(request
                         .getMatchStatusGroup());
@@ -152,12 +145,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
                         .getMatchStatusGroup());
             }
-        }
 
-        if (feedLimit != null) {
             requestQuery.setStartPage(START_PAGE);
             requestQuery.setPageSize(feedLimit);
-        }
     }
 
 }
