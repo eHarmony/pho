@@ -1,7 +1,9 @@
 package com.eharmony.services.mymatchesservice.service.transform;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -255,6 +257,60 @@ public class LegacyMatchFeedTransformerTest {
 
     }
 
+    @Test
+    public void testReadDetailsFalse() {
+
+        Long matchId = 9999L;
+
+        MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+        hbaseFeedItem.getMatch().setMatchId(matchId);
+        
+        Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+        feedItems.add(hbaseFeedItem);
+        
+        LegacyMatchFeedTransformer transformer = new LegacyMatchFeedTransformer();
+        MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1)
+                .build();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+        Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsMap = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
+        feedItemsMap.put(MatchStatusGroupEnum.NEW, feedItems);
+        request.setHbaseFeedItemsByStatusGroup(feedItemsMap);
+        
+        LegacyMatchDataFeedDto feed = transformer.transform(request);
+
+        boolean r = (boolean) feed.getMatches().get("9999").get("match").get("readMatchDetails");
+      
+        assertFalse(r);
+
+    }
+    
+    @Test
+    public void testReadDetailsTrue() {
+
+        Long matchId = 9999L;
+
+        MatchDataFeedItemDto hbaseFeedItem = new MatchDataFeedItemDto();
+        hbaseFeedItem.getMatch().setMatchId(matchId);
+        hbaseFeedItem.getCommunication().setReadDetailsDate(new Date());
+        
+        Set<MatchDataFeedItemDto> feedItems = new HashSet<>();
+        feedItems.add(hbaseFeedItem);
+        
+        LegacyMatchFeedTransformer transformer = new LegacyMatchFeedTransformer();
+        MatchFeedQueryContext query = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(1)
+                .build();
+        MatchFeedRequestContext request = new MatchFeedRequestContext(query);
+        Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> feedItemsMap = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
+        feedItemsMap.put(MatchStatusGroupEnum.NEW, feedItems);
+        request.setHbaseFeedItemsByStatusGroup(feedItemsMap);
+        
+        LegacyMatchDataFeedDto feed = transformer.transform(request);
+
+        boolean r = (boolean) feed.getMatches().get("9999").get("match").get("readMatchDetails");
+      
+        assertTrue(r);
+
+    }
     @Test
     public void testTransformCoversAllFields() {
 

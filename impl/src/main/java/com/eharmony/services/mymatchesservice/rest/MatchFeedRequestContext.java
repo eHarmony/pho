@@ -23,6 +23,7 @@ public class MatchFeedRequestContext {
     final MatchFeedQueryContext matchFeedQueryContext;
     private boolean isFallbackRequest;
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
+    private LegacyMatchDataFeedDto redisFeed = null;
 
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
@@ -36,9 +37,10 @@ public class MatchFeedRequestContext {
         this.feedMergeType = matchFeedRequestContext.getFeedMergeType();
         this.isFallbackRequest = matchFeedRequestContext.isFallbackRequest();
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
+        this.redisFeed = matchFeedRequestContext.getRedisFeed();
     }
 
-    public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
+	public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
         return hbaseFeedItemsByStatusGroup;
     }
 
@@ -46,13 +48,21 @@ public class MatchFeedRequestContext {
             Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup) {
         this.hbaseFeedItemsByStatusGroup = hbaseFeedItemsByStatusGroup;
     }
-
+    
     public void putFeedItemsInMapByStatusGroup(MatchStatusGroupEnum statusGroup, Set<MatchDataFeedItemDto> feedItems) {
 
         if (CollectionUtils.isNotEmpty(feedItems)) {
             hbaseFeedItemsByStatusGroup.put(statusGroup, feedItems);
         }
     }
+    
+    public void setRedisFeed(LegacyMatchDataFeedDto feed) {
+        this.redisFeed = feed;
+    }
+    
+    public LegacyMatchDataFeedDto getRedisFeed() {
+		return redisFeed;
+	}
 
     public boolean isFallbackRequest() {
         return isFallbackRequest;
