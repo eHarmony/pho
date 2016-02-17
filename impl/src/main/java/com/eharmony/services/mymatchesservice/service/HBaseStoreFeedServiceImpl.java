@@ -70,10 +70,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         });
         return hbaseStoreFeedResponse;
     }
-    
-    public MatchCountContext getMatchCount() {
-        return null;
-    }
+
 
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
