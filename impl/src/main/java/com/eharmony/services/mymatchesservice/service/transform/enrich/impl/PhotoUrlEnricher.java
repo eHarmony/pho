@@ -54,7 +54,11 @@ public class PhotoUrlEnricher extends AbstractProfileEnricher {
         profile.put(MatchFeedModel.PROFILE.PHOTOICON, null);
         profile.put(MatchFeedModel.PROFILE.PHOTOTHUMB, null);
 
-        boolean hasPhoto = MapUtils.isNotEmpty(photo);
+        int photoCount = 0;
+        if (profile.get(MatchFeedModel.PROFILE.PHOTO_COUNT) != null) {
+            photoCount = (int) profile.get(MatchFeedModel.PROFILE.PHOTO_COUNT);
+        }
+        boolean hasPhoto = MapUtils.isNotEmpty(photo) || (photoCount > 0);
 
         profile.put(MatchFeedModel.PROFILE.HAS_PHOTO, hasPhoto);
 
