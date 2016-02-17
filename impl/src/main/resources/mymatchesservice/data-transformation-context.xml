@@ -66,10 +66,6 @@
 		</constructor-arg>
 	</bean>
 	
-	<bean id="teaserHbaseFetchSize" class="java.lang.Integer">
-        <constructor-arg value="${teaser.hbase.fetch.size}" />
-      </bean>
-	
 	<bean id="getTeaserMatchesFeedFilterChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
 		<constructor-arg>
