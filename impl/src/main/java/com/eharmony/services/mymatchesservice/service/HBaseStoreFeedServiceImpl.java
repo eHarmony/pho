@@ -136,7 +136,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
 
-            Integer feedLimit = null;
+            Integer feedLimit = null;  
 
             if (request.isFallbackRequest()) {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(request
@@ -145,6 +145,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
                         .getMatchStatusGroup());
             }
+            
+            feedLimit = feedLimit == null  ? 0 : feedLimit; //Set the feed limit to zero ( means fetch all records without limit) from HBASE.
 
             requestQuery.setStartPage(START_PAGE);
             requestQuery.setPageSize(feedLimit);

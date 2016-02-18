@@ -209,5 +209,55 @@ public class HBaseStoreFeedServiceImplTest {
 		});
 
 	}
+	
+	
+
+	/**
+	 * This test verifies that the page size defaults to zero when no predefined size is set for a matchstatus group.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void getUserMatchesByStatusGroupSafe_CommunicationGroup() throws Exception {
+
+		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
+		        .build();
+
+		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
+		Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
+		matchStatusEnum.add(MatchStatusEnum.MYTURN);
+		requestContext.setMatchStatuses(matchStatusEnum);
+		MatchStatusGroupEnum communicationStatusGroup = MatchStatusGroupEnum.COMMUNICATION;
+		requestContext.setMatchStatusGroup(communicationStatusGroup);
+
+		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+		        .thenReturn(new Timer().time());
+
+		Histogram histoGram = Mockito.mock(Histogram.class);
+
+		when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+		        .thenReturn(histoGram);
+
+		Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
+
+		for (int i = 0; i < 100; i++) {
+			matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+		}
+
+		when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
+
+		requestContext.setFallbackRequest(false);
+
+		hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
+			Assert.assertEquals(100, response.getHbaseStoreFeedItems().size());
+			Assert.assertNull(response.getError());
+		});
+
+		ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
+		verify(queryRepository).getMatchDataFeed(argument.capture());
+
+		Assert.assertEquals(0, argument.getValue().getPageSize());
+
+	}
 
 }
