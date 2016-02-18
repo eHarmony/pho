@@ -146,10 +146,10 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                         .getMatchStatusGroup());
             }
             
-            feedLimit = feedLimit == null  ? 0 : feedLimit; //Set the feed limit to zero ( means fetch all records without limit) from HBASE.
-
+        if (feedLimit != null) {
             requestQuery.setStartPage(START_PAGE);
             requestQuery.setPageSize(feedLimit);
+        }
     }
 
 }
