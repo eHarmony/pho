@@ -56,6 +56,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
     private static final String METRICS_HIERARCHY_PREFIX = HBaseStoreFeedServiceImpl.class.getCanonicalName();
     private static final String METRICS_GETBYSTATUS_METHOD = "getUserMatchesByStatusGroup";
+    private static final String METRICS_GETCOUNT_METHOD = "getUserMatchesCount";
     @Override
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request) {
         Observable<HBaseStoreFeedResponse> hbaseStoreFeedResponse = Observable.defer(() -> Observable
@@ -173,11 +174,19 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
         queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
+        long startTime = System.currentTimeMillis();
+        
+        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, 
+        		METRICS_GETCOUNT_METHOD);
         try {
            result.setMatchCountDto(queryRepository.getMatchCountDto(queryRequest));
         } catch (Exception exp) {
             logger.warn("Exception while fetching the matches count from HBase store for user {}",
                 userId, exp);
+        } finally {
+            metricsTimer.stop();
+            long endTime = System.currentTimeMillis();
+            logger.info("HBase response time {} for user {}", (endTime - startTime), userId);
         }
         return result;
     }

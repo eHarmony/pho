@@ -7,6 +7,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.springframework.stereotype.Component;
 
+import com.codahale.metrics.Timer;
+import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 
@@ -16,15 +18,22 @@ import rx.schedulers.Schedulers;
 
 @Component
 public class MatchCountAsyncRequestHandler {
+    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName(); 
+    private static final String METRICS_COUNTMATCHES_ASYNC = "getUserMatchesCount";
+    
     @Resource
     private ExecutorServiceProvider executorServiceProvider;
     @Resource
     private HBaseStoreFeedService hbaseStoreFeedService;
+    
+    @Resource
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    
 
 
     public void getMatchCounts(final MatchCountRequestContext matchCountRequestContext,
             final AsyncResponse asyncResponse) {
-
+        Timer.Context t = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_COUNTMATCHES_ASYNC);
         Observable<MatchCountContext> matchCountRequestObservable = Observable
                 .defer(() -> Observable.just(matchCountRequestContext))
                 .map(fetchCount)
@@ -38,6 +47,7 @@ public class MatchCountAsyncRequestHandler {
         } , (throwable) -> {
             asyncResponse.resume(throwable);
         } , () -> {
+            t.stop();
             asyncResponse.resume("");
         });
     }
