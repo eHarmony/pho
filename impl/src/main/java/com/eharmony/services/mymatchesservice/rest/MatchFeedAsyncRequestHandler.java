@@ -21,11 +21,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
+
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
 import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
@@ -51,11 +57,6 @@ import com.eharmony.singles.common.enumeration.Gender;
 import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
 import com.google.common.collect.Lists;
-
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -126,11 +127,11 @@ public class MatchFeedAsyncRequestHandler {
     @Resource
     private FeedMergeStrategyManager feedMergeStrategyManager;
     
-    @Value("${redis.merge.enabled:false}")
-    private boolean redisMergeMode;
-    
     @Resource
     private ProfileServiceClient profileService;
+    
+    @Resource
+    private DataServiceThrottleManager throttle;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -230,7 +231,7 @@ public class MatchFeedAsyncRequestHandler {
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
         FeedMergeStrategyType mergeType;
-        if (redisMergeMode) {
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
             mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
         } else {
             mergeType = FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE;
@@ -239,7 +240,7 @@ public class MatchFeedAsyncRequestHandler {
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = null;
         
-        if (redisMergeMode) {
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
             BasicStoreFeedRequestContext basicRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
             Observable<BasicPublicProfileDto> profileObservable = Observable.defer(
                 ()->
@@ -384,7 +385,7 @@ public class MatchFeedAsyncRequestHandler {
 
     
     private void handleFeedResponse(MatchFeedRequestContext context) {
-        if (redisMergeMode) {
+        if (throttle.isRedisSamplingEnabled(context.getUserId())) {
         
             hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
         
@@ -510,7 +511,7 @@ public class MatchFeedAsyncRequestHandler {
             request, legacyMatchDataFeedDtoWrapper) -> {
 
         logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
-        if (redisMergeMode) {
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
             request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
         } else {
             request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
