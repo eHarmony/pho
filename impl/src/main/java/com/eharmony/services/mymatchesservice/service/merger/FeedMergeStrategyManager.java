@@ -12,7 +12,8 @@ public class FeedMergeStrategyManager {
     @Resource(name = "DefaultFeedMergeStrategy")
     private FeedMergeStrategy VOLDY_WITH_PROFILE_MERGE_STRATEGY;
 
-    private FeedMergeStrategy HBASE_FEED_ONLY_STRATEGY = VOLDY_WITH_PROFILE_MERGE_STRATEGY;
+    @Resource(name = "DefaultFeedMergeStrategy")
+    private FeedMergeStrategy HBASE_FEED_ONLY_STRATEGY;
 
     @Resource(name = "HBaseRedisFeedMergeStrategy")
     private FeedMergeStrategy HBASE_WITH_REDIS_MERGE_STRATEGY;

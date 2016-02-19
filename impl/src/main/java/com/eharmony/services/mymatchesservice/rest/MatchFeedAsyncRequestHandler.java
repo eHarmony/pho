@@ -195,7 +195,7 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeedFromVoldy).subscribeOn(
                 Schedulers.from(executorServiceProvider.getTaskExecutor()));
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
@@ -505,6 +505,7 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
+    // Handler for async feed request from Redis or Voldy
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
 
@@ -517,7 +518,16 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 	
+    // Handler for async feed request from Voldy only. 
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeedFromVoldy = (
+            request, legacyMatchDataFeedDtoWrapper) -> {
 
+        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
+        
+        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+
+        return request;
+    };
     
     private Func2<LegacyMatchDataFeedDtoWrapper,BasicPublicProfileDto, LegacyMatchDataFeedDtoWrapper>  appendUserLocaleGender = (request, profileDto) ->{
         LegacyMatchDataFeedDto feedDto = request.getLegacyMatchDataFeedDto();
