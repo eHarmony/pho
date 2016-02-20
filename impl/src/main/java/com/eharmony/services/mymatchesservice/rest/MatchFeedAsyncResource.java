@@ -105,9 +105,12 @@ public class MatchFeedAsyncResource {
     		@MatrixParam("status") Set<String> statuses,
             @QueryParam("resultSize") Integer resultSize, 
             @HeaderParam("user-agent") String userAgent,
-            @HeaderParam(EventConstant.PLATFORM) String platform,
+            @HeaderParam(EventConstant.PLATFORM) String platform, @MatrixParam("locale") String locale,
             @Suspended final AsyncResponse asyncResponse) {
 
+		if (StringUtils.isEmpty(locale)) {
+			throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
+		}
 
         Set<String> statusSet = new HashSet<String>();
         if (!CollectionUtils.isEmpty(statuses)) {
@@ -154,6 +157,7 @@ public class MatchFeedAsyncResource {
                 .setStatuses(statusSet)
                 .setUserId(userId)
                 .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
+                .setLocale(locale)
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
@@ -170,6 +174,8 @@ public class MatchFeedAsyncResource {
         	eventContextInfo.put(EventConstant.PLATFORM, platform);
         
         }
+        
+        eventContextInfo.put(EventConstant.LOCALE, locale);
        
         requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
