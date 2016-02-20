@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.hk2.api.DescriptorVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -105,12 +106,8 @@ public class MatchFeedAsyncResource {
     		@MatrixParam("status") Set<String> statuses,
             @QueryParam("resultSize") Integer resultSize, 
             @HeaderParam("user-agent") String userAgent,
-            @HeaderParam(EventConstant.PLATFORM) String platform, @MatrixParam("locale") String locale,
+            @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
-
-		if (StringUtils.isEmpty(locale)) {
-			throw new WebApplicationException("Missing locale.", Status.BAD_REQUEST);
-		}
 
         Set<String> statusSet = new HashSet<String>();
         if (!CollectionUtils.isEmpty(statuses)) {
@@ -157,7 +154,6 @@ public class MatchFeedAsyncResource {
                 .setStatuses(statusSet)
                 .setUserId(userId)
                 .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
-                .setLocale(locale)
                 .build();
 
         log.debug("fetching teaser match feed for user ={}", userId);
@@ -175,8 +171,6 @@ public class MatchFeedAsyncResource {
         
         }
         
-        eventContextInfo.put(EventConstant.LOCALE, locale);
-       
         requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
 
