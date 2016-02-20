@@ -1,8 +1,11 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import com.eharmony.singles.common.status.MatchStatus;
+
 public class MatchCountRequestContext {
 	private boolean viewHidden = false;
 	private long userId;
+	private MatchStatus status;
 	public boolean isViewHidden() {
 		return viewHidden;
 	}
@@ -23,5 +26,13 @@ public class MatchCountRequestContext {
 		this.viewHidden = viewHidden;
 		this.userId = userId;
 	}
+	public MatchStatus getStatus() {
+		return status;
+	}
+	public void setStatus(MatchStatus status) {
+		this.status = status;
+	}
+	
+	
 
 }

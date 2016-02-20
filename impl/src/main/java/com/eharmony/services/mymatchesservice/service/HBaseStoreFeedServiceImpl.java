@@ -12,22 +12,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import rx.Observable;
-
-import com.codahale.metrics.Timer;
 import com.codahale.metrics.Histogram;
-
+import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
-import com.eharmony.services.mymatchesservice.rest.MatchCountContext;
 import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
+
+import rx.Observable;
 
 
 @Component
@@ -134,8 +132,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
         if (matchStatusGroup.equals(MatchStatusGroupEnum.COMMUNICATION)) {
             //return COMM_SORT_BY_FIELD;
-        	//TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
-        	return DEFAULT_SORT_BY_FIELD;
+            //TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
+            return DEFAULT_SORT_BY_FIELD;
         }
 
         return DEFAULT_SORT_BY_FIELD;
@@ -168,26 +166,37 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
     }
 
-    @Override
-    public MatchCountContext getUserMatchesCount(MatchCountRequestContext request) {
-        MatchCountContext result = new MatchCountContext();
+    protected Integer getUserMatchesCountByStatus(MatchCountRequestContext request, boolean getOnlyRecentNew) {
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
         queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
-        long startTime = System.currentTimeMillis();
-        
-        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, 
-        		METRICS_GETCOUNT_METHOD);
+
+        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+                METRICS_GETCOUNT_METHOD);
+        int count = 0;
+        queryRequest.setMatchStatus(request.getStatus());
         try {
-           result.setMatchCountDto(queryRepository.getMatchCountDto(queryRequest));
+            if (getOnlyRecentNew) {
+                count = queryRepository.getNewMatchCount(queryRequest);
+            } else {
+                count = queryRepository.getMatchCount(queryRequest);
+            }
         } catch (Exception exp) {
-            logger.warn("Exception while fetching the matches count from HBase store for user {}",
-                userId, exp);
+            logger.warn("Exception while fetching the matches count from HBase store for user {}", userId, exp);
         } finally {
-            metricsTimer.stop();
-            long endTime = System.currentTimeMillis();
-            logger.info("HBase response time {} for user {}", (endTime - startTime), userId);
+            long elapsed = metricsTimer.stop() / 1000000;
+            logger.info("HBase response time {} for user {}", elapsed, userId);
         }
-        return result;
+        return count;
+    }
+
+    @Override
+    public Integer getUserMatchesCount(MatchCountRequestContext request) {
+        return getUserMatchesCountByStatus(request, false);
+    }
+
+    @Override
+    public Integer getUserNewMatchesCount(MatchCountRequestContext request) {
+        return getUserMatchesCountByStatus(request, true);
     }
 }

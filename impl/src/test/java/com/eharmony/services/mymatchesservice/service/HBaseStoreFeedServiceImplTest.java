@@ -10,6 +10,7 @@ import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchCountContext;
 import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
+import com.eharmony.singles.common.status.MatchStatus;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,8 +33,9 @@ public class HBaseStoreFeedServiceImplTest {
 		ReflectionTestUtils.setField(svc, "matchQueryMetricsFactroy", matchQueryMetricsFactroy);
 		MatchCountRequestContext matchCountRequest = new MatchCountRequestContext();
 		matchCountRequest.setUserId(1000l);
-		MatchCountContext result = svc.getUserMatchesCount(matchCountRequest);
-		verify(queryRepository,times(1)).getMatchCountDto(any());
+		matchCountRequest.setStatus(MatchStatus.MYTURN);
+		Integer result = svc.getUserMatchesCount(matchCountRequest);
+		verify(queryRepository,times(1)).getMatchCount(any());
 	}
 
 }
