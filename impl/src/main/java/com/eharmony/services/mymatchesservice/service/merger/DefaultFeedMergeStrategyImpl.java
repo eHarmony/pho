@@ -9,6 +9,7 @@ import static com.eharmony.services.mymatchesservice.service.transform.MatchFeed
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.USERID;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.PHOTO_COUNT;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.LOCALE;
 
 import java.util.Map;
 import java.util.Set;
@@ -119,7 +120,11 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 			} else {
 				log.info("no photo information found in HBase for user {} and match {}", matchedUserId, matchId);
 			}
-
+			if (StringUtils.isNotBlank(profile.getLocale())) {
+				feedProfile.put(LOCALE, profile.getLocale());
+			} else {
+				log.info("no locale information in HBase for user {} and match {}", matchedUserId, matchId);
+			}
         }
     }
 }

@@ -110,7 +110,7 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 			Map<String, Map<String, Object>> matchInfo = entryItem.getValue();
 
 			Map<String, Object> matchSection = matchInfo.get(MatchFeedModel.SECTIONS.MATCH);
-			Integer candidateId = (Integer) matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID);
+			Integer candidateId = objectToInteger((matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID)));
 			
 			Integer distance = (Integer) matchSection.get(MatchFeedModel.MATCH.DISTANCE);
 			
@@ -201,7 +201,7 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 			if (matchInfo !=null) {
 
 				Map<String, Object> match = matchInfo.get(MatchFeedModel.SECTIONS.MATCH);
-				Integer candidateId = (Integer) match.get(MatchFeedModel.MATCH.MATCHEDUSERID);
+				Integer candidateId = objectToInteger(match.get(MatchFeedModel.MATCH.MATCHEDUSERID));
 				logger.info("CandidateId - {}, Score -{}", candidateId, scoredUserProto.getScore());
 				//Update match map with score so that matches can be ordered on basis of score before returning back to client.
 				match.put(MatchFeedModel.MATCH.MATCH_ATTRACTIVENESS_SCORE, scoredUserProto.getScore());
@@ -227,7 +227,7 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 
 			Map<String, Object> matchSection = itemValue.get(MatchFeedModel.SECTIONS.MATCH);
 
-			int candidateId = (Integer) matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID);
+			int candidateId = objectToInteger(matchSection.get(MatchFeedModel.MATCH.MATCHEDUSERID));
 
 			if (candidateId == userId) {
 			
@@ -237,5 +237,10 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 	    }
 		
 		return null;
+	}
+	
+	
+	private Integer objectToInteger(Object object) {
+		return new Integer(String.valueOf(object));
 	}
 }

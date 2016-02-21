@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.hk2.api.DescriptorVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -108,7 +109,6 @@ public class MatchFeedAsyncResource {
             @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
-
         Set<String> statusSet = new HashSet<String>();
         if (!CollectionUtils.isEmpty(statuses)) {
 
@@ -170,7 +170,7 @@ public class MatchFeedAsyncResource {
         	eventContextInfo.put(EventConstant.PLATFORM, platform);
         
         }
-       
+        
         requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
 
