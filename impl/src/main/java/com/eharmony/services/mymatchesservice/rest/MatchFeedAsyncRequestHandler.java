@@ -188,19 +188,11 @@ public class MatchFeedAsyncRequestHandler {
      */
 
     public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, Map<String,String> eventContextInfo) {
-
+   
     	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsyncTeaser").time();
         long userId = matchFeedQueryContext.getUserId();
-        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
 
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeedFromVoldy).subscribeOn(
-                Schedulers.from(executorServiceProvider.getTaskExecutor()));
-
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+        Observable<MatchFeedRequestContext> matchQueryRequestObservable = makeMqsRequestObservable(matchFeedQueryContext);
 
         matchQueryRequestObservable.subscribe(response -> {
             boolean feedNotFound = false;
@@ -214,8 +206,8 @@ public class MatchFeedAsyncRequestHandler {
             logger.debug("Match feed created for user {}, duration {}", userId, duration);
             ResponseBuilder builder = buildResponse(response, feedNotFound);
             if (!feedNotFound) {
-                matchQueryEventService.sendTeaserMatchShownEvent(response, eventContextInfo);
-            }
+              matchQueryEventService.sendTeaserMatchShownEvent(response, eventContextInfo);
+            																																																																												}
             asyncResponse.resume(builder.build());
         }, (throwable) -> {
             long duration = t.stop();

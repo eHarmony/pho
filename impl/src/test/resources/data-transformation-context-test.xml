@@ -1,0 +1,162 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd       
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="photosServiceURLClient"
+		class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoServiceURLClient">
+		<constructor-arg index="0" ref="photosSecurityDelegate" />
+	</bean>
+
+	<bean id="photosSecurityDelegate"
+		class="com.eharmony.photoclient.security.PhotosSecurityDelegate">
+		<constructor-arg index="0">
+			<null />
+		</constructor-arg>
+	</bean>
+
+	<util:constant id="profileSectionName"
+		static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE" />
+	<util:constant id="matchSectionName"
+		static-field="com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH" />
+
+	<util:set id="profileFieldsBlackList">
+		<value>birthdate</value>
+		<value>photo</value>
+	</util:set>
+
+	<util:set id="matchFieldsWhiteList">
+		<value>deliveredDate</value>
+		<value>distance</value>
+		<value>icebreakerStatus</value>
+		<value>id</value>
+		<value>relaxed</value>
+		<value>status</value>
+	</util:set>
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+    	<property name="basename">
+			<value>messages</value>
+		</property>
+	</bean>
+
+	<!-- Used for Comm Next Steps -->
+	<bean id="commDisplayMessageService" class="com.eharmony.singles.common.communication.CommDisplayMessageServiceImpl">
+		<constructor-arg index="0" ref="messageSource"/>
+	</bean>
+
+	<bean id="getMatchesFeedFilterChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+	
+	<bean id="teaserHbaseFetchSize" class="java.lang.Integer">
+        <constructor-arg value="10" />
+      </bean>
+	
+	<bean id="getTeaserMatchesFeedFilterChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.OpenMatchFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchPhotoFilter" /> 
+				<bean 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.MatchScoreEnricher">
+					<constructor-arg index="0" ref="scoreServiceClient" />
+				</bean>
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.TeaserResultSizeFilter" />
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="getMatchesFeedEnricherChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
+<!--  
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher" />
+				<bean
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoUrlEnricher" />
+				<bean id="commNextStepEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
+				</bean>
+				<bean id="commStageEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
+				</bean>	
+				<bean id="profileFieldsReadRemover"
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">
+					<constructor-arg index="0" ref="profileSectionName" />
+					<constructor-arg index="1" ref="profileFieldsBlackList" />
+					<constructor-arg index="2" value="BLACKLIST" />
+				</bean>
+				<bean id="matchFieldsRemover"
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">
+					<constructor-arg index="0" ref="matchSectionName" />
+					<constructor-arg index="1" ref="matchFieldsWhiteList" />
+					<constructor-arg index="2" value="WHITELIST" />
+				</bean>
+
+				<bean id="stateCodeEnricher" 
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.StateCodeEnricher">
+				</bean>		
+-->				
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<util:set id="matchFeedProfileFieldsList">
+		<value>firstName</value>
+		<value>photos</value>
+		<value>city</value>
+		<value>country</value>
+		<value>stateCode</value>
+		<value>birthdate</value>
+		<value>locale</value>
+		<value>gender</value>
+		<value>storeUserIdKey</value>
+		<value>matchId</value>
+		<value>matchedUserId</value>
+	</util:set>
+
+	<!--  Score Service Dependencies -->
+	
+	<bean id="scoreServiceClient" class="com.eharmony.services.mymatchesservice.service.client.MockScoreServiceClient">
+        <constructor-arg name="scoreServiceHost" value="r3-scorer-service.np.vip.dc1.eharmony.com"/>
+        <constructor-arg name="scoreServicePort" value="80"/>
+        <constructor-arg name="restClient" ref="restClient" />
+    </bean>
+    
+   <bean id="restClient" class="com.eharmony.protorest.RestClientImpl">
+      <constructor-arg index="0" value="10"/>
+      <constructor-arg index="1" value="6000"/>
+      <constructor-arg index="2" value="6000"/>
+      <constructor-arg index="3" value="false"/>
+   </bean>
+   
+</beans>

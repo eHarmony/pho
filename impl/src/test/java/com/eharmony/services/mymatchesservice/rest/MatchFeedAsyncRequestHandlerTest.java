@@ -32,7 +32,7 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.collect.ImmutableSet;
 
 public class MatchFeedAsyncRequestHandlerTest {
-
+	
 	@Test
 	public void testFallback_noVoldyNoHbase_NO(){
 		
