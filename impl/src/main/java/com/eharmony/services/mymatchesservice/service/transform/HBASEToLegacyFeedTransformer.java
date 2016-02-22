@@ -16,27 +16,32 @@ public class HBASEToLegacyFeedTransformer {
     @Resource
     private LegacyMatchFeedTransformer legacyMatchFeedTransformer;
     
-	public void transformHBASEFeedToLegacyFeedIfRequired(MatchFeedRequestContext context) {
-		// this mapping is required only when there is no feed from voldy and we got ALL info from HBASE as a fallback
-    	if(!context.isFallbackRequest()) {
-    		return;
-    	}
-    	
-    	// transform the hbase data
-    	LegacyMatchDataFeedDto legacyMatchFeedDto = legacyMatchFeedTransformer.transform(context);
-    	
-    	// set it as though it was voldy data
-    	LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(context.getUserId());
-    	legacyMatchDataFeedDtoWrapper.setFeedAvailable(true);
-    	legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(legacyMatchFeedDto);
-    	int matchesCount = 0;
-    	if(legacyMatchFeedDto != null && MapUtils.isNotEmpty(legacyMatchFeedDto.getMatches()) ){
-    	    matchesCount = legacyMatchFeedDto.getMatches().size();
-    	}
-    	legacyMatchDataFeedDtoWrapper.setVoldyMatchesCount(matchesCount);
-    	context.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
-    	
-    	// clear up hbase records
-    	context.setHbaseFeedItemsByStatusGroup(Maps.newHashMap());
-	}
+    public void transformHBASEFeedToLegacyFeedIfRequired(MatchFeedRequestContext context) {
+        // this mapping is required only when there is no feed from voldy and we got ALL info from HBASE as a fallback
+        if(!context.isFallbackRequest()) {
+            return;
+        }
+        
+        transformHBASEFeedToLegacyFeed(context);
+    }
+    
+    public void transformHBASEFeedToLegacyFeed(MatchFeedRequestContext context) {
+
+        // transform the hbase data
+        LegacyMatchDataFeedDto legacyMatchFeedDto = legacyMatchFeedTransformer.transform(context);
+        
+        // set it as though it was voldy data
+        LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper = new LegacyMatchDataFeedDtoWrapper(context.getUserId());
+        legacyMatchDataFeedDtoWrapper.setFeedAvailable(true);
+        legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(legacyMatchFeedDto);
+        int matchesCount = 0;
+        if(legacyMatchFeedDto != null && MapUtils.isNotEmpty(legacyMatchFeedDto.getMatches()) ){
+            matchesCount = legacyMatchFeedDto.getMatches().size();
+        }
+        legacyMatchDataFeedDtoWrapper.setVoldyMatchesCount(matchesCount);
+        context.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        
+        // clear up hbase records
+        context.setHbaseFeedItemsByStatusGroup(Maps.newHashMap());
+    }
 }

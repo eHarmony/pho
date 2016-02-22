@@ -18,17 +18,20 @@ public class SimpleMatchedUserComparatorSelector {
     
     static Map<String, Function<? super SimpleMatchedUserDto, ? extends Comparable>> keyExtractorMap = new HashMap<>();
     
-    private static final String USER_ID_CRITERIA = "userid";
+    private static final String MATCH_ID_CRITERIA = "matchid";
+    private static final String MATCHED_USER_ID_CRITERIA ="matcheduserid" ;
     private static final String NAME_CRITERIA = "name";
     private static final String AGE_CRITERIA = "age";
     private static final String DELIVERED_DATE_CRITERIA = "deliveredDate";
     
     @PostConstruct
     private void initialzeMap() {
-        keyExtractorMap.put(USER_ID_CRITERIA, SimpleMatchedUserDto::getMatchUserId);
-        keyExtractorMap.put(NAME_CRITERIA, SimpleMatchedUserDto::getMatchUserFirstName);
+        keyExtractorMap.put(MATCH_ID_CRITERIA, SimpleMatchedUserDto::getMatchId);
+        keyExtractorMap.put(NAME_CRITERIA, SimpleMatchedUserDto::getMatchedUserFirstName);
         keyExtractorMap.put(AGE_CRITERIA, SimpleMatchedUserDto::getAge);
         keyExtractorMap.put(DELIVERED_DATE_CRITERIA, SimpleMatchedUserDto::getDeliveredDate);
+        keyExtractorMap.put(MATCHED_USER_ID_CRITERIA, SimpleMatchedUserDto::getMatchedUserId);
+        
     }
     public  Comparator<SimpleMatchedUserDto> selectComparator(String sortBy) {
         if (StringUtils.isEmpty(sortBy)) {

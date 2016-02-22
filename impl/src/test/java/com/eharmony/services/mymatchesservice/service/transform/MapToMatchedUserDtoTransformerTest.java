@@ -29,6 +29,7 @@ public class MapToMatchedUserDtoTransformerTest {
 		Map<String, Map<String, Object>> matchFeedMap = new HashMap<>();
 		Map<String, Object> userMap = new HashMap<>();
 		Map<String, Object> matchMap = new HashMap<>();
+		matchMap.put(MatchFeedModel.MATCH.ID, 60000);
 		matchFeedMap.put(MATCHED_USER_KEY, userMap);
 		matchFeedMap.put(MATCH_KEY, matchMap);
 		matchMap.put(DELIVERED_DATE_KEY, new Date().getTime());
@@ -43,9 +44,10 @@ public class MapToMatchedUserDtoTransformerTest {
 		SimpleMatchedUserDto result = transformer.apply(matchFeedMap);
 		assertNotNull(result);
 		
-		assertEquals("100", result.getMatchUserId());
+		assertEquals("60000", result.getMatchId());
+		assertEquals("100", result.getMatchedUserId());
 
-		assertEquals("hundred", result.getEncryptedMatchUserId());
+		assertEquals("hundred", result.getEncryptedMatchedUserId());
 		
 	}
 

@@ -25,29 +25,35 @@ public class LegacyMatchFeedTransformer {
     public LegacyMatchDataFeedDto transform(MatchFeedRequestContext request) {
 
         Set<MatchDataFeedItemDto> hbaseFeedItems = request.getAggregateHBaseFeedItems();
+        long userId = request.getUserId();
+        String locale = request.getMatchFeedQueryContext() != null ? request.getMatchFeedQueryContext().getLocale() : null;
 
+        return transform(hbaseFeedItems, userId, locale);
+    }
+    
+    public LegacyMatchDataFeedDto transform(Set<MatchDataFeedItemDto> hbaseFeedItems, long userId, String locale) {
+
+ 
         LegacyMatchDataFeedDto feedDto = new LegacyMatchDataFeedDto();
         Map<String, Map<String, Map<String, Object>>> matches = new HashMap<String, Map<String, Map<String, Object>>>();
         hbaseFeedItems.forEach(item -> {
             if (item != null && item.getMatch() != null) {
                 String matchId = String.valueOf(item.getMatch().getMatchId());
-                matches.put(matchId, buildLegacyFeedItem(request, item));
+                matches.put(matchId, buildLegacyFeedItem(item));
             } else {
-                logger.warn("Skipping the invalid feed item for user {}", request.getUserId());
+                logger.warn("Skipping the invalid feed item for user {}", userId);
             }
         });
 
         feedDto.setMatches(matches);
-        feedDto.setLocale(request.getMatchFeedQueryContext() != null ? request.getMatchFeedQueryContext().getLocale()
-                : null);
+        feedDto.setLocale(locale);
         //Move this after all filters
         feedDto.setTotalMatches(matches.size());
 
         return feedDto;
     }
 
-    private Map<String, Map<String, Object>> buildLegacyFeedItem(MatchFeedRequestContext request,
-            MatchDataFeedItemDto matchDataFeedItemDto) {
+    private Map<String, Map<String, Object>> buildLegacyFeedItem(MatchDataFeedItemDto matchDataFeedItemDto) {
         Map<String, Map<String, Object>> feedItemMap = new HashMap<String, Map<String, Object>>();
 
         feedItemMap.put(MatchFeedModel.SECTIONS.MATCH, createMatchFeedMatch(matchDataFeedItemDto));
@@ -73,6 +79,7 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.STATE_CODE, emptyStringIfNull(elem.getStateCode()));
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
+        profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         if(elem.getPhotos() != 0 ){
         	
         	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
@@ -105,6 +112,8 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.STATUS, deriveTextStatus(matchElem.getMatchId(), matchElem.getStatus()));
         match.put(MatchFeedModel.MATCH.USER_ID, matchElem.getUserId());
         match.put(MatchFeedModel.MATCH.IS_USER, matchElem.isMatchUser());
+        Date lastModifiedDate = matchElem.getLastModifiedDate();
+        match.put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE, lastModifiedDate != null ? lastModifiedDate.getTime() : 0L);
 
         // pulled from commElement
         match.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, getTimeInMillisNullSafe(commElem.getChooseMhcsDate()));
@@ -118,6 +127,7 @@ public class LegacyMatchFeedTransformer {
         match.put(MatchFeedModel.MATCH.STAGE, commElem.getStage());
         match.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, getTimeInMillisNullSafe(commElem.getCommStartedDate()));
         match.put(MatchFeedModel.MATCH.NUDGE_STATUS, commElem.getNudgeStatus());
+        match.put(MatchFeedModel.MATCH.READ_MATCH_DETAILS, (commElem.getReadDetailsDate() != null));
         match.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, getTimeInMillisNullSafe(commElem.getReadDetailsDate()));
         match.put(MatchFeedModel.MATCH.TURN_OWNER, commElem.getTurnOwner());
         match.put(MatchFeedModel.MATCH.INITIALIZER, commElem.getInitializer());

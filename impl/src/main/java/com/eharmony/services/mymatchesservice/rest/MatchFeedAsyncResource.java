@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.hk2.api.DescriptorVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -62,9 +63,6 @@ public class MatchFeedAsyncResource {
     private static final int TEASER_MATCH_DEFAULT_PAGINATION_SIZE = 1;
     
     private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
-    
-    @Resource
-    private Integer teaserHbaseFetchSize;
     
     private static final String COMM_MATCH_STATUS = "COMM";
     
@@ -111,7 +109,6 @@ public class MatchFeedAsyncResource {
             @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
-
         Set<String> statusSet = new HashSet<String>();
         if (!CollectionUtils.isEmpty(statuses)) {
 
@@ -152,7 +149,7 @@ public class MatchFeedAsyncResource {
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(true)
-                .setPageSize(teaserHbaseFetchSize)   // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
+                .setPageSize(0)   // Defaulting to Zero. By doing this teaser will by default load 1000 matches just like getMatches. This is also not used by teaser pagination.
                 .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
                 .setStatuses(statusSet)
                 .setUserId(userId)
@@ -173,7 +170,7 @@ public class MatchFeedAsyncResource {
         	eventContextInfo.put(EventConstant.PLATFORM, platform);
         
         }
-       
+        
         requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
     }
 

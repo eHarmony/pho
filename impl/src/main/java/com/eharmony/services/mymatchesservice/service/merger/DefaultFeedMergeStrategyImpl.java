@@ -9,6 +9,7 @@ import static com.eharmony.services.mymatchesservice.service.transform.MatchFeed
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.USERID;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.PHOTO_COUNT;
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.PROFILE;
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.PROFILE.LOCALE;
 
 import java.util.Map;
 import java.util.Set;
@@ -18,13 +19,14 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
-
+@Component("DefaultFeedMergeStrategy")
 public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultFeedMergeStrategyImpl.class);
@@ -118,7 +120,11 @@ public class DefaultFeedMergeStrategyImpl implements FeedMergeStrategy {
 			} else {
 				log.info("no photo information found in HBase for user {} and match {}", matchedUserId, matchId);
 			}
-
+			if (StringUtils.isNotBlank(profile.getLocale())) {
+				feedProfile.put(LOCALE, profile.getLocale());
+			} else {
+				log.info("no locale information in HBase for user {} and match {}", matchedUserId, matchId);
+			}
         }
     }
 }

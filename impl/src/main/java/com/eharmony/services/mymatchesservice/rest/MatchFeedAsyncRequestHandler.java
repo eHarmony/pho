@@ -21,16 +21,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
+
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
+import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
+import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserComparatorSelector;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
@@ -39,21 +47,16 @@ import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyTy
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MapToMatchedUserDtoTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
+import com.eharmony.services.profile.client.ProfileServiceClient;
+import com.eharmony.singles.common.enumeration.Gender;
+import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
 import com.google.common.collect.Lists;
-
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
-import rx.Observable;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -114,9 +117,21 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private MatchQueryEventService matchQueryEventService;
+    
+    @Resource
+    private RedisStoreFeedService redisStoreFeedService;
 
     @Value("${hbase.fallback.call.timeout:120000}")
     private int hbaseCallbackTimeout;
+    
+    @Resource
+    private FeedMergeStrategyManager feedMergeStrategyManager;
+    
+    @Resource
+    private ProfileServiceClient profileService;
+    
+    @Resource
+    private DataServiceThrottleManager throttle;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -181,7 +196,7 @@ public class MatchFeedAsyncRequestHandler {
 
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
+                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeedFromVoldy).subscribeOn(
                 Schedulers.from(executorServiceProvider.getTaskExecutor()));
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
@@ -215,18 +230,36 @@ public class MatchFeedAsyncRequestHandler {
 
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        request.setFeedMergeType(FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE);
-
+        FeedMergeStrategyType mergeType;
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
+            mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
+        } else {
+            mergeType = FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE;
+        }
+        request.setFeedMergeType(mergeType);
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
-                voldemortStore.getMatchesObservableSafe(matchFeedQueryContext), populateLegacyMatchesFeed).subscribeOn(
-                Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = null;
+        
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
+            BasicStoreFeedRequestContext basicRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
+            Observable<BasicPublicProfileDto> profileObservable = Observable.defer(
+                ()->
+                    Observable.just(profileService.findBasicPublicProfileForUser((int) matchFeedQueryContext.getUserId()))
+            );
+            storeFeedObservable = redisStoreFeedService.getUserMatchesSafe(basicRequest)
+                                                       .zipWith(profileObservable, appendUserLocaleGender);
+        } else {
+            storeFeedObservable = voldemortStore.getMatchesObservableSafe(matchFeedQueryContext);
+        }
+        matchQueryRequestObservable = matchQueryRequestObservable
+                                          .zipWith(storeFeedObservable, populateLegacyMatchesFeed)
+                                          .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE, false);
+                matchFeedQueryContext, mergeType, false);
         return matchQueryRequestObservable;
     }
-
+    
     /**
      * Similar to {@link getMatchesFeed}, but take out all the matched users and return them as a list.
      * @param matchFeedQueryContext Query context
@@ -350,22 +383,28 @@ public class MatchFeedAsyncRequestHandler {
         return matchQueryRequestObservable;
     }
 
+    
     private void handleFeedResponse(MatchFeedRequestContext context) {
-        refreshEventSender.sendRefreshEvent(context);
-        executeFallbackIfRequired(context);
-        // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
-        // need to do this here to honor the pagination
-        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        if (throttle.isRedisSamplingEnabled(context.getUserId())) {
+        
+            hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
+        
+        } else {
+            refreshEventSender.sendRefreshEvent(context);
+            executeFallbackIfRequired(context);
+            // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
+            // need to do this here to honor the pagination
+            hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        }
         
         throwExceptionIfFeedIsNotAvailable(context);
 
         getMatchesFeedFilterChain.execute(context);
         
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
         
         getMatchesFeedEnricherChain.execute(context);
     }
-    
 
     private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
         executeFallbackIfRequired(context);
@@ -375,7 +414,7 @@ public class MatchFeedAsyncRequestHandler {
         
         throwExceptionIfFeedIsNotAvailable(context);
         
-        FeedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
 		
         getTeaserMatchesFeedFilterChain.execute(context);
         
@@ -390,8 +429,13 @@ public class MatchFeedAsyncRequestHandler {
             return;
         }
         if(context.getLegacyMatchDataFeedDtoWrapper() != null && context.getLegacyMatchDataFeedDtoWrapper().getLegacyMatchDataFeedDto() != null) {
-            return;
+            //can be non null but have zero matches
+            LegacyMatchDataFeedDto dto = context.getLegacyMatchDataFeedDtoWrapper().getLegacyMatchDataFeedDto();
+            if (!MapUtils.isEmpty(dto.getMatches())) {
+                return;
+            };
         }
+        
         throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
 
     }
@@ -452,7 +496,7 @@ public class MatchFeedAsyncRequestHandler {
             return builder;
         }
     }
-
+    
     private Func2<MatchFeedRequestContext, HBaseStoreFeedResponse, MatchFeedRequestContext> populateHBaseMatchesFeed = (
             request, matchesFeedResponse) -> {
         if (CollectionUtils.isNotEmpty(matchesFeedResponse.getHbaseStoreFeedItems())) {
@@ -462,12 +506,43 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
+    // Handler for async feed request from Redis or Voldy
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
 
         logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
-        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
+            request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
+        } else {
+            request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        }
         return request;
     };
+	
+    // Handler for async feed request from Voldy only. 
+    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeedFromVoldy = (
+            request, legacyMatchDataFeedDtoWrapper) -> {
 
+        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
+        
+        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+
+        return request;
+    };
+    
+    private Func2<LegacyMatchDataFeedDtoWrapper,BasicPublicProfileDto, LegacyMatchDataFeedDtoWrapper>  appendUserLocaleGender = (request, profileDto) ->{
+        LegacyMatchDataFeedDto feedDto = request.getLegacyMatchDataFeedDto();
+        if (profileDto == null) {
+            return request;
+        }
+        //Redis doesn't have the feed, create a dummy feed to carry locale and gender.
+        if (feedDto == null) {
+             feedDto = new LegacyMatchDataFeedDto();
+             request.setLegacyMatchDataFeedDto(feedDto);
+        }
+        feedDto.setLocale(profileDto.getLocale());
+        String genderStr = Gender.fromInt(profileDto.getGender()).toString();
+        feedDto.setGender(genderStr);
+        return request;
+    };
 }

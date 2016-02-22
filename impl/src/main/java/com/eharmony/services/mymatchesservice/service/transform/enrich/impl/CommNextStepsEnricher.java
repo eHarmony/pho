@@ -41,7 +41,7 @@ public class CommNextStepsEnricher extends AbstractMatchFeedTransformer{
 	            Map<String, Object> messageContext =
 	                    new HashMap<String, Object>(match.get(MatchFeedModel.SECTIONS.MATCH));
 	            	            
-	            messageContext.put("locale", context.getMatchFeedQueryContext().getLocale());
+	            messageContext.put("locale", profile.get(MatchFeedModel.PROFILE.LOCALE));
 	            messageContext.put("gender", profile.get(MatchFeedModel.PROFILE.GENDER));
 	            messageContext.put("matchFirstName", profile.get(MatchFeedModel.PROFILE.FIRSTNAME));
 
