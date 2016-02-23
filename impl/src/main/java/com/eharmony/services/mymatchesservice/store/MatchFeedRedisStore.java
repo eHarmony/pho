@@ -31,7 +31,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
     
-    private static final String METRICS_HIERARCHY_PREFIX = MatchDataFeedVoldyStore.class.getCanonicalName();
+    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedRedisStore.class.getCanonicalName();
     
     private static final String METRICS_GET_REDIS_SAFE = "getMatchesFromRedisSafe";
 

@@ -511,16 +511,6 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 	
-    // Handler for async feed request from Voldy only. 
-    private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeedFromVoldy = (
-            request, legacyMatchDataFeedDtoWrapper) -> {
-
-        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
-        
-        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
-
-        return request;
-    };
     
     private Func2<LegacyMatchDataFeedDtoWrapper,BasicPublicProfileDto, LegacyMatchDataFeedDtoWrapper>  appendUserLocaleGender = (request, profileDto) ->{
         LegacyMatchDataFeedDto feedDto = request.getLegacyMatchDataFeedDto();
