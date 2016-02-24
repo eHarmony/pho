@@ -8,7 +8,7 @@ public interface HBaseStoreFeedService {
 
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request);
     
-    public Integer getUserMatchesCount(MatchCountRequestContext request);
+    public Observable<HBaseStoreCountResponse> getUserMatchesCount(MatchCountRequestContext request);
     
-    public Integer getUserNewMatchesCount(MatchCountRequestContext request);
+    public Observable<HBaseStoreCountResponse> getUserNewMatchesCount(MatchCountRequestContext request);
 }

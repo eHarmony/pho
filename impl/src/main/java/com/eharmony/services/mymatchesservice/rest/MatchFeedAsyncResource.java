@@ -217,9 +217,8 @@ public class MatchFeedAsyncResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Timed(name="getSimpleMatchedUserList")
     public void getMatchesCount(@PathParam("userId") long userId,
-            @QueryParam("viewHidden") boolean viewHidden,
             @Suspended final AsyncResponse asyncResponse) {
-        MatchCountRequestContext request = new MatchCountRequestContext(userId, viewHidden);
+        MatchCountRequestContext request = new MatchCountRequestContext(userId);
         countRequesthandler.getMatchCounts(request, asyncResponse);
     }
 

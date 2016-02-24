@@ -1,8 +1,5 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.annotation.Resource;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
@@ -16,18 +13,18 @@ import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchCountDto;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
+import com.eharmony.services.mymatchesservice.service.HBaseStoreCountResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.singles.common.status.MatchStatus;
 
 import rx.Observable;
-import rx.functions.Action0;
-import rx.functions.Action1;
+import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 @Component
 public class MatchCountAsyncRequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(MatchCountAsyncRequestHandler.class);
-       
+
     private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName();
     private static final String METRICS_COUNTMATCHES_ASYNC = "getUserMatchesCount";
 
@@ -39,75 +36,73 @@ public class MatchCountAsyncRequestHandler {
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
+    private Func2<MatchCountDto, HBaseStoreCountResponse, MatchCountDto> zipFunction = (finalResponse,
+            responsePerStatus) -> {
+        int count = responsePerStatus.getMatchIds().size();
+        if (responsePerStatus.isRecentNew()) {
+            finalResponse.setNewCount(count);
+            return finalResponse;
+        }
+        switch (responsePerStatus.getMatchStatus()) {
+        case OPENCOMM:
+            finalResponse.setOpenComm(count);
+            break;
+        case NEW:
+            break;
+        case ARCHIVED:
+            finalResponse.setArchived(count);
+            break;
+        case CLOSED:
+            finalResponse.setClosed(count);
+            break;
+        case MYTURN:
+            finalResponse.setMyTurn(count);
+            break;
+        case THEIRTURN:
+            finalResponse.setTheirTurn(count);
+            break;
+        default:
+            break;
+        }
+        finalResponse.setAll(finalResponse.getAll() + count);
+        return finalResponse;
+    };
+
     public void getMatchCounts(final MatchCountRequestContext matchCountRequestContext,
             final AsyncResponse asyncResponse) {
-        
+
         Timer.Context t = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_COUNTMATCHES_ASYNC);
 
-        CountDownLatch doneSignal=new CountDownLatch(MatchStatus.values().length);
-        AtomicInteger total = new AtomicInteger();
-        
-        final MatchCountDto response = new MatchCountDto();
-        Action1<MatchCountRequestContext> onNext = request -> {
-            int count = hbaseStoreFeedService.getUserMatchesCount(request);
-            total.addAndGet(count);
-            switch(request.getStatus()) {
-            case OPENCOMM:
-                response.setOpenComm(count);
-                break;
-            case NEW:
-                //set the real recent new count 
-                count = hbaseStoreFeedService.getUserNewMatchesCount(request);
-                response.setNewCount(count);
-                break;
-            case ARCHIVED:
-                response.setArchived(count);
-                break;
-            case CLOSED:
-                response.setClosed(count);
-                break;
-            case MYTURN:
-                response.setMyTurn(count);
-                break;
-            case THEIRTURN:
-                response.setTheirTurn(count);
-                break;
-            default:
-                break;    
-            }
-        };
-        
-        Action1<Throwable> onException = (throwable) -> {
-            doneSignal.countDown();
-            asyncResponse.resume(throwable);
-        };
-        Action0 onStop = () -> {
-            doneSignal.countDown();
-        };
-
         long userId = matchCountRequestContext.getUserId();
+        Observable<MatchCountDto> matchCountRequestObservable = Observable
+                .defer(() ->Observable.just(new MatchCountDto()));
         for (MatchStatus status : MatchStatus.values()) {
             MatchCountRequestContext perTypeRequest = new MatchCountRequestContext();
             perTypeRequest.setUserId(userId);
             perTypeRequest.setStatus(status);
-            Observable<MatchCountRequestContext> matchCountRequestObservable = Observable.just(perTypeRequest)
+            matchCountRequestObservable = matchCountRequestObservable
+                    .zipWith(hbaseStoreFeedService.getUserMatchesCount(perTypeRequest), zipFunction)
                     .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-            matchCountRequestObservable.subscribe(onNext,onException,onStop);
+            
         }
-        try {
-            doneSignal.await();
-        } catch (InterruptedException e) {
-            logger.warn("Interrupted waitting for HBase response", e);
-            asyncResponse.resume(e);
-            return;
-        } finally {
+        MatchCountRequestContext perTypeRequest = new MatchCountRequestContext();
+        perTypeRequest.setUserId(userId);
+        perTypeRequest.setStatus(MatchStatus.NEW);
+        matchCountRequestObservable = matchCountRequestObservable
+                .zipWith(hbaseStoreFeedService.getUserNewMatchesCount(perTypeRequest), zipFunction)
+                .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        matchCountRequestObservable.subscribe(response -> {
             long timeelapsed = t.stop()/1000000;
             logger.info("response time {}", timeelapsed);
-        }
-        response.setAll(total.get());
-        ResponseBuilder builder = Response.ok().entity(response);
-        asyncResponse.resume(builder.build());
-        
+            ResponseBuilder builder = Response.ok().entity(response);
+            asyncResponse.resume(builder.build());
+        } , (throwable) -> {
+            long timeelapsed = t.stop()/1000000;
+            logger.info("response time {}", timeelapsed);
+            asyncResponse.resume(throwable);
+        } , () -> {
+            asyncResponse.resume("");
+        });
     }
 }

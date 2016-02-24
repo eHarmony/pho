@@ -166,20 +166,20 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
     }
 
-    protected Integer getUserMatchesCountByStatus(MatchCountRequestContext request, boolean getOnlyRecentNew) {
+    protected Set<Long> getUserMatchesCountByStatus(MatchCountRequestContext request, boolean getOnlyRecentNew) {
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
         queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
 
         Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETCOUNT_METHOD);
-        int count = 0;
         queryRequest.setMatchStatus(request.getStatus());
+        Set<Long> matchIdSet = null;
         try {
             if (getOnlyRecentNew) {
-                count = queryRepository.getNewMatchCount(queryRequest);
+            	matchIdSet = queryRepository.getNewMatchCount(queryRequest);
             } else {
-                count = queryRepository.getMatchCount(queryRequest);
+            	matchIdSet = queryRepository.getMatchCount(queryRequest);
             }
         } catch (Exception exp) {
             logger.warn("Exception while fetching the matches count from HBase store for user {}", userId, exp);
@@ -187,16 +187,31 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             long elapsed = metricsTimer.stop() / 1000000;
             logger.info("HBase response time {} for user {}", elapsed, userId);
         }
-        return count;
+        return matchIdSet;
     }
 
-    @Override
-    public Integer getUserMatchesCount(MatchCountRequestContext request) {
-        return getUserMatchesCountByStatus(request, false);
-    }
+	@Override
+	public Observable<HBaseStoreCountResponse> getUserMatchesCount(MatchCountRequestContext request) {
+		Observable<HBaseStoreCountResponse> HBaseStoreCountResponse = Observable.defer(() -> {
+			HBaseStoreCountResponse response = new HBaseStoreCountResponse();
+			response.setMatchStatus(request.getStatus());
+			response.setMatchIds(getUserMatchesCountByStatus(request, false));
+			return Observable.just(response);
+		});
+
+		return HBaseStoreCountResponse;
+	}
 
     @Override
-    public Integer getUserNewMatchesCount(MatchCountRequestContext request) {
-        return getUserMatchesCountByStatus(request, true);
+    public Observable<HBaseStoreCountResponse> getUserNewMatchesCount(MatchCountRequestContext request) {
+    	Observable<HBaseStoreCountResponse> HBaseStoreCountResponse = Observable.defer(() -> {
+			HBaseStoreCountResponse response = new HBaseStoreCountResponse();
+			response.setMatchStatus(request.getStatus());
+			response.setRecentNew(true);
+			response.setMatchIds(getUserMatchesCountByStatus(request, true));
+			return Observable.just(response);
+		});
+
+		return HBaseStoreCountResponse;
     }
 }
