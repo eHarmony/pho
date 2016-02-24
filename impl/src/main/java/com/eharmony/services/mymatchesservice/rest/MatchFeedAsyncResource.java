@@ -92,6 +92,8 @@ public class MatchFeedAsyncResource {
     /**
      * Returns matches with photos and with match status not in (archived or closed) or passed via 'status' param. The matches are sorted in the order of their 
      * score returned from the scorer service. 
+     * 
+     * <br/><b>NOTE</b>: Feed no longer includes the user's gender and locale, those fields have been deprecated. 
      *  
      * @param userId  Id of the logged in user
      * @param statuses  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].

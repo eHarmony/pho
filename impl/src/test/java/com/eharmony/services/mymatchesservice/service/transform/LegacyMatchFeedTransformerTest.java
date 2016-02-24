@@ -357,7 +357,7 @@ public class LegacyMatchFeedTransformerTest {
         assertEquals(profileSection.get(MatchFeedModel.PROFILE.COUNTRY), profileElem.getCountry());
         assertEquals(profileSection.get(MatchFeedModel.PROFILE.FIRSTNAME), profileElem.getFirstName());
         assertEquals(profileSection.get(MatchFeedModel.PROFILE.GENDER), profileElem.getGender());
-        assertEquals(profileSection.get(MatchFeedModel.PROFILE.LOCALE), null);
+        assertEquals(profileSection.get(MatchFeedModel.PROFILE.LOCALE), profileElem.getLocale());
         assertEquals(profileSection.get(MatchFeedModel.PROFILE.STATE_CODE), profileElem.getStateCode());
         assertEquals(profileSection.get(MatchFeedModel.PROFILE.BIRTHDATE), profileElem.getBirthdate().getTime());
 
