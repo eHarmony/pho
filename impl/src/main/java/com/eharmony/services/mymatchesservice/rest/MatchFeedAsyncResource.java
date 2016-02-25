@@ -42,10 +42,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
-
 import com.eharmony.services.mymatchesservice.event.EventConstant;
-
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
+import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.singles.common.status.MatchStatus;
 import com.google.common.collect.ImmutableSet;
 
@@ -75,7 +74,13 @@ public class MatchFeedAsyncResource {
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
             @QueryParam("voldyState") DataServiceStateEnum voldyState) {
         validateMatchFeedRequest(statuses, locale);
+        
         Set<String> normalizedStatuses = toLowerCase(statuses);
+        
+        if(normalizedStatuses.contains("all")){
+        	MatchStatusGroupResolver.populateSetWithAllStatuses(normalizedStatuses);
+        }
+        
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
 
