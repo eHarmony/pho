@@ -81,12 +81,15 @@ public class HBaseRedisFeedMergeStrategyTest {
 		feedWrapper.setLegacyMatchDataFeedDto(older);
 		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
 		request.setRedisFeed(newer);
+		
+		// newer status is match closed
 		newer.getMatches().get(MATCH_ID).get(MatchFeedModel.SECTIONS.MATCH).put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE, 
 				System.currentTimeMillis());
 		newer.getMatches().get(MATCH_ID).get(MatchFeedModel.SECTIONS.MATCH).put(MatchFeedModel.MATCH.STATUS, "closed");
 
 		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
 
+		assertEquals(1, request.getLegacyMatchDataFeedDto().getMatches().size());
 
 		merger.merge(request);
 

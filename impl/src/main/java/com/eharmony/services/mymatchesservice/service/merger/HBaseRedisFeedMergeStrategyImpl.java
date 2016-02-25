@@ -98,8 +98,8 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         Set<String> commonIdSet = Sets.intersection(hbaseMatchIdSet, redisMatchIdSet);
         Set<String> suplementryIdSet = Sets.difference(redisMatchIdSet, commonIdSet);
-        Set<String> closedMatches = new HashSet<String>();
-        
+        Set<String> closedMatches  = new HashSet<String>();
+               
         hbaseMatchIdSet.parallelStream().forEach((matchId) -> {
 
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
@@ -118,12 +118,6 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
             }
         });
         
-        closedMatches.forEach(matchId -> {
-        	
-        	hbaseFeed.getMatches().remove(matchId);
-        	
-        });
-        
         suplementryIdSet.stream().forEach((matchId) -> {
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
             hbaseFeed.getMatches().put(matchId, redisMatch);
@@ -131,6 +125,12 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 			hbaseFeed.setTotalMatches(totalMatches + 1);
         });
 
+        // Process closed matches after suplementryIdSet is processed, because Sets.* are
+        // views on hbaseMatches, and removing match from hbase view sticks match in 
+        // suplementary view.
+        closedMatches.forEach((matchId) -> {
+        	hbaseMatches.remove(matchId);
+        });
     }
     
     protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch, 
