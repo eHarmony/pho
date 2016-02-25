@@ -391,9 +391,10 @@ public class MatchFeedAsyncRequestHandler {
         
         throwExceptionIfFeedIsNotAvailable(context);
 
-        getMatchesFeedFilterChain.execute(context);
-        
+        // Merge to obtain final state of matches BEFORE filtering.
         feedMergeStrategyManager.getMergeStrategy(context).merge(context);
+
+        getMatchesFeedFilterChain.execute(context);        
         
         getMatchesFeedEnricherChain.execute(context);
     }
