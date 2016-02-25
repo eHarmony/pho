@@ -69,6 +69,33 @@ public class HBaseRedisFeedMergeStrategyTest {
 	}
 	
 	@Test
+	public void testMerge_DeltaIsNewerAndStatusIsClosed() throws Exception {
+
+		String MATCH_ID = "66531610";
+		LegacyMatchDataFeedDto older = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
+		LegacyMatchDataFeedDto newer = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
+		
+		MatchFeedQueryContext matchFeedQueryContext =  MatchFeedQueryContextBuilder.newInstance().build();
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
+		feedWrapper.setLegacyMatchDataFeedDto(older);
+		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+		request.setRedisFeed(newer);
+		newer.getMatches().get(MATCH_ID).get(MatchFeedModel.SECTIONS.MATCH).put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE, 
+				System.currentTimeMillis());
+		newer.getMatches().get(MATCH_ID).get(MatchFeedModel.SECTIONS.MATCH).put(MatchFeedModel.MATCH.STATUS, "closed");
+
+		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+
+
+		merger.merge(request);
+
+		assertEquals(0, request.getLegacyMatchDataFeedDto().getMatches().size());
+
+
+	}
+	
+	@Test
 	public void testMerge_DeltaIsEmpty() throws Exception {
 
 		LegacyMatchDataFeedDto match = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
