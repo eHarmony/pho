@@ -36,7 +36,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.glassfish.hk2.api.DescriptorVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -78,6 +77,7 @@ public class MatchFeedAsyncResource {
         Set<String> normalizedStatuses = toLowerCase(statuses);
         
         if(normalizedStatuses.contains("all")){
+        	
         	MatchStatusGroupResolver.populateSetWithAllStatuses(normalizedStatuses);
         }
         

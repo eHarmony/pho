@@ -76,11 +76,13 @@ public class MatchStatusGroupResolver {
     
     public static void populateSetWithAllStatuses(Set<String> statuses){
     	
-    	statuses.add(MatchStatusEnum.NEW.getName());
-    	statuses.add(MatchStatusEnum.MYTURN.getName());
-    	statuses.add(MatchStatusEnum.THEIRTURN.getName());
-    	statuses.add(MatchStatusEnum.OPENCOMM.getName());
-    	statuses.add(MatchStatusEnum.ARCHIVED.getName());
+    	statuses.clear();
+    	
+    	statuses.add(MatchStatusEnum.NEW.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.MYTURN.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.THEIRTURN.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.OPENCOMM.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.ARCHIVED.getName().toLowerCase());
     }
 
     //TODO make it as static map for all status -VIJAY
