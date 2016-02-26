@@ -474,14 +474,17 @@ public class MatchFeedAsyncRequestHandler {
 
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
-
-            ResponseBuilder builder = Response.status(Status.NOT_FOUND);
-            
-            return builder;
+        	// just logging it here for any action to be taken if the need be.
+        	// an empty feed will be returned for such users.
+        	logger.info("Feed not available for userId: {}", requestContext.getUserId());
         }
         LegacyMatchDataFeedDtoWrapper wrapper = requestContext.getLegacyMatchDataFeedDtoWrapper();
         if (wrapper != null) {
             ResponseBuilder builder = Response.ok().entity(wrapper.getLegacyMatchDataFeedDto());
+            builder.status(Status.OK);
+            return builder;
+        } else if(requestContext.getHbaseFeedItemsByStatusGroup() != null) {
+        	ResponseBuilder builder = Response.ok().entity(new LegacyMatchDataFeedDto());
             builder.status(Status.OK);
             return builder;
         } else {
