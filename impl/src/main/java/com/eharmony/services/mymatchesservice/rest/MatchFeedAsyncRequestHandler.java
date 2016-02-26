@@ -483,6 +483,10 @@ public class MatchFeedAsyncRequestHandler {
             ResponseBuilder builder = Response.ok().entity(wrapper.getLegacyMatchDataFeedDto());
             builder.status(Status.OK);
             return builder;
+        } else if(requestContext.getHbaseFeedItemsByStatusGroup() != null) {
+        	ResponseBuilder builder = Response.ok().entity(new LegacyMatchDataFeedDto());
+            builder.status(Status.OK);
+            return builder;
         } else {
             ResponseBuilder builder = Response.serverError().status(Status.INTERNAL_SERVER_ERROR);
             return builder;
