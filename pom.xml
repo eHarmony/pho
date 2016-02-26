@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.eharmony.services.match-query-service</groupId>
 	<artifactId>match-query-service</artifactId>
-	<version>1.0.24-SNAPSHOT</version>
+	<version>1.0.26-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Match Query Service</name>
 	<description>Provides the API's to manage the user matches feed </description>

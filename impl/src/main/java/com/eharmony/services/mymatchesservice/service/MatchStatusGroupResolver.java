@@ -73,6 +73,17 @@ public class MatchStatusGroupResolver {
         }
         return statusGroups;
     }
+    
+    public static void populateSetWithAllStatuses(Set<String> statuses){
+    	
+    	statuses.clear();
+    	
+    	statuses.add(MatchStatusEnum.NEW.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.MYTURN.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.THEIRTURN.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.OPENCOMM.getName().toLowerCase());
+    	statuses.add(MatchStatusEnum.ARCHIVED.getName().toLowerCase());
+    }
 
     //TODO make it as static map for all status -VIJAY
     private static void populateMapWithAllStatuses(Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> statusGroups) {

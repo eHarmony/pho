@@ -1,6 +1,7 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,6 +98,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         Set<String> commonIdSet = Sets.intersection(hbaseMatchIdSet, redisMatchIdSet);
         Set<String> suplementryIdSet = Sets.difference(redisMatchIdSet, commonIdSet);
+               
         hbaseMatchIdSet.parallelStream().forEach((matchId) -> {
 
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
@@ -104,6 +106,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
             if (redisMatch != null) {
                 Map<String, Map<String, Object>> hbaseMatch = hbaseMatches.get(matchId);
                 mergeMatchByTimestamp(matchId, hbaseMatch, redisMatch);
+                
             }
         });
         
@@ -113,15 +116,6 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
             int totalMatches = hbaseFeed.getTotalMatches();
 			hbaseFeed.setTotalMatches(totalMatches + 1);
         });
-
-    }
-
-    protected void mergeRedisToHbase(String matchId, Map<String, Map<String, Object>> targetMatch,
-            Map<String, Map<String, Object>> deltaMatch) {
-        targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
-        targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
-                deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
-        log.debug("match {} updated by delta.", matchId);
 
     }
     

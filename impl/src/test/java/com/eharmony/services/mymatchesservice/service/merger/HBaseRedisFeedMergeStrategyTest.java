@@ -67,6 +67,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 
 		assertEquals(newDate, (long) target.get(MatchFeedModel.SECTIONS.MATCH).get("lastModifiedDate"));
 	}
+
 	
 	@Test
 	public void testMerge_DeltaIsEmpty() throws Exception {

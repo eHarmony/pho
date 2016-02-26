@@ -2,6 +2,7 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -25,6 +26,7 @@ import rx.Observable;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.MatchTestUtils;
 import com.eharmony.services.mymatchesservice.event.EventConstant;
+import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
@@ -141,7 +143,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 
 		ExecutorServiceProvider executorSP = new ExecutorServiceProvider(1);
 
-		Whitebox.setInternalState(handler, "redisMergeMode", true);
+		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
+		Whitebox.setInternalState(handler, "throttle", throttle);
         Whitebox.setInternalState(handler, "hbaseStoreFeedService", hbaseStore);
         Whitebox.setInternalState(handler, "redisStoreFeedService", redisStore);
         Whitebox.setInternalState(handler, "profileService", profileSvcClient);
@@ -200,7 +203,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 		ctx.setFallbackRequest(false);
 		
         MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
-		Whitebox.setInternalState(handler, "redisMergeMode", true);
+		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
+		Whitebox.setInternalState(handler, "throttle", throttle);
 
 		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
 
@@ -226,8 +230,6 @@ public class MatchFeedAsyncRequestHandlerIT {
         // mock up handler's dependent services
         HBASEToLegacyFeedTransformer hbaseTransformer= new HBASEToLegacyFeedTransformer();
 		Whitebox.setInternalState(hbaseTransformer, "legacyMatchFeedTransformer", new LegacyMatchFeedTransformer());
-
-		Whitebox.setInternalState(handler, "redisMergeMode", true);
 		
 		FeedMergeStrategyManager feedMergeStrategy = new FeedMergeStrategyManager();
 		Whitebox.setInternalState(feedMergeStrategy, "HBASE_WITH_REDIS_MERGE_STRATEGY", new HBaseRedisFeedMergeStrategyImpl());
@@ -263,6 +265,7 @@ public class MatchFeedAsyncRequestHandlerIT {
 		
     }
     
+    
     @Test
     public void testGetTeaserMatches_NoRedisData() throws Exception {
         int userId = 12345;
@@ -290,7 +293,6 @@ public class MatchFeedAsyncRequestHandlerIT {
 		ctx.setFallbackRequest(false);
 		
         MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
-		Whitebox.setInternalState(handler, "redisMergeMode", true);
 
 		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
 
@@ -317,7 +319,8 @@ public class MatchFeedAsyncRequestHandlerIT {
         HBASEToLegacyFeedTransformer hbaseTransformer= new HBASEToLegacyFeedTransformer();
 		Whitebox.setInternalState(hbaseTransformer, "legacyMatchFeedTransformer", new LegacyMatchFeedTransformer());
 
-		Whitebox.setInternalState(handler, "redisMergeMode", true);
+		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
+		Whitebox.setInternalState(handler, "throttle", throttle);
 		
 		FeedMergeStrategyManager feedMergeStrategy = new FeedMergeStrategyManager();
 		Whitebox.setInternalState(feedMergeStrategy, "HBASE_WITH_REDIS_MERGE_STRATEGY", new HBaseRedisFeedMergeStrategyImpl());
@@ -344,6 +347,103 @@ public class MatchFeedAsyncRequestHandlerIT {
 		Map<String, Map<String, Map<String, Object>>> matches = ctx.getLegacyMatchDataFeedDto().getMatches();
 		Map<String, Map<String, Object>> oneMatch = matches.get(MATCHID_FROM_singleMatchWithTimestamp_json);
 		assertNotNull(oneMatch);
+				
+    }
+    
+    
+    @Test
+    public void testGetMatches_RedisIsNewestAndMatchClosed() throws Exception {
+        int userId = 12345;
+
+        Set<String> statusSet = new HashSet<String>();
+        statusSet.add(MatchStatus.NEW.name().toLowerCase());
+
+        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance()
+                                                                     .setAllowedSeePhotos(true)
+                                                                     .setPageSize(100) // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
+            .setStartPage(1) //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
+            .setStatuses(statusSet).setUserId(userId).setTeaserResultSize(100) // This is the number of results to be returned back to the client/user.              
+            .build();
+
+        // Make the HBase timestamp one day old
+        Date lastModifiedHBaseDate = new Date();
+        lastModifiedHBaseDate.setTime(System.currentTimeMillis() -
+            (24 * 60 * 1000));
+		Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> newMatches = new HashMap<>();
+		newMatches.put(MatchStatusGroupEnum.NEW, getHBaseData(lastModifiedHBaseDate));
+
+		// Make the Redis timestamp current time of day
+        Date lastModifiedRedisDate = new Date();
+
+		MatchFeedRequestContext ctx = new MatchFeedRequestContext(queryCtx);
+		ctx.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE);	
+		ctx.setHbaseFeedItemsByStatusGroup(newMatches);
+
+		// Set the Redis match state to closed
+		LegacyMatchDataFeedDto redisData = getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedRedisDate).getLegacyMatchDataFeedDto();
+		redisData.getMatches().get(MATCHID_FROM_singleMatchWithTimestamp_json)
+								.get(MatchFeedModel.SECTIONS.MATCH)
+									.put(MatchFeedModel.MATCH.STATUS,"closed");
+		ctx.setRedisFeed(redisData);
+
+		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
+		ctx.setFallbackRequest(false);
+		
+        MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
+		Whitebox.setInternalState(handler, "throttle", throttle);
+
+		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
+
+        RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
+        when(redisStore.getUserMatchesSafe(any()))
+            .thenReturn(Observable.just(getLegacyMatchDataFeedDtoWrapper(userId,
+                lastModifiedRedisDate)));
+
+        HBaseStoreFeedService hbaseStore = mock(HBaseStoreFeedService.class);
+        when(hbaseStore.getUserMatchesByStatusGroupSafe(any()))
+            .thenReturn(Observable.just(getHBaseStoreResponseWithMatch(userId,
+                lastModifiedHBaseDate)));
+
+        ProfileServiceClient profileSvcClient = mock(ProfileServiceClient.class);
+
+        BasicPublicProfileDto publicProfile = new BasicPublicProfileDto();
+        publicProfile.setUserId(userId);
+        publicProfile.setGender(1);
+        when(profileSvcClient.findBasicPublicProfileForUser(any()))
+            .thenReturn(publicProfile);
+        
+        
+        // mock up handler's dependent services
+        HBASEToLegacyFeedTransformer hbaseTransformer= new HBASEToLegacyFeedTransformer();
+		Whitebox.setInternalState(hbaseTransformer, "legacyMatchFeedTransformer", new LegacyMatchFeedTransformer());
+		
+		FeedMergeStrategyManager feedMergeStrategy = new FeedMergeStrategyManager();
+		Whitebox.setInternalState(feedMergeStrategy, "HBASE_WITH_REDIS_MERGE_STRATEGY", new HBaseRedisFeedMergeStrategyImpl());
+		
+		Whitebox.setInternalState(handler, "feedMergeStrategyManager", feedMergeStrategy);
+        Whitebox.setInternalState(handler, "hbaseStoreFeedService", hbaseStore);
+        Whitebox.setInternalState(handler, "redisStoreFeedService", redisStore);
+        Whitebox.setInternalState(handler, "profileService", profileSvcClient);
+        ReflectionTestUtils.setField(handler, "hbaseToLegacyFeedTransformer", hbaseTransformer);
+        Whitebox.setInternalState(handler, "executorServiceProvider",
+            new ExecutorServiceProvider(1));
+        Whitebox.setInternalState(handler, "matchStatusGroupResolver",
+            new MatchStatusGroupResolver());
+		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
+
+		// pull in context for filter chains
+    	ApplicationContext context = new ClassPathXmlApplicationContext("data-transformation-context-test.xml");
+    	Whitebox.setInternalState(handler, "getMatchesFeedFilterChain", context.getBean("getMatchesFeedFilterChain"));
+    	Whitebox.setInternalState(handler, "getMatchesFeedEnricherChain", context.getBean("getMatchesFeedEnricherChain"));
+		
+    	// This is the test's target call
+		Whitebox.invokeMethod(handler, "handleFeedResponse", ctx);
+
+		// match should have been filtered out.
+		Map<String, Map<String, Map<String, Object>>> matches = ctx.getLegacyMatchDataFeedDto().getMatches();
+		Map<String, Map<String, Object>> oneMatch = matches.get(MATCHID_FROM_singleMatchWithTimestamp_json);
+		assertNull(oneMatch);
 				
     }
 }
