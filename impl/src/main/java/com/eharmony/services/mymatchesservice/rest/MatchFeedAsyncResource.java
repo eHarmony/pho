@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
@@ -57,6 +58,9 @@ public class MatchFeedAsyncResource {
 
     @Resource
     private MatchFeedAsyncRequestHandler requesthandler;
+    
+    @Resource
+    private MatchCountAsyncRequestHandler countRequesthandler;
 
     private static final int TEASER_MATCH_DEFAULT_PAGINATION_SIZE = 1;
     
@@ -211,18 +215,26 @@ public class MatchFeedAsyncResource {
         log.info("fetching matched users for user ={}", userId);
         requesthandler.getSimpleMatchedUserList(requestContext, asyncResponse, sortBy);
     }
+    
+    @GET
+    @Path("/users/{userId}/count")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Timed(name="getSimpleMatchedUserList")
+    public void getMatchesCount(@PathParam("userId") long userId,
+            @Suspended final AsyncResponse asyncResponse) {
+        MatchCountRequestContext request = new MatchCountRequestContext(userId);
+        countRequesthandler.getMatchCounts(request, asyncResponse);
+    }
 
     private Set<String> toLowerCase(Set<String> values) {
 
         if (CollectionUtils.isEmpty(values)) {
             return null;
         }
-        
-        Set<String> result = new HashSet<String>();
-        for (String value : values) {
-            result.add(value.toLowerCase());
-        }
-        return result;
+        return values
+                .parallelStream()
+                .map(strValue -> strValue.toLowerCase())
+                .collect(Collectors.toSet());
 
     }
 }
