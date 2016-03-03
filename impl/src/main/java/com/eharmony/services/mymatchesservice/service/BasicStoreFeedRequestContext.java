@@ -1,11 +1,7 @@
 package com.eharmony.services.mymatchesservice.service;
 
-import java.util.Set;
-
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
-import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
-import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.base.Preconditions;
 
 public class BasicStoreFeedRequestContext {

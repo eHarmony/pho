@@ -142,15 +142,15 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
 
-            Integer feedLimit = null;  
-
-            if (request.isFallbackRequest()) {
+            Integer feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
+                    .getMatchStatusGroup());
+            /*if (request.isFallbackRequest()) {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(request
                         .getMatchStatusGroup());
             } else {
                 feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
                         .getMatchStatusGroup());
-            }
+            }*/
             
         if (feedLimit != null) {
             requestQuery.setStartPage(START_PAGE);

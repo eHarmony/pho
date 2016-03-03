@@ -12,10 +12,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer;
 import com.google.common.base.Preconditions;
+
 import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH;
 import rx.Observable;
 /**
@@ -102,6 +104,15 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
     }
     
     public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
-        return Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(request)));
+        Observable<LegacyMatchDataFeedDtoWrapper> redisDeltaFeed =  Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(request)));
+        MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
+        redisDeltaFeed
+        .onErrorReturn(ex -> {
+            log.warn(
+                    "Exception while fetching data from redis for user {} and returning null object for safe method",
+                    queryContext != null ? queryContext.getUserId(): 0, ex);
+            return null;
+        });
+        return redisDeltaFeed;
     }
 }

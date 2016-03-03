@@ -56,17 +56,26 @@ public class MatchFeedAsyncResource {
     
     private Set<String> ALL = ImmutableSet.of("all");
 
-    @Resource
-    private MatchFeedAsyncRequestHandler requesthandler;
+    //@Resource
+    //private MatchFeedAsyncRequestHandler requesthandler;
     
     @Resource
     private MatchCountAsyncRequestHandler countRequesthandler;
 
     private static final int TEASER_MATCH_DEFAULT_PAGINATION_SIZE = 1;
-    
     private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
-    
     private static final String COMM_MATCH_STATUS = "COMM";
+    
+    @Resource(name="userMyMatchesFeedAsyncRequestHandler")
+    private MatchesFeedAsyncRequestHandler userMyMatchesFeedAsyncRequestHandler;
+    
+    @Resource(name="userTeaserMatchesFeedAsyncRequestHandler")
+    private MatchesFeedAsyncRequestHandler userTeaserMatchesFeedAsyncRequestHandler;
+    
+    @Resource(name="userSortedMatchObjectsListAsyncRequestHandler")
+    private MatchesFeedAsyncRequestHandler userSortedMatchObjectsListAsyncRequestHandler;
+    
+    
     
     @GET
     @Path("/users/{userId}/matches")
@@ -94,7 +103,8 @@ public class MatchFeedAsyncResource {
                 .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
-        requesthandler.getMatchesFeed(requestContext, asyncResponse);
+        //requesthandler.getMatchesFeed(requestContext, asyncResponse);
+        userMyMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
     }
 
 
@@ -120,6 +130,40 @@ public class MatchFeedAsyncResource {
             @HeaderParam(EventConstant.PLATFORM) String platform,
             @Suspended final AsyncResponse asyncResponse) {
 
+        log.debug("fetching teaser match feed for user ={}", userId);
+        
+        Set<String> statusSet = buildNormalizedMatchStatusSet(statuses);
+       
+        if (resultSize != null && resultSize <= 0) {
+            throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
+        }
+
+        resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
+        
+        Map<String,String> eventContextInfo = new HashMap<String,String>();
+        if(StringUtils.isNotBlank(userAgent)){
+            eventContextInfo.put(EventConstant.USER_AGENT, userAgent);
+        }
+        
+        if(StringUtils.isNotBlank(platform)){
+            eventContextInfo.put(EventConstant.PLATFORM, platform);
+        }
+
+        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
+                .setAllowedSeePhotos(true)
+                .setPageSize(0)   // Defaulting to Zero. By doing this teaser will by default load 1000 matches just like getMatches. This is also not used by teaser pagination.
+                .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
+                .setStatuses(statusSet)
+                .setUserId(userId)
+                .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
+                .setRequestMetadata(eventContextInfo)
+                .build();
+
+        //requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
+        userTeaserMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
+    }
+
+    private Set<String> buildNormalizedMatchStatusSet(Set<String> statuses) {
         Set<String> statusSet = new HashSet<String>();
         if (!CollectionUtils.isEmpty(statuses)) {
 
@@ -148,43 +192,9 @@ public class MatchFeedAsyncResource {
             statusSet.add(MatchStatus.NEW.name().toLowerCase());
 
         }
-
-        if (resultSize != null && resultSize <= 0) {
-
-            throw new WebApplicationException("Invalid resultSize value", Status.BAD_REQUEST);
-
-        }
-
-
-        resultSize = (resultSize == null ? TEASER_MATCH_DEFAULT_RESULT_SIZE : resultSize.intValue());  //Setting the default result size to 5.
-
-        MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
-                .setAllowedSeePhotos(true)
-                .setPageSize(0)   // Defaulting to Zero. By doing this teaser will by default load 1000 matches just like getMatches. This is also not used by teaser pagination.
-                .setStartPage(TEASER_MATCH_DEFAULT_PAGINATION_SIZE)  //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
-                .setStatuses(statusSet)
-                .setUserId(userId)
-                .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
-                .build();
-
-        log.debug("fetching teaser match feed for user ={}", userId);
-        Map<String,String> eventContextInfo = new HashMap<String,String>();
         
-        if(StringUtils.isNotBlank(userAgent)){
-
-        	eventContextInfo.put(EventConstant.USER_AGENT, userAgent);
-        
-        }
-        
-        if(StringUtils.isNotBlank(platform)){
-
-        	eventContextInfo.put(EventConstant.PLATFORM, platform);
-        
-        }
-        
-        requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
+        return statusSet;
     }
-
     private void validateMatchFeedRequest(Set<String> statuses, String locale) {
         //TODO remove this check and assume user requesting all matches if this field is empty
         if(CollectionUtils.isEmpty(statuses)){
@@ -210,16 +220,17 @@ public class MatchFeedAsyncResource {
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
                 .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
-                .setViewHidden(false).setVoldyState(ENABLED).build();
+                .setViewHidden(false).setVoldyState(ENABLED)
+                .setSortBy(sortBy).build();
 
         log.info("fetching matched users for user ={}", userId);
-        requesthandler.getSimpleMatchedUserList(requestContext, asyncResponse, sortBy);
+        userSortedMatchObjectsListAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
     }
     
     @GET
     @Path("/users/{userId}/count")
     @Produces(MediaType.APPLICATION_JSON)
-    @Timed(name="getSimpleMatchedUserList")
+    @Timed(name="getMatchesCount")
     public void getMatchesCount(@PathParam("userId") long userId,
             @Suspended final AsyncResponse asyncResponse) {
         MatchCountRequestContext request = new MatchCountRequestContext(userId);
@@ -232,7 +243,7 @@ public class MatchFeedAsyncResource {
             return null;
         }
         return values
-                .parallelStream()
+                .stream()
                 .map(strValue -> strValue.toLowerCase())
                 .collect(Collectors.toSet());
 
