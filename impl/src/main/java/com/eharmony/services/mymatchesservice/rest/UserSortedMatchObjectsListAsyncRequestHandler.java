@@ -73,9 +73,10 @@ public class UserSortedMatchObjectsListAsyncRequestHandler extends AbstractMatch
 
         }
 
-        if (CollectionUtils.isNotEmpty(localResult)) {
+        if (CollectionUtils.isNotEmpty(localResult) &&  sortComparator != null) {
             localResult.sort(sortComparator);
         }
+        
         ResponseBuilder builder = Response.ok().entity(localResult);
         builder.status(Status.OK);
         return builder;
