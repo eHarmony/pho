@@ -2,8 +2,11 @@ package com.eharmony.services.mymatchesservice.rest;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.collections.MapUtils;
+
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 /**
  * Abstract class Implements few aspects (transformation, filtering and enrichment) of Feed Responses handling.
@@ -38,6 +41,16 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
         filterResults(context);
         enrichFeedItems(context);
 
+    }
+    
+    protected void enrichMatchCount(MatchFeedRequestContext context) {
+        LegacyMatchDataFeedDto feedDto = context.getLegacyMatchDataFeedDto();
+        if (feedDto != null) {
+            feedDto.setTotalMatches(0);
+            if (MapUtils.isNotEmpty(feedDto.getMatches())) {
+                feedDto.setTotalMatches(feedDto.getMatches().size());
+            }
+        }
     }
 
     /**

@@ -178,6 +178,7 @@ public class MatchFeedAsyncRequestHandler {
      *            MatchFeedQueryContext
      * @param asyncResponse
      *            AsyncResponse
+     * @param eventContextInfo Map
      */
 
     public void getTeaserMatchesFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse, Map<String,String> eventContextInfo) {
