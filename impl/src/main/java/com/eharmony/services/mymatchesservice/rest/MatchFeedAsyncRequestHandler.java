@@ -27,6 +27,7 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 import com.codahale.metrics.Timer;
+import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
@@ -37,6 +38,7 @@ import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
+import com.eharmony.services.mymatchesservice.service.MRSAdapter;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserComparatorSelector;
@@ -49,6 +51,7 @@ import com.eharmony.services.mymatchesservice.service.transform.MapToMatchedUser
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
+import com.eharmony.services.mymatchesservice.store.MatchDataFeedSORAStore;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
@@ -56,7 +59,10 @@ import com.eharmony.services.profile.client.ProfileServiceClient;
 import com.eharmony.singles.common.enumeration.Gender;
 import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -132,6 +138,13 @@ public class MatchFeedAsyncRequestHandler {
     
     @Resource
     private DataServiceThrottleManager throttle;
+    
+    
+    @Resource(name="mrsAdapter")
+    private MRSAdapter mrsAdapter;
+    
+    @Resource(name="soraStore")
+    private MatchDataFeedSORAStore soraStore;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -173,7 +186,137 @@ public class MatchFeedAsyncRequestHandler {
         });
     }
     
+    
+    public void getSingleMatchFeed(final MatchFeedQueryContext matchFeedQueryContext, final AsyncResponse asyncResponse) {
+    	 
+    	Timer.Context t = GraphiteReportingConfiguration.getRegistry().timer(getClass().getCanonicalName() + ".getMatchesFeedAsync").time();
+        long userId = matchFeedQueryContext.getUserId();
+    	long matchId = matchFeedQueryContext.getMatchId();
+        Observable<MatchFeedRequestContext> singleMatchQueryRequestObservable = makeSingleMatchRequestObservable(matchFeedQueryContext);
 
+        singleMatchQueryRequestObservable.subscribe(response -> {
+        	
+            boolean feedNotFound = false;
+            try {            	
+            	// proceed with merge/filter/enrich processing.
+            	handleFeedResponse(response);        	
+            	
+            } catch (ResourceNotFoundException e) {
+                feedNotFound = true;
+            }
+            
+        	if(isDataAvailable(response, userId, matchId)){
+        		
+                long duration = t.stop();
+                logger.debug("Single match feed created for user {}, duration {}", userId, duration);
+                ResponseBuilder builder = buildResponse(response, feedNotFound);
+                asyncResponse.resume(builder.build());        		
+       		
+        	}else{
+            	
+	        	logger.info("Match {} not found for user {}, searching database.", matchId, userId);
+	        	
+	        	Observable<MatchFeedRequestContext> fallbackObservable = 
+	        							makeSingleMatchFallbackRequestObservable(matchFeedQueryContext);
+	        	fallbackObservable.subscribe(response2 -> {
+	                boolean backupFeedNotFound = false;
+	        		try{
+	                	// proceed with merge/filter/enrich processing.
+	                	handleFeedResponse(response2);
+	    	        } catch (ResourceNotFoundException e) {
+	    	        	backupFeedNotFound = true;
+	    	        }
+	
+	                logger.debug("Single match feed created for user {}, matchId {}", userId, matchId);
+	                ResponseBuilder builder = buildResponse(response2, backupFeedNotFound);
+	                asyncResponse.resume(builder.build());
+	
+	            }, (throwable2) -> {
+	                logger.error("Exception creating single match feed for user {}, matchId {} : {}", userId, matchId, throwable2);
+	                asyncResponse.resume(throwable2);
+	            }, () -> {
+	            	logger.warn("match {} not found in SORA or MRS, this match is invalid!", matchId);
+	                asyncResponse.resume("");
+	            });   	
+        	}
+
+        }, (throwable) -> {
+        	
+            long duration = t.stop();
+            logger.error("Exception creating single match feed for user {}, duration {}", userId, duration, throwable);
+            asyncResponse.resume(throwable);
+            
+        }, () -> {
+        	asyncResponse.resume("");
+        });
+    }
+
+    protected Observable<MatchFeedRequestContext> makeSingleMatchRequestObservable(
+			final MatchFeedQueryContext matchFeedQueryContext) {
+
+		logger.info("Getting feed for userId {} matchId {}", matchFeedQueryContext.getUserId(), 
+						matchFeedQueryContext.getMatchId());
+		
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);        
+		request.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE);
+		
+		Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+		
+		// prep Redis...
+		BasicStoreFeedRequestContext basicRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);         
+		Observable<LegacyMatchDataFeedDtoWrapper> redisStoreFeedObservable = 
+		redisStoreFeedService.getUserMatchesSafe(basicRequest);
+		
+		// prep Hbase...
+		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
+		requestContext.setFallbackRequest(false);
+		requestContext.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE);
+		
+		matchQueryRequestObservable = matchQueryRequestObservable
+		.zipWith(redisStoreFeedObservable, populateLegacyMatchesFeed)
+		.zipWith(hbaseStoreFeedService.getUserMatchSafe(requestContext), populateHBaseMatchesFeed)
+		.subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+		
+		return matchQueryRequestObservable;
+    }
+    
+    protected Observable<MatchFeedRequestContext> makeSingleMatchFallbackRequestObservable(
+			final MatchFeedQueryContext matchFeedQueryContext) {
+
+		logger.info("Getting fallback feed for userId {} matchId {}", matchFeedQueryContext.getUserId(), 
+						matchFeedQueryContext.getMatchId());
+		
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);        		
+		Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
+
+    	BasicStoreFeedRequestContext storeCtx = new BasicStoreFeedRequestContext(
+    			matchFeedQueryContext);
+    	
+    	Observable<LegacyMatchDataFeedDtoWrapper> soraObservable = Observable.just(soraStore.getSingleUserMatchSafe(storeCtx));
+    	Observable<LegacyMatchDataFeedDtoWrapper> mrsObservable = Observable.just(mrsAdapter.getSingleUserMatchSafe(storeCtx));
+    	matchQueryRequestObservable = matchQueryRequestObservable
+    			.zipWith(soraObservable, genericDataFeedHandler)
+    			.zipWith(mrsObservable, genericDataFeedHandler)
+    			.subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+    	
+		return matchQueryRequestObservable;
+    }
+    
+    Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> genericDataFeedHandler  = (
+            request, legacyMatchDataFeedDtoWrapper) -> {
+
+        request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
+        return request;
+    };
+    
+    protected boolean isDataAvailable(MatchFeedRequestContext context, long userId, long matchId){
+    	
+    	return (context.getAggregateHBaseFeedItems().size() > 0 ||
+    		(context.getRedisFeed() != null && context.getRedisFeed().getMatches().size() > 0) ||
+    		(context.getLegacyMatchDataFeedDto() != null && context.getLegacyMatchDataFeedDto().getTotalMatches() > 0));
+     
+    }
+    
     /**
      * Teaser Matches will be returned after applying the filters and enriching the data from feed stores. Feed will be
      * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.

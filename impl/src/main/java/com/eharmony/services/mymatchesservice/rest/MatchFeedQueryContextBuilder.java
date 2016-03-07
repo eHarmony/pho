@@ -7,6 +7,7 @@ import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum
 public class MatchFeedQueryContextBuilder {
 
     private long userId;
+    private long matchId;
     private String locale;
     private int startPage;
     private int pageSize;
@@ -22,13 +23,14 @@ public class MatchFeedQueryContextBuilder {
         
     }
     public MatchFeedQueryContext build() {
-        return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
+        return new MatchFeedQueryContextImpl(userId, matchId, locale, startPage, pageSize, statuses, viewHidden,
                 allowedSeePhotos, voldyState, teaserResultSize);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
 
         private final long userId;
+        private final long matchId;
         private final String locale;
         private final int startPage;
         private final int pageSize;
@@ -50,6 +52,11 @@ public class MatchFeedQueryContextBuilder {
             return userId;
         }
 
+		@Override
+        public long getMatchId() {
+            return matchId;
+        }
+		
         @Override
         public String getLocale() {
             return locale;
@@ -85,11 +92,12 @@ public class MatchFeedQueryContextBuilder {
             return teaserResultSize;
         } 
         
-        private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
+        private MatchFeedQueryContextImpl(final long userId, final long matchId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden, 
                 final boolean allowedSeePhotos, final DataServiceStateEnum voldyState, int teaserResultSize) {
 
         	this.userId = userId;
+        	this.matchId = matchId;
             this.locale = locale;
             this.startPage = startPage;
             this.pageSize = pageSize;
@@ -110,6 +118,11 @@ public class MatchFeedQueryContextBuilder {
         return this;
     }
 
+    public MatchFeedQueryContextBuilder setMatchId(long matchId) {
+        this.matchId = matchId;
+        return this;
+    }
+    
     public MatchFeedQueryContextBuilder setLocale(String locale) {
         this.locale = locale;
         return this;

@@ -7,6 +7,7 @@ import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum
 public interface MatchFeedQueryContext {
 
     public long getUserId();
+    public long getMatchId();
     public String getLocale();
     public int getStartPage();
     public int getPageSize();
