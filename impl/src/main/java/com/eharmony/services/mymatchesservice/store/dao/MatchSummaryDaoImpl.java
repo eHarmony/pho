@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.codahale.metrics.annotation.Timed;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
-import com.eharmony.singles.common.data.dao.AbstractDao;
 
 
 @Repository
@@ -27,7 +26,7 @@ public class MatchSummaryDaoImpl extends AbstractDao<Long, MatchSummaryDo>
     @Timed(name="MDS.findMatchSummaryByUserAndMatch")
     public MatchSummaryDo findMatchSummaryByUserAndMatch(Long userId, Long matchId) {
 
-        log.info("getting match summeries for match {} and user {}", matchId, userId);
+        log.info("getting match summaries for match {} and user {}", matchId, userId);
 
         boolean useCache = false;
         Criteria criteria = createCriteria(useCache)
