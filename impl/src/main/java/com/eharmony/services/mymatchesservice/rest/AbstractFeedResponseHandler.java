@@ -40,6 +40,7 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
         mergeHbaseFeedWithRedisDelta(context);
         filterResults(context);
         enrichFeedItems(context);
+        enrichMatchCount(context);
 
     }
     
