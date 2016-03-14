@@ -56,9 +56,6 @@ public class MatchFeedAsyncResource {
     
     private Set<String> ALL = ImmutableSet.of("all");
 
-    //@Resource
-    //private MatchFeedAsyncRequestHandler requesthandler;
-    
     @Resource
     private MatchCountAsyncRequestHandler countRequesthandler;
 
@@ -103,7 +100,6 @@ public class MatchFeedAsyncResource {
                 .setVoldyState(voldyState).build();
 
         log.info("fetching match feed for user ={}", userId);
-        //requesthandler.getMatchesFeed(requestContext, asyncResponse);
         userMyMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
     }
 
@@ -159,7 +155,6 @@ public class MatchFeedAsyncResource {
                 .setRequestMetadata(eventContextInfo)
                 .build();
 
-        //requesthandler.getTeaserMatchesFeed(requestContext, asyncResponse,eventContextInfo);
         userTeaserMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
     }
 
@@ -234,7 +229,7 @@ public class MatchFeedAsyncResource {
     public void getMatchesCount(@PathParam("userId") long userId,
             @Suspended final AsyncResponse asyncResponse) {
         MatchCountRequestContext request = new MatchCountRequestContext(userId);
-        countRequesthandler.getMatchCounts(request, asyncResponse);
+        countRequesthandler.getMatchesCount(request, asyncResponse);
     }
 
     private Set<String> toLowerCase(Set<String> values) {

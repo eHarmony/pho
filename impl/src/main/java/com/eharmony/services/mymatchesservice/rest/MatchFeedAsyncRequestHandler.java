@@ -251,8 +251,7 @@ public class MatchFeedAsyncRequestHandler {
         FeedMergeStrategyType mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
         request.setFeedMergeType(mergeType);
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        BasicStoreFeedRequestContext redisFeedRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
-        Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = redisStoreFeedService.getUserMatchesSafe(redisFeedRequest);
+        Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = redisStoreFeedService.getUserMatchesSafe(matchFeedQueryContext.getUserId());
         
         matchQueryRequestObservable = matchQueryRequestObservable
                                           .zipWith(storeFeedObservable, populateLegacyMatchesFeed)

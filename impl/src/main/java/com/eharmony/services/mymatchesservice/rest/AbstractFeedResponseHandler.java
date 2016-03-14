@@ -9,7 +9,7 @@ import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFee
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
 /**
- * Abstract class Implements few aspects (transformation, filtering and enrichment) of Feed Responses handling.
+ * Feed Response Handler handles transformation, filtering and enrichment  of user matches feed
  * 
  * @author vvangapandu
  *
@@ -49,7 +49,8 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
         if (feedDto != null) {
             feedDto.setTotalMatches(0);
             if (MapUtils.isNotEmpty(feedDto.getMatches())) {
-                feedDto.setTotalMatches(feedDto.getMatches().size());
+                //TODO make it +1 so pagination will work
+                feedDto.setTotalMatches(feedDto.getMatches().size() + 1);
             }
         }
     }
@@ -57,8 +58,7 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
     /**
      * Transforms response from hbase to API contract response format ( Map of match objects)
      * 
-     * @param context
-     *            MatchFeedRequestContext
+     * @param context  MatchFeedRequestContext
      * 
      */
     protected void transformHBaseResponseToMapBasedResponse(MatchFeedRequestContext context) {

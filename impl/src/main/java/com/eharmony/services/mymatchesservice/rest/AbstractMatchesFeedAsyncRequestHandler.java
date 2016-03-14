@@ -133,9 +133,8 @@ public abstract class AbstractMatchesFeedAsyncRequestHandler implements MatchesF
         FeedMergeStrategyType mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
         request.setFeedMergeType(mergeType);
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        BasicStoreFeedRequestContext redisFeedRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
         Observable<LegacyMatchDataFeedDtoWrapper> redisStoreFeedObservable = redisStoreFeedService
-                .getUserMatchesSafe(redisFeedRequest);
+                .getUserMatchesSafe(matchFeedQueryContext.getUserId());
 
         matchQueryRequestObservable = matchQueryRequestObservable.zipWith(redisStoreFeedObservable,
                 populateRediesStoreMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
