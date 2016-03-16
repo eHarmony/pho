@@ -1,8 +1,5 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,8 +25,7 @@ import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreCountResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
-import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+import com.eharmony.services.mymatchesservice.service.merger.MatchCountRedisDataMerger;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.singles.common.status.MatchStatus;
 
@@ -51,6 +47,9 @@ public class MatchCountAsyncRequestHandler {
 
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    
+    @Resource
+    private MatchCountRedisDataMerger matchCountRedisDataMerger;
 
     /**
      * Matches count will be returned after fetching the counts from HBase and merging with Redis results.
@@ -107,7 +106,12 @@ public class MatchCountAsyncRequestHandler {
             final MatchCountRequestContext matchCountRequestContext) {
 
         long userId = matchCountRequestContext.getUserId();
+        
         for (MatchStatus status : MatchStatus.values()) {
+            if(status == MatchStatus.CLOSED) {
+                logger.debug("filtering closed status as MQS is not responsible for closed matches...");
+                continue;
+            }
             MatchCountRequestContext perTypeRequest = new MatchCountRequestContext();
             perTypeRequest.setUserId(userId);
             perTypeRequest.setStatus(status);
@@ -157,7 +161,7 @@ public class MatchCountAsyncRequestHandler {
     };
 
     private void handleCountResponse(MatchCountContext matchCountContext) {
-        mergeRedisData(matchCountContext);
+        matchCountRedisDataMerger.mergeRedisData(matchCountContext);
         calculateFinalCounts(matchCountContext);
 
     }
@@ -175,12 +179,10 @@ public class MatchCountAsyncRequestHandler {
                 matchCountDto.setOpenComm(matchesByStatus.get(matchStatus).size());
                 break;
             case NEW:
+                //Ignoring the new status as client is only interested in recent new
                 break;
             case ARCHIVED:
                 matchCountDto.setArchived(matchesByStatus.get(matchStatus).size());
-                break;
-            case CLOSED:
-                matchCountDto.setClosed(matchesByStatus.get(matchStatus).size());
                 break;
             case MYTURN:
                 matchCountDto.setMyTurn(matchesByStatus.get(matchStatus).size());
@@ -191,6 +193,10 @@ public class MatchCountAsyncRequestHandler {
             default:
                 break;
             }
+            if(matchStatus == MatchStatus.CLOSED) {
+                //Ignoring closed status as MQS is not responsible for closed resources
+                continue;
+            }
             matchCountDto.setAll(matchCountDto.getAll() + matchesByStatus.get(matchStatus).size());
         }
 
@@ -199,63 +205,4 @@ public class MatchCountAsyncRequestHandler {
         }
     }
 
-    private MatchCountContext mergeRedisData(MatchCountContext matchCountContext) {
-
-        Map<MatchStatus, Set<Long>> hbaseMatchesByStatus = matchCountContext.getMatchesByStatus();
-        LegacyMatchDataFeedDto redisDeltaFeedDto = matchCountContext.getRedisMatchDataFeedDto();
-
-        // redis or hbase feed is empty, no need to merge the results.
-        if (redisDeltaFeedDto == null || MapUtils.isEmpty(hbaseMatchesByStatus)) {
-            return matchCountContext;
-        }
-
-        Map<MatchStatus, Set<Long>> matchesByStatus = matchCountContext.getMatchesByStatus();
-        Map<String, Map<String, Map<String, Object>>> redisStoreMatches = redisDeltaFeedDto.getMatches();
-        
-        if(MapUtils.isEmpty(redisStoreMatches)) {
-            return matchCountContext;
-        }
-
-        Map<MatchStatus, Set<Long>> changedMatchesMap = new HashMap<MatchStatus, Set<Long>>();
-
-        if (MapUtils.isNotEmpty(matchesByStatus)) {
-            for (MatchStatus matchStatus : matchesByStatus.keySet()) {
-                Set<Long> matchIdsByStatus = matchesByStatus.get(matchStatus);
-                Iterator<Long> matchIdsIte = matchIdsByStatus.iterator();
-                matchIdsIte.forEachRemaining(mid -> {
-                    if (redisStoreMatches != null && redisStoreMatches.get(mid) != null) {
-                        Map<String, Map<String, Object>> redisMatch = redisStoreMatches.get(mid);
-                        Map<String, Object> deltaMatchSection = redisMatch.get(MatchFeedModel.SECTIONS.MATCH);
-                        Object matchStatusObj = deltaMatchSection != null ? deltaMatchSection
-                                .get(MatchFeedModel.MATCH.STATUS) : null;
-                        // TODO get rid of ordinal comparison
-                        if (matchStatusObj != null
-                                && Integer.valueOf(matchStatusObj.toString()) != matchStatus.ordinal()) {
-                            Set<Long> changedMatchesByStatusSet = changedMatchesMap.get(matchStatus);
-                            if (changedMatchesByStatusSet == null) {
-                                changedMatchesByStatusSet = new HashSet<Long>();
-                                changedMatchesMap.put(matchStatus, changedMatchesByStatusSet);
-                            }
-                            changedMatchesByStatusSet.add(mid);
-                            matchIdsIte.remove();
-                            if (matchStatus == MatchStatus.NEW) {
-                                Set<Long> recentNewMatches = matchCountContext.getRecentNewMatches();
-                                if (CollectionUtils.isNotEmpty(recentNewMatches)) {
-                                    recentNewMatches.remove(mid);
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-        }
-
-        if (MapUtils.isNotEmpty(changedMatchesMap)) {
-            changedMatchesMap.forEach((a, b) -> {
-                matchesByStatus.get(a).addAll(b);
-            });
-        }
-        return matchCountContext;
-    }
 }
