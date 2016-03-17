@@ -1,7 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.transform.enrich.impl.nextcommaction;
 
 import com.google.common.base.Objects;
-import com.google.common.base.MoreObjects;
 
 /**
  * The next action a user should take to advance communication This includes the
@@ -82,7 +81,7 @@ public class NextCommunicationAction {
     @Override
     public String toString() {
 
-        return MoreObjects.toStringHelper(this).add("action", action)
+        return Objects.toStringHelper(this).add("action", action)
                 .add("area", area).toString();
     }
 
