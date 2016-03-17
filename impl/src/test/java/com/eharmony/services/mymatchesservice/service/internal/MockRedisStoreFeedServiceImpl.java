@@ -8,9 +8,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import rx.Observable;
 
 import com.eharmony.datastore.model.MatchCommunicationElement;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
@@ -18,10 +15,11 @@ import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedResponse;
-import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
+
+import rx.Observable;
 
 
 public class MockRedisStoreFeedServiceImpl {

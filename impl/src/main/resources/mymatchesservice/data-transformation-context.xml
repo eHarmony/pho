@@ -101,6 +101,9 @@
 				<bean id="commNextStepEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
 				</bean>
+                <bean id="nextCommunicationActionEnricher" 
+                    class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.NextCommunicationActionEnricher">
+                </bean>
 				<bean id="commStageEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
 				</bean>	

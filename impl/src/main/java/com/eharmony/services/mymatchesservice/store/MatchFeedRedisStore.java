@@ -93,7 +93,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
             //re throw exception so the down stream observer can deal with it.
             throw exp;
         } finally {
-            timerContext.stop();
+            timerContext.close();
             long endTime = System.currentTimeMillis();
             log.info("Total time to get the feed from Redis for user {} is {} MS", userid, (endTime - startTime));
         }
@@ -101,6 +101,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
 
     }
     
+    @Override
     public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
         return Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(request)));
     }

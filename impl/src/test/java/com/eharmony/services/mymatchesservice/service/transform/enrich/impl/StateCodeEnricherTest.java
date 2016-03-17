@@ -51,6 +51,7 @@ public class StateCodeEnricherTest {
         ch.qos.logback.classic.Logger root = 
         		(ch.qos.logback.classic.Logger) 
         			LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+        @SuppressWarnings("rawtypes")
         final Appender mockAppender = mock(Appender.class);
         when(mockAppender.getName()).thenReturn("MOCK");
         root.addAppender(mockAppender);		
@@ -62,7 +63,7 @@ public class StateCodeEnricherTest {
 			verifyZeroInteractions(mockAppender);
 			
 		}else{
-			verify(mockAppender).doAppend(argThat(new ArgumentMatcher() {
+			verify(mockAppender).doAppend(argThat(new ArgumentMatcher<LoggingEvent>() {
 			      @Override
 			      public boolean matches(final Object argument) {
 			        return ((LoggingEvent)argument).toString()

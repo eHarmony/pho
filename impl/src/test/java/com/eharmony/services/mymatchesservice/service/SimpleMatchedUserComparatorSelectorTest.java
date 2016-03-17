@@ -20,7 +20,7 @@ public class SimpleMatchedUserComparatorSelectorTest {
 	}
 	@Before
 	public void setup() {
-		ReflectionTestUtils.invokeMethod(compSelector, "initialzeMap", null);
+		ReflectionTestUtils.invokeMethod(compSelector, "initialzeMap", (Object[]) null);
 	}
 
 }

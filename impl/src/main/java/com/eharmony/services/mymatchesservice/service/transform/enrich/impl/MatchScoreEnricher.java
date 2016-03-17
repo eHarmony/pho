@@ -103,7 +103,7 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 	 */
 	private List<PartialPairingProto> prepareMatchesForScoring(Map<String, Map<String, Map<String, Object>>> matchesFromFeed) {
 		
-		List<PartialPairingProto> partialPairingsProtoList  = new ArrayList();
+		List<PartialPairingProto> partialPairingsProtoList  = new ArrayList<>();
 		
 		matchesFromFeed.entrySet().forEach(entryItem -> {
 		
@@ -177,7 +177,7 @@ public class MatchScoreEnricher  implements IMatchFeedTransformer {
 		
 		} finally {
 			  
-			t.stop();
+			t.close();
 			long endTime = System.currentTimeMillis();
 			logger.info("Total Score matches for  user {} is {} MS", userId, (endTime - startTime));
 	

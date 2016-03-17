@@ -1,8 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.client;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.eharmony.matching.common.value.MatchScoreProtoBuffs.PairingPurposeProto;
 import com.eharmony.matching.common.value.PairingProtoBuffers.PairingProtos.PairingsProto;
 import com.eharmony.matching.common.value.ScoredUserListProtoBuffs.ScoredUserListProto;
-import com.eharmony.matching.common.value.ScoredUserProtoBuffs.ScoredUserProto;
 import com.eharmony.protorest.RestClient;
 
 @Component("scoreServiceClient")

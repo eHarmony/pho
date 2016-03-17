@@ -337,7 +337,7 @@ public class MatchFeedAsyncRequestHandler {
             logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
                     (endTime - startTime), ex);
         } finally {
-            t.stop();
+            t.close();
             long endTime = System.currentTimeMillis();
             logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, (endTime - startTime));
         }

@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 public class SimpleMatchedUserComparatorSelector {
     private static final Logger log = LoggerFactory.getLogger(SimpleMatchedUserComparatorSelector.class);
     
+    @SuppressWarnings("rawtypes")
     static Map<String, Function<? super SimpleMatchedUserDto, ? extends Comparable>> keyExtractorMap = new HashMap<>();
     
     private static final String MATCH_ID_CRITERIA = "matchid";
@@ -33,6 +34,7 @@ public class SimpleMatchedUserComparatorSelector {
         keyExtractorMap.put(MATCHED_USER_ID_CRITERIA, SimpleMatchedUserDto::getMatchedUserId);
         
     }
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public  Comparator<SimpleMatchedUserDto> selectComparator(String sortBy) {
         if (StringUtils.isEmpty(sortBy)) {
             return null;

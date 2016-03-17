@@ -1,7 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -127,11 +126,6 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
 
         Date targetTs = new Date((Long) targetMatchSection.get(TIMESTAMP_NAME));
         Date deltaTs = new Date((Long) deltaMatchSection.get(TIMESTAMP_NAME));
-
-        if (targetTs == null || deltaTs == null) {
-            log.warn("match {} missing one or more timestamps: target {}, delta {}.", matchId, targetTs, deltaTs);
-            return;
-        }
 
         if (deltaTs.after(targetTs)) {
             targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));

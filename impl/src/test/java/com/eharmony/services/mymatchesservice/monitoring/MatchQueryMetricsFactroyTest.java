@@ -22,6 +22,7 @@ public class MatchQueryMetricsFactroyTest {
 		Timer.Context t = metricsFactory.getTimerContext("a","b");
 		assertNotNull(t);
 		assertTrue(registry.getNames().contains("a.b"));
+		t.close();
 	}
 
 	@Test
