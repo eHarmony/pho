@@ -37,7 +37,8 @@ public class MatchQueryEventService {
     /**
      * Send event when the user fetched teaser matches.
      * 
-     * @param matchesFeedContext
+     * @param matchesFeedContext MatchFeedRequestContext
+     * @param eventContextInfo Map
      */
     public void sendTeaserMatchShownEvent(final MatchFeedRequestContext matchesFeedContext, final Map<String,String> eventContextInfo) {
         long userId = matchesFeedContext.getUserId();

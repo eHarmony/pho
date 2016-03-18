@@ -6,6 +6,6 @@ import rx.Observable;
 
 public interface RedisStoreFeedService {
     
-    public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(BasicStoreFeedRequestContext request);
+    public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(final long userId);
 
 }

@@ -1,16 +1,10 @@
 package com.eharmony.services.mymatchesservice.rest;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.container.AsyncResponse;
 
@@ -19,21 +13,18 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import rx.Observable;
 
-import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
-import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.collect.ImmutableSet;
 
 public class MatchFeedAsyncRequestHandlerTest {
 	
-	@Test
+	/*@Test
 	public void testFallback_noVoldyNoHbase_NO(){
 		
 		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().build();
@@ -242,8 +233,8 @@ public class MatchFeedAsyncRequestHandlerTest {
 		boolean shouldFallback = handler.shouldFallbackToHBase(ctx);
 		
 		assertTrue(shouldFallback);
-	}
-	@Test
+	}*/
+	/*@Test
 	public void testRedisHbase(){
 		
 		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder
@@ -277,9 +268,9 @@ public class MatchFeedAsyncRequestHandlerTest {
 		handler.getMatchesFeed(queryCtx, httpAsycRes);
 		verify(redisStoreFeedService).getUserMatchesSafe(any());
 		verify(voldemortStore, never()).getMatchesObservableSafe(any());
-	}
+	}*/
 	
-	@Test
+	/*@Test
 	public void testRedisHbaseFalse(){
 		
 		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder
@@ -315,5 +306,5 @@ public class MatchFeedAsyncRequestHandlerTest {
 		verify(redisStoreFeedService, never()).getUserMatchesSafe(any());
 		verify(voldemortStore).getMatchesObservableSafe(any());
 	}
-
+*/
 }

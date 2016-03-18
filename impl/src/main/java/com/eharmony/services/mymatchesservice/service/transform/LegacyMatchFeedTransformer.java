@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -32,24 +33,24 @@ public class LegacyMatchFeedTransformer {
     }
     
     public LegacyMatchDataFeedDto transform(Set<MatchDataFeedItemDto> hbaseFeedItems, long userId, String locale) {
-
  
         LegacyMatchDataFeedDto feedDto = new LegacyMatchDataFeedDto();
         Map<String, Map<String, Map<String, Object>>> matches = new HashMap<String, Map<String, Map<String, Object>>>();
-        hbaseFeedItems.forEach(item -> {
-            if (item != null && item.getMatch() != null) {
-                String matchId = String.valueOf(item.getMatch().getMatchId());
-                matches.put(matchId, buildLegacyFeedItem(item));
-            } else {
-                logger.warn("Skipping the invalid feed item for user {}", userId);
-            }
-        });
+        if(CollectionUtils.isNotEmpty(hbaseFeedItems)) {
+            hbaseFeedItems.forEach(item -> {
+                if (item != null && item.getMatch() != null) {
+                    String matchId = String.valueOf(item.getMatch().getMatchId());
+                    matches.put(matchId, buildLegacyFeedItem(item));
+                } else {
+                    logger.warn("Skipping the invalid feed item for user {}", userId);
+                }
+            });
+        }
 
         feedDto.setMatches(matches);
         feedDto.setLocale(locale);
         //Move this after all filters
         feedDto.setTotalMatches(matches.size());
-
         return feedDto;
     }
 

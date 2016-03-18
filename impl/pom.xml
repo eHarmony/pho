@@ -428,7 +428,6 @@
         <dependency>
 			<groupId>com.eharmony.matchdata.datastore</groupId>
 			<artifactId>matchdata-datastore-api</artifactId>
-			<version>0.1.12</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-beanutils</artifactId>

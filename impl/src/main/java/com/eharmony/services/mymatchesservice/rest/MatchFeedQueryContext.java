@@ -1,5 +1,6 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
@@ -17,4 +18,8 @@ public interface MatchFeedQueryContext {
 
     // Internal test flags.
     public DataServiceStateEnum getVoldyState();
+    //platform and api request correlation info
+    public Map<String, String> getRequestMetadata();
+    
+    public String getSortBy();
 }
