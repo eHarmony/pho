@@ -30,234 +30,233 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
 /**
- * This test case verifies that the Hbase record fetch limit is dictated by the matchFeedLimitsByStatusConfiguration and no other parameter controls the fetch behavior.
+ * This test case verifies that the Hbase record fetch limit is dictated by the matchFeedLimitsByStatusConfiguration and
+ * no other parameter controls the fetch behavior.
  * 
  * @author esrinivasan
  *
  */
 public class HBaseStoreFeedServiceImplTest {
 
-	private static final int FALLBACK_FEED_LIMIT = 10;
+    private static final int FALLBACK_FEED_LIMIT = 10;
 
-	private static final int FEED_LIMIT = 5;
+    private static final int FEED_LIMIT = 5;
 
-	@Mock
-	private MatchStoreQueryRepository queryRepository;
+    @Mock
+    private MatchStoreQueryRepository queryRepository;
 
-	@Mock
-	private List<String> selectedProfileFields;
+    @Mock
+    private List<String> selectedProfileFields;
 
-	@Mock
-	private MatchFeedLimitsByStatusConfiguration matchFeedLimitsByStatusConfiguration;
+    @Mock
+    private MatchFeedLimitsByStatusConfiguration matchFeedLimitsByStatusConfiguration;
 
-	@Mock
-	private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    @Mock
+    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
 
-	@InjectMocks
-	private HBaseStoreFeedServiceImpl hbaseStoreFeedService = new HBaseStoreFeedServiceImpl();
+    @InjectMocks
+    private HBaseStoreFeedServiceImpl hbaseStoreFeedService = new HBaseStoreFeedServiceImpl();
 
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-	}
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
 
-	/**
-	 * This test verifies that the Hbase query limit for fall back scenario is
-	 * defined through matchFeedLimitsByStatusConfiguration.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void getUserMatchesByStatusGroupSafe_FallBackTest() throws Exception {
+    /**
+     * This test verifies that the Hbase query limit for fall back scenario is defined through
+     * matchFeedLimitsByStatusConfiguration.
+     * 
+     * @throws Exception
+     */
+    /*@Test
+    public void getUserMatchesByStatusGroupSafe_FallBackTest() throws Exception {
 
-		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
-		        .build();
+        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
+                .build();
 
-		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
-		Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
-		matchStatusEnum.add(MatchStatusEnum.NEW);
-		requestContext.setMatchStatuses(matchStatusEnum);
-		MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
-		requestContext.setMatchStatusGroup(newGroupEnum);
+        HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
+        Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
+        matchStatusEnum.add(MatchStatusEnum.NEW);
+        requestContext.setMatchStatuses(matchStatusEnum);
+        MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
+        requestContext.setMatchStatusGroup(newGroupEnum);
 
-		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(new Timer().time());
+        when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(new Timer().time());
 
-		Histogram histoGram = Mockito.mock(Histogram.class);
+        Histogram histoGram = Mockito.mock(Histogram.class);
 
-		when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(histoGram);
+        when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(histoGram);
 
-		when(matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(newGroupEnum))
-		        .thenReturn(FALLBACK_FEED_LIMIT);
+        when(matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(newGroupEnum)).thenReturn(
+                FALLBACK_FEED_LIMIT);
 
-		Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
+        Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
-		for (int i = 0; i < FALLBACK_FEED_LIMIT; i++) {
-			matchDataFeedItemSet.add(new MatchDataFeedItemDto());
-		}
+        for (int i = 0; i < FALLBACK_FEED_LIMIT; i++) {
+            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+        }
 
-		when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
+        when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
 
-		requestContext.setFallbackRequest(true);
+        //requestContext.setFallbackRequest(true);
 
-		hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
-			Assert.assertEquals(FALLBACK_FEED_LIMIT, response.getHbaseStoreFeedItems().size());
-			Assert.assertNull(response.getError());
-		});
+        hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
+            Assert.assertEquals(FALLBACK_FEED_LIMIT, response.getHbaseStoreFeedItems().size());
+            Assert.assertNull(response.getError());
+        });
 
-		ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
-		verify(queryRepository).getMatchDataFeed(argument.capture());
+        ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
+        verify(queryRepository).getMatchDataFeed(argument.capture());
 
-		Assert.assertEquals(FALLBACK_FEED_LIMIT, argument.getValue().getPageSize());
+        Assert.assertEquals(FALLBACK_FEED_LIMIT, argument.getValue().getPageSize());
 
-	}
+    }*/
 
-	/**
-	 * This test verifies that the Hbase query limit for non-fall back scenario
-	 * is defined through matchFeedLimitsByStatusConfiguration.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void getUserMatchesByStatusGroupSafe_NonFallBackTest() throws Exception {
+    /**
+     * This test verifies that the Hbase query limit for non-fall back scenario is defined through
+     * matchFeedLimitsByStatusConfiguration.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void getUserMatchesByStatusGroupSafe_NonFallBackTest() throws Exception {
 
-		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
-		        .build();
+        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
+                .build();
 
-		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
-		Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
-		matchStatusEnum.add(MatchStatusEnum.NEW);
-		requestContext.setMatchStatuses(matchStatusEnum);
-		MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
-		requestContext.setMatchStatusGroup(newGroupEnum);
+        HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
+        Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
+        matchStatusEnum.add(MatchStatusEnum.NEW);
+        requestContext.setMatchStatuses(matchStatusEnum);
+        MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
+        requestContext.setMatchStatusGroup(newGroupEnum);
 
-		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(new Timer().time());
+        when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(new Timer().time());
 
-		Histogram histoGram = Mockito.mock(Histogram.class);
+        Histogram histoGram = Mockito.mock(Histogram.class);
 
-		when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(histoGram);
+        when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(histoGram);
 
-		when(matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(newGroupEnum)).thenReturn(FEED_LIMIT);
+        when(matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(newGroupEnum)).thenReturn(FEED_LIMIT);
 
-		Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
+        Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
-		for (int i = 0; i < FEED_LIMIT; i++) {
-			matchDataFeedItemSet.add(new MatchDataFeedItemDto());
-		}
+        for (int i = 0; i < FEED_LIMIT; i++) {
+            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+        }
 
-		when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
+        when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
 
-		requestContext.setFallbackRequest(false);
+        //requestContext.setFallbackRequest(false);
 
-		hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
-			Assert.assertEquals(FEED_LIMIT, response.getHbaseStoreFeedItems().size());
-			Assert.assertNull(response.getError());
-		});
+        hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
+            Assert.assertEquals(FEED_LIMIT, response.getHbaseStoreFeedItems().size());
+            Assert.assertNull(response.getError());
+        });
 
-		ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
-		verify(queryRepository).getMatchDataFeed(argument.capture());
+        ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
+        verify(queryRepository).getMatchDataFeed(argument.capture());
 
-		Assert.assertEquals(FEED_LIMIT, argument.getValue().getPageSize());
+        Assert.assertEquals(FEED_LIMIT, argument.getValue().getPageSize());
 
-	}
+    }
 
-	/**
-	 * This test verifies Exception handling
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void getUserMatchesByStatusGroupSafe_Exception() throws Exception {
+    /**
+     * This test verifies Exception handling
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void getUserMatchesByStatusGroupSafe_Exception() throws Exception {
 
-		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
-		        .build();
+        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
+                .build();
 
-		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
-		Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
-		matchStatusEnum.add(MatchStatusEnum.NEW);
-		requestContext.setMatchStatuses(matchStatusEnum);
-		MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
-		requestContext.setMatchStatusGroup(newGroupEnum);
+        HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
+        Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
+        matchStatusEnum.add(MatchStatusEnum.NEW);
+        requestContext.setMatchStatuses(matchStatusEnum);
+        MatchStatusGroupEnum newGroupEnum = MatchStatusGroupEnum.NEW;
+        requestContext.setMatchStatusGroup(newGroupEnum);
 
-		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(new Timer().time());
+        when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(new Timer().time());
 
-		Histogram histoGram = Mockito.mock(Histogram.class);
+        Histogram histoGram = Mockito.mock(Histogram.class);
 
-		when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(histoGram);
+        when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(histoGram);
 
-		when(matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(newGroupEnum))
-		        .thenThrow(new RuntimeException());
+        when(matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(newGroupEnum)).thenThrow(
+                new RuntimeException());
 
-		Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
+        Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
-		for (int i = 0; i < FEED_LIMIT; i++) {
-			matchDataFeedItemSet.add(new MatchDataFeedItemDto());
-		}
+        for (int i = 0; i < FEED_LIMIT; i++) {
+            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+        }
 
-		when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
+        when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
 
-		requestContext.setFallbackRequest(false);
+        //requestContext.setFallbackRequest(false);
 
-		hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
-			Assert.assertNull(response.getHbaseStoreFeedItems());
-			Assert.assertNotNull(response.getError());
-		});
+        hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
+            Assert.assertNull(response.getHbaseStoreFeedItems());
+            Assert.assertNotNull(response.getError());
+        });
 
-	}
-	
-	
+    }
 
-	/**
-	 * This test verifies that the page size defaults to zero when no predefined size is set for a matchstatus group.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void getUserMatchesByStatusGroupSafe_CommunicationGroup() throws Exception {
+    /**
+     * This test verifies that the page size defaults to zero when no predefined size is set for a matchstatus group.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void getUserMatchesByStatusGroupSafe_CommunicationGroup() throws Exception {
 
-		MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
-		        .build();
+        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance().setLocale("en_US").setUserId(100L)
+                .build();
 
-		HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
-		Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
-		matchStatusEnum.add(MatchStatusEnum.MYTURN);
-		requestContext.setMatchStatuses(matchStatusEnum);
-		MatchStatusGroupEnum communicationStatusGroup = MatchStatusGroupEnum.COMMUNICATION;
-		requestContext.setMatchStatusGroup(communicationStatusGroup);
+        HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(queryCtx);
+        Set<MatchStatusEnum> matchStatusEnum = new HashSet<MatchStatusEnum>();
+        matchStatusEnum.add(MatchStatusEnum.MYTURN);
+        requestContext.setMatchStatuses(matchStatusEnum);
+        MatchStatusGroupEnum communicationStatusGroup = MatchStatusGroupEnum.COMMUNICATION;
+        requestContext.setMatchStatusGroup(communicationStatusGroup);
 
-		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(new Timer().time());
+        when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(new Timer().time());
 
-		Histogram histoGram = Mockito.mock(Histogram.class);
+        Histogram histoGram = Mockito.mock(Histogram.class);
 
-		when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
-		        .thenReturn(histoGram);
+        when(matchQueryMetricsFactroy.getHistogram(anyString(), anyString(), any(MatchStatusGroupEnum.class)))
+                .thenReturn(histoGram);
 
-		Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
+        Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
-		for (int i = 0; i < 100; i++) {
-			matchDataFeedItemSet.add(new MatchDataFeedItemDto());
-		}
+        for (int i = 0; i < 100; i++) {
+            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+        }
 
-		when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
+        when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
 
-		requestContext.setFallbackRequest(false);
+        //requestContext.setFallbackRequest(false);
 
-		hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
-			Assert.assertEquals(100, response.getHbaseStoreFeedItems().size());
-			Assert.assertNull(response.getError());
-		});
+        hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext).subscribe(response -> {
+            Assert.assertEquals(100, response.getHbaseStoreFeedItems().size());
+            Assert.assertNull(response.getError());
+        });
 
-		ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
-		verify(queryRepository).getMatchDataFeed(argument.capture());
+        ArgumentCaptor<MatchDataFeedQueryRequest> argument = ArgumentCaptor.forClass(MatchDataFeedQueryRequest.class);
+        verify(queryRepository).getMatchDataFeed(argument.capture());
 
-		Assert.assertEquals(0, argument.getValue().getPageSize());
+        Assert.assertEquals(0, argument.getValue().getPageSize());
 
-	}
+    }
 
 }

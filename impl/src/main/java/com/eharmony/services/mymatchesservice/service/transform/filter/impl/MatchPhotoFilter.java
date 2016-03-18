@@ -2,7 +2,6 @@ package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.Map;
 
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -9,22 +9,23 @@ import javax.annotation.Resource;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import rx.Observable;
 
-import com.codahale.metrics.Timer;
 import com.codahale.metrics.Histogram;
-
+import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
+import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
-
 
 @Component
 public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
@@ -39,17 +40,21 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
     @Resource
     private MatchFeedLimitsByStatusConfiguration matchFeedLimitsByStatusConfiguration;
-    
+
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    @Value("${mqs.newmatch.threshold.days}")
+    private int newMatchThresholdDays;
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
-    //private static final String COMM_SORT_BY_FIELD = "lastCommDate";
-    //HBase has only limit clause, there is no rownum based browsing
+    // private static final String COMM_SORT_BY_FIELD = "lastCommDate";
+    // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
     private static final String METRICS_HIERARCHY_PREFIX = HBaseStoreFeedServiceImpl.class.getCanonicalName();
     private static final String METRICS_GETBYSTATUS_METHOD = "getUserMatchesByStatusGroup";
+    private static final String METRICS_GETCOUNT_METHOD = "getUserMatchesCount";
+
     @Override
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request) {
         Observable<HBaseStoreFeedResponse> hbaseStoreFeedResponse = Observable.defer(() -> Observable
@@ -70,12 +75,10 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
         long startTime = System.currentTimeMillis();
-        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, 
-                                                                              METRICS_GETBYSTATUS_METHOD, 
-                                                                              matchStatusGroup);
+        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+                METRICS_GETBYSTATUS_METHOD, matchStatusGroup);
         Histogram metricsHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX,
-                                                                             METRICS_GETBYSTATUS_METHOD,
-                                                                             matchStatusGroup);
+                METRICS_GETBYSTATUS_METHOD, matchStatusGroup);
         try {
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
             populateRequestWithQueryParams(request, requestQuery);
@@ -93,8 +96,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             metricsTimer.stop();
             long endTime = System.currentTimeMillis();
             logger.info("HBase response time {} for user {} and statusgroup {}", (endTime - startTime), request
-                           .getMatchFeedQueryContext().getUserId(), request.getMatchStatusGroup() != null ? request
-                           .getMatchStatusGroup().getName() : "NONE");
+                    .getMatchFeedQueryContext().getUserId(), request.getMatchStatusGroup() != null ? request
+                    .getMatchStatusGroup().getName() : "NONE");
         }
         return response;
     }
@@ -125,9 +128,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             return DEFAULT_SORT_BY_FIELD;
         }
         if (matchStatusGroup.equals(MatchStatusGroupEnum.COMMUNICATION)) {
-            //return COMM_SORT_BY_FIELD;
-        	//TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
-        	return DEFAULT_SORT_BY_FIELD;
+            // return COMM_SORT_BY_FIELD;
+            // TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
+            return DEFAULT_SORT_BY_FIELD;
         }
 
         return DEFAULT_SORT_BY_FIELD;
@@ -136,20 +139,61 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
 
-            Integer feedLimit = null;  
+        Integer feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
+                .getMatchStatusGroup());
 
-            if (request.isFallbackRequest()) {
-                feedLimit = matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(request
-                        .getMatchStatusGroup());
-            } else {
-                feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(request
-                        .getMatchStatusGroup());
-            }
-            
         if (feedLimit != null) {
             requestQuery.setStartPage(START_PAGE);
             requestQuery.setPageSize(feedLimit);
         }
     }
 
+    protected Set<Long> getUserMatchesCountByStatus(MatchCountRequestContext request, boolean isRecentNewMatchesRequest) {
+        Long userId = request.getUserId();
+        MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
+        queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
+
+        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+                METRICS_GETCOUNT_METHOD);
+        queryRequest.setMatchStatus(request.getStatus());
+        Set<Long> matchIdSet = null;
+        try {
+            if (isRecentNewMatchesRequest) {
+                matchIdSet = queryRepository.getNewMatchCount(queryRequest);
+            } else {
+                matchIdSet = queryRepository.getMatchCount(queryRequest);
+            }
+        } catch (Exception exp) {
+            logger.warn("Exception while fetching the matches count from HBase store for user {}", userId, exp);
+        } finally {
+            long elapsed = metricsTimer.stop() / 1000000;
+            logger.info("HBase response time {} for user {}", elapsed, userId);
+        }
+        return matchIdSet;
+    }
+
+    @Override
+    public Observable<HBaseStoreCountResponse> getUserMatchesCount(MatchCountRequestContext request) {
+        Observable<HBaseStoreCountResponse> HBaseStoreCountResponse = Observable.defer(() -> {
+            HBaseStoreCountResponse response = new HBaseStoreCountResponse();
+            response.setMatchStatus(request.getStatus());
+            response.setMatchIds(getUserMatchesCountByStatus(request, false));
+            return Observable.just(response);
+        });
+
+        return HBaseStoreCountResponse;
+    }
+
+    @Override
+    public Observable<HBaseStoreCountResponse> getUserNewMatchesCount(MatchCountRequestContext request) {
+        Observable<HBaseStoreCountResponse> HBaseStoreCountResponse = Observable.defer(() -> {
+            HBaseStoreCountResponse response = new HBaseStoreCountResponse();
+            response.setMatchStatus(request.getStatus());
+            response.setRecentNew(true);
+            response.setMatchIds(getUserMatchesCountByStatus(request, true));
+            return Observable.just(response);
+        });
+
+        return HBaseStoreCountResponse;
+    }
 }

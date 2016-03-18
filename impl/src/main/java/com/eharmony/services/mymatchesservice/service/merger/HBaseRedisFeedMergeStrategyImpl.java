@@ -1,7 +1,6 @@
 package com.eharmony.services.mymatchesservice.service.merger;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -99,7 +98,7 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         Set<String> commonIdSet = Sets.intersection(hbaseMatchIdSet, redisMatchIdSet);
         Set<String> suplementryIdSet = Sets.difference(redisMatchIdSet, commonIdSet);
                
-        hbaseMatchIdSet.parallelStream().forEach((matchId) -> {
+        hbaseMatchIdSet.stream().forEach((matchId) -> {
 
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
 
