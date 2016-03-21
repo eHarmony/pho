@@ -49,8 +49,9 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
         if (feedDto != null) {
             feedDto.setTotalMatches(0);
             if (MapUtils.isNotEmpty(feedDto.getMatches())) {
-                //TODO make it +1 so pagination will work
-                feedDto.setTotalMatches(feedDto.getMatches().size() + 1);
+                //TODO doubling the size to make the pagination work on mobile web
+                int size = feedDto.getMatches().size();
+                feedDto.setTotalMatches(size * 2 );
             }
         }
     }
