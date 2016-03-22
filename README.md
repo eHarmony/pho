@@ -1,5 +1,6 @@
 
-# PHO (Phoenix-HBase ORM)
+PHO (Phoenix-HBase ORM)
+=======================
 
 PHO is library for building and executing type safe queries against HBase using Apache Phoenix.
 It provides ORM like mappings and DSL for query building.
@@ -7,7 +8,7 @@ It provides ORM like mappings and DSL for query building.
 PHO Interfaces and generic annotations will allow to switch the data store api in the future without changing the queries.
 At this time, it is only supporting Hbase integration using apache Phoenix, but it's very easy to plugin other implementations if need be.
 
-## Query Building
+# Query Building
 
 Query building can be done in DSL style. More advanced query building is under development but, for now, we will use a combination of the QueryBuilder and the static, Hibernate-style Restrictions methods to construct our queries.
 
