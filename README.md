@@ -8,13 +8,13 @@ It provides ORM like mappings and DSL for query building.
 PHO Interfaces and generic annotations will allow to switch the data store api in the future without changing the queries.
 At this time, it is only supporting Hbase integration using apache Phoenix, but it's very easy to plugin other implementations if need be.
 
-# Query Building
-
-Query building can be done in DSL style. More advanced query building is under development but, for now, we will use a combination of the QueryBuilder and the static, Hibernate-style Restrictions methods to construct our queries.
-
+# Entity Class
 Suppose we have the following TestClass we want to query against in our data store:
 
 ```java
+  //class must be annotated with Entity
+  import com.google.code.morphia.annotations.Embedded;
+  import com.google.code.morphia.annotations.Entity;
   @Entity(value="user_matches")
   public class MatchDataFeedItemDto {
 	  @Embedded
@@ -37,6 +37,10 @@ Suppose we have the following TestClass we want to query against in our data sto
       private int status;
   }
 ```
+
+# Query Building
+
+Query building can be done in DSL style. More advanced query building is under development but, for now, we will use a combination of the QueryBuilder and the static, Hibernate-style Restrictions methods to construct our queries.
 
 ### Simple Queries
 
@@ -83,7 +87,7 @@ Construct a more complex query where not only do we want to find items with a da
 
 *Note:* by default, expressions will be ANDed together when added separately.
 
-### Query Components
+### Query Interface
 The following query components are supported:
 
 ```java
@@ -159,7 +163,7 @@ configuration proeprties
 hbase.connection.url=jdbc:phoenix:zkhost:2181
 
 ```xml
-    
+    <!-- Register your entity bean here -->
     <util:list id="entityPropertiesMappings">
 	    <value>com.eharmony.datastore.model.MatchDataFeedItemDto</value>
 	</util:list>
