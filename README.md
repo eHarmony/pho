@@ -1,4 +1,4 @@
-
+![alt tag](https://github.com/eHarmony/pho/blob/master/pho.png)
 PHO (Phoenix-HBase ORM)
 =======================
 
