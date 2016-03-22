@@ -1,0 +1,558 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>Phoenix HBase ORM API</name>
+	<groupId>com.eharmony.pho</groupId>
+	<artifactId>pho</artifactId>
+	<version>0.1.1-SNAPSHOT</version>
+	<description>API for Apache Phoenix - Hbase Object Relationship mapping library</description>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring.hadoop.version>2.2.0.RELEASE</spring.hadoop.version>
+		<hadoop.version>2.7.1</hadoop.version>
+		<hbase.version>1.1.1.2.3.0.0-2557</hbase.version>
+		<commons.collections.version>3.2</commons.collections.version>
+		<spring.version>4.1.6.RELEASE</spring.version>
+		<slf4j.version>1.7.10</slf4j.version>
+		<log4j.version>1.2.17</log4j.version>
+		<hamcrest.version>1.3</hamcrest.version>
+		<apache-phoenix-version>4.4.0-HBase-1.1-client-minimal</apache-phoenix-version>
+		<junit.version>4.7</junit.version>
+		<junit.version>4.7</junit.version>
+		<protostuff-version>1.0.7-eh-2</protostuff-version>
+		<protobuf-version>2.4.1</protobuf-version>
+		<commons-lang-version>2.4</commons-lang-version>
+		<mockito.version>1.10.19</mockito.version>
+		<google.guave.version>11.0.2</google.guave.version>
+		<commons.beanutils.version>1.9.2</commons.beanutils.version>
+		<htrace-core.version>3.1.0-incubating</htrace-core.version>
+		<joda-time.version>2.7</joda-time.version>
+		<google.code.morphia.version>0.104</google.code.morphia.version>
+		<java-version>1.8</java-version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${google.guave.version}</version>
+			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>jsr305</artifactId>
+					<groupId>com.google.code.findbugs</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>${commons.beanutils.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- HBASE DEPS START -->
+		<dependency>
+			<groupId>org.apache.phoenix</groupId>
+			<artifactId>phoenix</artifactId>
+			<version>${apache-phoenix-version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>slf4j-api</artifactId>
+			<groupId>org.slf4j</groupId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.htrace</groupId>
+			<artifactId>htrace-core</artifactId>
+			<version>${htrace-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>${joda-time.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-client</artifactId>
+			<version>${hbase.version}</version>
+			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jdk.tools</groupId>
+					<artifactId>jdk.tools</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-util</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>findbugs-annotations</artifactId>
+					<groupId>com.github.stephenc.findbugs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hbase-common</artifactId>
+					<groupId>org.apache.hbase</groupId>
+				</exclusion>
+
+				<exclusion>
+					<artifactId>commons-beanutils</artifactId>
+					<groupId>commons-beanutils</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-beanutils-core</artifactId>
+					<groupId>commons-beanutils</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsr305</artifactId>
+					<groupId>com.google.code.findbugs</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-server</artifactId>
+			<version>${hbase.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jetty-sslengine</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-util</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsp-2.1</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsp-api-2.1</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>servlet-api-2.5</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>findbugs-annotations</artifactId>
+					<groupId>com.github.stephenc.findbugs</groupId>
+				</exclusion>
+
+				<exclusion>
+					<artifactId>hadoop-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>protobuf-java</artifactId>
+					<groupId>com.google.protobuf</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>zookeeper</artifactId>
+					<groupId>org.apache.zookeeper</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-annotations</artifactId>
+			<version>${hbase.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>findbugs-annotations</artifactId>
+					<groupId>com.github.stephenc.findbugs</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-common</artifactId>
+			<version>${hbase.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jetty-sslengine</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-util</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsp-2.1</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsp-api-2.1</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>servlet-api-2.5</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>findbugs-annotations</artifactId>
+					<groupId>com.github.stephenc.findbugs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>protobuf-java</artifactId>
+					<groupId>com.google.protobuf</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>zookeeper</artifactId>
+					<groupId>org.apache.zookeeper</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-protocol</artifactId>
+			<version>${hbase.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>findbugs-annotations</artifactId>
+					<groupId>com.github.stephenc.findbugs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>protobuf-java</artifactId>
+					<groupId>com.google.protobuf</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- HBASE DEPS END -->
+
+		<dependency>
+			<groupId>com.google.code.morphia</groupId>
+			<artifactId>morphia</artifactId>
+			<version>${google.code.morphia.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<scm>
+		<connection>scm:git:git@github.corp.eharmony.com:foundation/datastore-api.git</connection>
+		<url>git@github.corp.eharmony.com:foundation/datastore-api.git</url>
+		<developerConnection>scm:git:git@github.corp.eharmony.com:foundation/datastore-api.git</developerConnection>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>internal-releases</id>
+			<name>Internal Releases</name>
+			<url>http://tools03.dc1.eharmony.com:8081/nexus/content/repositories/internal-releases</url>
+			<layout>default</layout>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>internal-snapshots</id>
+			<name>Internal Snapshots</name>
+			<url>http://tools03.dc1.eharmony.com:8081/nexus/content/repositories/internal-snapshots</url>
+			<layout>default</layout>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<show>private</show>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.8</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<build>
+		<plugins>
+
+			<!-- this is to fix a bug in the jetty 9.2.X maven plugin, this can be 
+				removed in 9.3 -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>set-system-properties</goal>
+						</goals>
+						<configuration>
+							<properties>
+								<property>
+									<name>logback.configurationFile</name>
+									<value>${basedir}/jetty/logback.xml</value>
+								</property>
+							</properties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>enforce-ban-version-downgrades</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireUpperBoundDeps />
+							</rules>
+						</configuration>
+					</execution>
+					<execution>
+						<id>enforce-ban-duplicate-classes</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<banDuplicateClasses>
+									<ignoreClasses>
+										<!-- mockito and junit share no issue -->
+										<ignoreClass>org.hamcrest.*</ignoreClass>
+
+										<!-- Objenesis is stored within Mockito-all, which is test scope. -->
+										<ignoreClass>org.objenesis.*</ignoreClass>
+
+										<!--commons-beanutils and commons-collections co-existence problem -->
+										<ignoreClass>org.apache.commons.collections.*</ignoreClass>
+
+										<!-- spring-context, spring-context-support possible issue -->
+										<ignoreClass>org.springframework.cache.ehcache.*</ignoreClass>
+
+										<!-- aspectj no issue -->
+										<ignoreClass>org.aspectj.*</ignoreClass>
+										<ignoreClass>org.w3c.dom.*</ignoreClass>
+										<ignoreClass>org.xml.sax.*</ignoreClass>
+
+										<!-- Java web servce spec interfaces -->
+										<!-- <ignoreClass>javax.ws.*</ignoreClass> -->
+
+										<!-- servlet spec interfaces are shared across implementation libraries -->
+										<ignoreClass>javax.servlet.*</ignoreClass>
+
+										<!-- Possible conflict in future -->
+										<ignoreClass>net.sf.ehcache.*</ignoreClass>
+
+										<!--possible conflict in future -->
+										<ignoreClass>org.springframework.oxm.*</ignoreClass>
+
+										<ignoreClass>org.xmlpull.v1.*</ignoreClass>
+										<ignoreClass>org.objectweb.asm.*</ignoreClass>
+										<ignoreClass>org.junit.*</ignoreClass>
+										<ignoreClass>org.powermock.api.*</ignoreClass>
+										<ignoreClass>org.powermock.modules.*</ignoreClass>
+										<ignoreClass>org.hornetq.api.jms.management.*</ignoreClass>
+
+										<ignoreClass>org.apache.hadoop.yarn.*</ignoreClass>
+										<ignoreClass>org.apache.jasper.*</ignoreClass>
+									</ignoreClasses>
+									<findAllDuplicates>true</findAllDuplicates>
+								</banDuplicateClasses>
+							</rules>
+							<fail>true</fail>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>extra-enforcer-rules</artifactId>
+						<version>1.0-alpha-3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<packaging>jar</packaging>
+							<artifactId>${project.artifactId}</artifactId>
+							<groupId>${project.groupId}</groupId>
+							<version>${project.version}</version>
+							<file>
+								${project.build.directory}/${project.artifactId}-${project.version}.jar
+							</file>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>${java-version}</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>properties-maven-plugin</artifactId>
+										<versionRange>[1.0-alpha-2,)</versionRange>
+										<goals>
+											<goal>set-system-properties</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
+
