@@ -1,4 +1,6 @@
-![alt tag](https://github.com/eHarmony/pho/blob/master/pho.png)
+<p align="center">
+  <img src="pho.png" width="100" hight="100"/>
+</p>
 PHO (Phoenix-HBase ORM)
 =======================
 
