@@ -31,7 +31,6 @@ import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactro
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
-import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.collect.Sets;
@@ -46,9 +45,6 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
 
     @Resource
     private MatchStoreSaveRepository saveRepository;
-
-    @Resource
-    private MatchDataFeedVoldyStore voldemortStore;
 
     @Resource
     private Configuration config;
