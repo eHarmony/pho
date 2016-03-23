@@ -99,10 +99,10 @@
 				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.PhotoUrlEnricher" />
 				<bean id="commNextStepEnricher" 
-					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsEnricher">
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV1Enricher">
 				</bean>
                 <bean id="nextCommunicationActionEnricher" 
-                    class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.NextCommunicationActionEnricher">
+                    class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV2Enricher">
                 </bean>
 				<bean id="commStageEnricher" 
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">

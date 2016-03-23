@@ -25,9 +25,8 @@ public abstract class MatchFeedModel {
        static final String SECTION="section";
        static final String SUB_SECTION="subSection";
        static final String STATUS="status";
-       static final String NEXT_COMMUNICATION_ACTION = "nextCommunicationAction";
        static final String ACTION="action";
-       static final String AREA = "area";
+       static final String STEP = "step";
 
    }
 

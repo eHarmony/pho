@@ -14,16 +14,18 @@ public class MatchFeedQueryContextBuilder {
     private boolean viewHidden;
     private boolean allowedSeePhotos;
     private int teaserResultSize;
+    private boolean useV2CommNextSteps;
 
     // Internal test flags
     private DataServiceStateEnum voldyState;
+
 
     private MatchFeedQueryContextBuilder() {
         
     }
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-                allowedSeePhotos, voldyState, teaserResultSize);
+                allowedSeePhotos, voldyState, teaserResultSize, useV2CommNextSteps);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -36,6 +38,7 @@ public class MatchFeedQueryContextBuilder {
         private final boolean viewHidden;
         private final boolean allowedSeePhotos;
         private final int teaserResultSize;
+        private final boolean useV2CommNextSteps;
 
         private final DataServiceStateEnum voldyState;
 
@@ -85,9 +88,16 @@ public class MatchFeedQueryContextBuilder {
             return teaserResultSize;
         } 
         
+        @Override
+        public boolean isUseV2CommNextSteps() {
+        
+            return useV2CommNextSteps;
+            
+        }
+
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden, 
-                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState, int teaserResultSize) {
+                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState, int teaserResultSize, boolean useV2CommNextSteps) {
 
         	this.userId = userId;
             this.locale = locale;
@@ -97,6 +107,7 @@ public class MatchFeedQueryContextBuilder {
             this.viewHidden = viewHidden;
             this.allowedSeePhotos = allowedSeePhotos;
             this.teaserResultSize = teaserResultSize;
+            this.useV2CommNextSteps = useV2CommNextSteps;
             
             this.voldyState = (voldyState == null ? DataServiceStateEnum.ENABLED : voldyState);
         }
@@ -148,6 +159,11 @@ public class MatchFeedQueryContextBuilder {
 	public MatchFeedQueryContextBuilder setTeaserResultSize(int teaserResultSize) {
 		this.teaserResultSize = teaserResultSize;
 		return this;
+	}
+	
+	public MatchFeedQueryContextBuilder setUseV2CommNextSteps(boolean useV2CommNextSteps) {
+	     this.useV2CommNextSteps = useV2CommNextSteps;
+	     return this;
 	}
 
 }
