@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.communication.MapBackedMatchImpl;
-import com.eharmony.communication.Match;
+import com.eharmony.communication.MatchCommunication;
 import com.eharmony.communication.nextcommunicationaction.NextCommunicationAction;
 import com.eharmony.communication.nextcommunicationaction.NextCommunicationActionService;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
@@ -18,7 +18,10 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
 /**
  * Enriches the match feed with information about the next action suggested to
- * advance communication with this match
+ * advance communication with this match.
+ * 
+ * Version 2 uses enums to represent the data instead of localized strings and URLs.
+ * Localization is being moved to the client side, and URLs are also controlled on the client side.
  * 
  * @author aricheimer
  *
@@ -51,10 +54,10 @@ public class CommNextStepsV2Enricher
         if (commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null 
                 || ((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.MESSAGE)) {
 
-            Match match = new MapBackedMatchImpl(
+            MatchCommunication matchCommunication = new MapBackedMatchImpl(
                     matchMap.get(MatchFeedModel.SECTIONS.MATCH));
             NextCommunicationAction nextCommunicationAction = nextCommunicationActionService
-                    .determineNextCommunicationAction(match);
+                    .determineNextCommunicationAction(matchCommunication);
 
             Map<String, Object> nextCommunicationActionData = new HashMap<String, Object>();
 
