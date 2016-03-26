@@ -7,7 +7,7 @@ PHO (Phoenix-HBase ORM)
 PHO is a library for building and executing queries on HBase using Apache Phoenix.
 It provides ORM-like mappings and DSL-style query building.
 
-Its Interfaces and generic annotations will allows the ability to switch the data store api in the future without changing the queries.
+Its Interfaces and generic annotations allows the ability to switch the data store api in the future without changing the queries.
 Currently, it only supports Hbase integration using Apache Phoenix. However, it's very easy to plugin other implementations if need be.
 
 # Entity Class
