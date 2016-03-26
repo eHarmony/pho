@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="pho.png" width="100" hight="100"/>
+  <img src="pho.png" width="100" height="100"/>
 </p>
 PHO (Phoenix-HBase ORM)
 =======================
 
-PHO is library for building and executing type safe queries against HBase using Apache Phoenix.
-It provides ORM like mappings and DSL for query building.
+PHO is a library for building and executing queries on HBase using Apache Phoenix.
+It provides ORM-like mappings and DSL-style query building.
 
-PHO Interfaces and generic annotations will allow to switch the data store api in the future without changing the queries.
-At this time, it is only supporting Hbase integration using apache Phoenix, but it's very easy to plugin other implementations if need be.
+Its Interfaces and generic annotations will allows the ability to switch the data store api in the future without changing the queries.
+Currently, it only supports Hbase integration using Apache Phoenix. However, it's very easy to plugin other implementations if need be.
 
 # Entity Class
 Suppose we have the following TestClass we want to query against in our data store:
