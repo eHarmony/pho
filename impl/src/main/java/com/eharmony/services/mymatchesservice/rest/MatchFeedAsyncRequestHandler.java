@@ -27,11 +27,9 @@ import rx.schedulers.Schedulers;
 
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
-import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
-import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
@@ -57,7 +55,7 @@ import com.google.common.collect.Lists;
 /**
  * Handles the GetMatches feed async requests.
  * 
- * Feed will be fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+ * Feed will be fetched from redis and hbase store in parallel and merges the data based on merge strategy.
  * 
  * This handler uses safe methods, will return valid results as long as at least one of the stores available and respond
  * with feed on time.
@@ -86,9 +84,6 @@ public class MatchFeedAsyncRequestHandler {
 
     @Resource(name= "getTeaserMatchesFeedFilterChain")
     private MatchFeedTransformerChain  getTeaserMatchesFeedFilterChain;
-    
-    @Resource
-    private RefreshEventSender refreshEventSender;
 
     @Resource
     private MatchStatusGroupResolver matchStatusGroupResolver;
@@ -128,7 +123,7 @@ public class MatchFeedAsyncRequestHandler {
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
-     * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+     * fetched from hbase store in parallel and merges the data based on merge strategy.
      * 
      * This handler uses safe methods, will return valid results as long as at least one of the stores available and
      * respond with feed on time.
@@ -169,7 +164,7 @@ public class MatchFeedAsyncRequestHandler {
 
     /**
      * Teaser Matches will be returned after applying the filters and enriching the data from feed stores. Feed will be
-     * fetched from voldemort store and hbase store in parallel and merges the data based on merge strategy.
+     * fetched from redis and hbase store in parallel and merges the data based on merge strategy.
      * 
      * This handler uses safe methods, will return valid results as long as at least one of the stores available and
      * respond with feed on time.
@@ -211,40 +206,6 @@ public class MatchFeedAsyncRequestHandler {
             asyncResponse.resume("");
         });
     }
-
-
-
-    /*protected Observable<MatchFeedRequestContext> makeMqsRequestObservable_old(final MatchFeedQueryContext matchFeedQueryContext) {
-        MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        FeedMergeStrategyType mergeType;
-        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
-            mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
-        } else {
-            mergeType = FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE;
-        }
-        request.setFeedMergeType(mergeType);
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-        Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = null;
-        
-        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
-            BasicStoreFeedRequestContext basicRequest = new BasicStoreFeedRequestContext(matchFeedQueryContext);
-            Observable<BasicPublicProfileDto> profileObservable = Observable.defer(
-                ()->
-                    Observable.just(profileService.findBasicPublicProfileForUser((int) matchFeedQueryContext.getUserId()))
-            );
-            storeFeedObservable = redisStoreFeedService.getUserMatchesSafe(basicRequest)
-                                                       .zipWith(profileObservable, appendUserLocaleGender);
-        } else {
-            storeFeedObservable = voldemortStore.getMatchesObservableSafe(matchFeedQueryContext);
-        }
-        matchQueryRequestObservable = matchQueryRequestObservable
-                                          .zipWith(storeFeedObservable, populateLegacyMatchesFeed)
-                                          .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
-
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, mergeType, false);
-        return matchQueryRequestObservable;
-    }*/
     
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
@@ -324,35 +285,6 @@ public class MatchFeedAsyncRequestHandler {
         });
     }
 
-    /*private void populateContextWithHBaseMatchesOnVoldeError(MatchFeedRequestContext request) {
-
-        Timer.Context t = GraphiteReportingConfiguration.getRegistry()
-                .timer(getClass().getCanonicalName() + ".getMatchesFromHBaseOnVoldeError").time();
-        long startTime = System.currentTimeMillis();
-        // Should we use meter
-        MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
-        long userId = queryContext.getUserId();
-        request.setFallbackRequest(true);
-        request.setFeedMergeType(FeedMergeStrategyType.HBASE_FEED_ONLY);
-
-        Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
-
-        matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable, queryContext, null);
-
-        try {
-            matchQueryRequestObservable.timeout(hbaseCallbackTimeout, TimeUnit.MILLISECONDS).toBlocking().first();
-        } catch (Throwable ex) {
-            long endTime = System.currentTimeMillis();
-            logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
-                    (endTime - startTime), ex);
-        } finally {
-            t.stop();
-            long endTime = System.currentTimeMillis();
-            logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, (endTime - startTime));
-        }
-        logger.debug("Returning the context after hbase fallback call...");
-
-    }*/
 
     private Observable<MatchFeedRequestContext> chainHBaseFeedRequestsByStatus(
             Observable<MatchFeedRequestContext> matchQueryRequestObservable,
@@ -399,10 +331,10 @@ public class MatchFeedAsyncRequestHandler {
      * 3. Override filter chain in specific implementation.
      */
     private void handleTeaserFeedResponse(MatchFeedRequestContext context) {
-        //executeFallbackIfRequired(context);
-        // convert the hbase feed to voldy feed by using legacy feed transformer and make the hbase feed empty, we
+
+    	// convert the hbase feed to legacy feed format by using legacy feed transformer and make the hbase feed empty, we
         // need to do this here to honor the pagination
-        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeedIfRequired(context);
+        hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
         throwExceptionIfFeedIsNotAvailable(context);
         feedMergeStrategyManager.getMergeStrategy(context).merge(context);
         getTeaserMatchesFeedFilterChain.execute(context);
@@ -412,7 +344,7 @@ public class MatchFeedAsyncRequestHandler {
 
     private void throwExceptionIfFeedIsNotAvailable(MatchFeedRequestContext context) {
         if (context.getLegacyMatchDataFeedDtoWrapper() != null
-                && context.getLegacyMatchDataFeedDtoWrapper().getVoldyMatchesCount() > 0) {
+                && context.getLegacyMatchDataFeedDtoWrapper().getMatchesCount() > 0) {
             // Feed is available, no action required
             return;
         }
@@ -424,48 +356,9 @@ public class MatchFeedAsyncRequestHandler {
             };
         }
         
-        throw new ResourceNotFoundException("Feed not available in voldy and HBase for user " + context.getUserId());
+        throw new ResourceNotFoundException("Feed not available in HBase for user " + context.getUserId());
 
     }
-
-    /*private void executeFallbackIfRequired(MatchFeedRequestContext response) {
-        if (shouldFallbackToHBase(response)) {
-            response.setFallbackRequest(true);
-            populateContextWithHBaseMatchesOnVoldeError(response);
-            // aggregateHBaseFeedItems(response);
-        } else {
-            response.setFallbackRequest(false);
-        }
-    }
-*/
-    // Unit test please
-    /*private boolean shouldFallbackToHBase(MatchFeedRequestContext response) {
-        LegacyMatchDataFeedDtoWrapper legacyFeedWrapper = response.getLegacyMatchDataFeedDtoWrapper();
-        if (legacyFeedWrapper == null) {
-            logger.warn("legacyFeedWrapper must not be null for user {}", response.getUserId());
-            if (response.hasHbaseMatches()) {
-                logger.warn("legacyFeedWrapper is null for user {} and falling back to hbase", response.getUserId());
-                return true;
-            }
-
-            return false;
-        }
-        if (legacyFeedWrapper.getLegacyMatchDataFeedDto() != null
-                && MapUtils.isNotEmpty(legacyFeedWrapper.getLegacyMatchDataFeedDto().getMatches())) {
-            return false;
-        }
-
-        // Voldemort feed is empty but there are matches in Hbase
-        if (response.hasHbaseMatches()) {
-            logger.info(
-                    "There are no matches in voldemrt, but matches exist in HBase for user {} falling back on hbase",
-                    response.getUserId());
-            return true;
-        }
-
-        logger.debug("There are no records in HBase and Voldemort for user {}", response.getUserId());
-        return false;
-    }*/
 
     private ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
@@ -497,11 +390,10 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 
-    // Handler for async feed request from Redis or Voldy
+    // Handler for async feed request from Redis 
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
 
-        logger.debug("Voldemort State flag = {}", request.getMatchFeedQueryContext().getVoldyState());
         if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
             request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
         } else {
@@ -510,20 +402,4 @@ public class MatchFeedAsyncRequestHandler {
         return request;
     };
 	
-    
-    /*private Func2<LegacyMatchDataFeedDtoWrapper,BasicPublicProfileDto, LegacyMatchDataFeedDtoWrapper>  appendUserLocaleGender = (request, profileDto) ->{
-        LegacyMatchDataFeedDto feedDto = request.getLegacyMatchDataFeedDto();
-        if (profileDto == null) {
-            return request;
-        }
-        //Redis doesn't have the feed, create a dummy feed to carry locale and gender.
-        if (feedDto == null) {
-             feedDto = new LegacyMatchDataFeedDto();
-             request.setLegacyMatchDataFeedDto(feedDto);
-        }
-        feedDto.setLocale(profileDto.getLocale());
-        String genderStr = Gender.fromInt(profileDto.getGender()).toString();
-        feedDto.setGender(genderStr);
-        return request;
-    };*/
 }

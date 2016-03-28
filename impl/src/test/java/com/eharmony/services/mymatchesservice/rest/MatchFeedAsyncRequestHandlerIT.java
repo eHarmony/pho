@@ -40,7 +40,6 @@ import com.eharmony.services.mymatchesservice.service.transform.LegacyMatchFeedT
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
-import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.services.profile.client.ProfileServiceClient;
 import com.eharmony.singles.common.profile.BasicPublicProfileDto;
@@ -139,8 +138,6 @@ public class MatchFeedAsyncRequestHandlerIT {
         when(profileSvcClient.findBasicPublicProfileForUser(any()))
             .thenReturn(publicProfile);
 
-		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
-
 		ExecutorServiceProvider executorSP = new ExecutorServiceProvider(1);
 
 		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
@@ -154,14 +151,12 @@ public class MatchFeedAsyncRequestHandlerIT {
             new HBASEToLegacyFeedTransformer());
         Whitebox.setInternalState(handler, "matchStatusGroupResolver",
             new MatchStatusGroupResolver());
-		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
 
         MockAsyncResponse response = new MockAsyncResponse();
         handler.getTeaserMatchesFeed(queryCtx, response, eventContextInfo);
                 
 		verify(redisStore).getUserMatchesSafe(any());		
 		verify(hbaseStore).getUserMatchesByStatusGroupSafe(any());
-		verify(voldemortStore, never()).getMatchesObservableSafe(any());
 
     }
 
@@ -200,13 +195,10 @@ public class MatchFeedAsyncRequestHandlerIT {
 		ctx.setRedisFeed(redisData);
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
-		ctx.setFallbackRequest(false);
 		
         MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
 		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
 		Whitebox.setInternalState(handler, "throttle", throttle);
-
-		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
 
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
         when(redisStore.getUserMatchesSafe(any()))
@@ -243,7 +235,6 @@ public class MatchFeedAsyncRequestHandlerIT {
             new ExecutorServiceProvider(1));
         Whitebox.setInternalState(handler, "matchStatusGroupResolver",
             new MatchStatusGroupResolver());
-		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
 
 		// pull in context for filter chains
     	ApplicationContext context = new ClassPathXmlApplicationContext("data-transformation-context-test.xml");
@@ -290,11 +281,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 		ctx.setRedisFeed(null);
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
-		ctx.setFallbackRequest(false);
 		
         MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
-
-		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
 
 		// redis returns empty data
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
@@ -334,7 +322,6 @@ public class MatchFeedAsyncRequestHandlerIT {
             new ExecutorServiceProvider(1));
         Whitebox.setInternalState(handler, "matchStatusGroupResolver",
             new MatchStatusGroupResolver());
-		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
 
 		// pull in context for filter chains
     	ApplicationContext context = new ClassPathXmlApplicationContext("data-transformation-context-test.xml");
@@ -387,13 +374,10 @@ public class MatchFeedAsyncRequestHandlerIT {
 		ctx.setRedisFeed(redisData);
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
-		ctx.setFallbackRequest(false);
 		
         MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
 		DataServiceThrottleManager throttle = new DataServiceThrottleManager(true, 100, "");
 		Whitebox.setInternalState(handler, "throttle", throttle);
-
-		MatchDataFeedVoldyStore voldemortStore = mock(MatchDataFeedVoldyStore.class);
 
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
         when(redisStore.getUserMatchesSafe(any()))
@@ -430,7 +414,6 @@ public class MatchFeedAsyncRequestHandlerIT {
             new ExecutorServiceProvider(1));
         Whitebox.setInternalState(handler, "matchStatusGroupResolver",
             new MatchStatusGroupResolver());
-		ReflectionTestUtils.setField(handler, "voldemortStore", voldemortStore);
 
 		// pull in context for filter chains
     	ApplicationContext context = new ClassPathXmlApplicationContext("data-transformation-context-test.xml");

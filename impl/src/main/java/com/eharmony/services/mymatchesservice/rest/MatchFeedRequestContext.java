@@ -21,7 +21,6 @@ public class MatchFeedRequestContext {
     private LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper;
     private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
-    private boolean isFallbackRequest;
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
     private LegacyMatchDataFeedDto redisFeed = null;
 
@@ -35,7 +34,6 @@ public class MatchFeedRequestContext {
         this.matchFeedQueryContext = matchFeedRequestContext.getMatchFeedQueryContext();
         this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
         this.feedMergeType = matchFeedRequestContext.getFeedMergeType();
-        this.isFallbackRequest = matchFeedRequestContext.isFallbackRequest();
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
         this.redisFeed = matchFeedRequestContext.getRedisFeed();
     }
@@ -63,14 +61,6 @@ public class MatchFeedRequestContext {
     public LegacyMatchDataFeedDto getRedisFeed() {
 		return redisFeed;
 	}
-
-    public boolean isFallbackRequest() {
-        return isFallbackRequest;
-    }
-
-    public void setFallbackRequest(boolean isFallbackRequest) {
-        this.isFallbackRequest = isFallbackRequest;
-    }
 
     public FeedMergeStrategyType getFeedMergeType() {
         return feedMergeType;
