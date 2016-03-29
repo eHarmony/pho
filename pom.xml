@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.eharmony.services.match-query-service</groupId>
 	<artifactId>match-query-service</artifactId>
-	<version>1.0.27-SNAPSHOT</version>
+	<version>1.0.29-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Match Query Service</name>
 	<description>Provides the API's to manage the user matches feed </description>
@@ -58,6 +58,7 @@
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>
 		<event.library.version>2.2.1</event.library.version>
+		<matchdata.datastore.api.version>0.1.14</matchdata.datastore.api.version>
 		<spring.data.redis.version>1.6.2.RELEASE</spring.data.redis.version>
         <jedis.version>2.8.0</jedis.version>
         <profile.service.version>36</profile.service.version>
@@ -414,6 +415,11 @@
 	                	<artifactId>slf4j-log4j12</artifactId>
 	              	</exclusion>
 	           	</exclusions>
+        	</dependency>
+        	<dependency>
+			    <groupId>com.eharmony.matchdata.datastore</groupId>
+			    <artifactId>matchdata-datastore-api</artifactId>
+			    <version>${matchdata.datastore.api.version}</version>
         	</dependency>
 
             <dependency>

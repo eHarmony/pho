@@ -1,5 +1,7 @@
 package com.eharmony.services.mymatchesservice.store;
 
+import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -10,14 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import rx.Observable;
+
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
-import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFeedDtoSerializer;
 import com.google.common.base.Preconditions;
-import static com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.SECTIONS.MATCH;
-import rx.Observable;
 /**
  * Redis repository to get the delta matches
  * @author gwang
@@ -49,8 +50,8 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         this.matchDataFeedSerializer = matchDataFeedSerializer;
     }
 
-    protected LegacyMatchDataFeedDtoWrapper getUserMatchesSafeFromRedis(BasicStoreFeedRequestContext request) {
-        long userIdLong = request.getMatchFeedQueryContext().getUserId();
+    protected LegacyMatchDataFeedDtoWrapper getUserMatchesSafeFromRedis(long userIdLong) {
+        
         String userid = String.valueOf(userIdLong);
         LegacyMatchDataFeedDtoWrapper response = new LegacyMatchDataFeedDtoWrapper(userIdLong);
         Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_REDIS_SAFE);
@@ -101,8 +102,18 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
 
     }
     
+
     @Override
-    public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(BasicStoreFeedRequestContext request) {
-        return Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(request)));
+    public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(final long userId) {
+        Observable<LegacyMatchDataFeedDtoWrapper> redisDeltaFeed =  Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(userId)));
+        redisDeltaFeed
+        .onErrorReturn(ex -> {
+            log.warn(
+                    "Exception while fetching data from redis for user {} and returning null object for safe method",
+                    userId, ex);
+            return null;
+        });
+        return redisDeltaFeed;
+
     }
 }

@@ -53,7 +53,7 @@ public class MatchFeedRedisStoreTest {
 		Timer.Context timerContext = mock(Timer.Context.class);
 		
 		when(matchQueryMetricsFactroy.getTimerContext(anyString(), anyString())).thenReturn(timerContext);
-		LegacyMatchDataFeedDtoWrapper result = redisStore.getUserMatchesSafeFromRedis(request);
+		LegacyMatchDataFeedDtoWrapper result = redisStore.getUserMatchesSafeFromRedis(userid);
 		assertNotNull(result);
 		assertEquals(Integer.valueOf(1), result.getLegacyMatchDataFeedDto().getTotalMatches());
 		timerContext.close();

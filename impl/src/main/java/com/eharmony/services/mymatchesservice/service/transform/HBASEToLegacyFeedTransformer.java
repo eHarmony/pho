@@ -41,7 +41,7 @@ public class HBASEToLegacyFeedTransformer {
         legacyMatchDataFeedDtoWrapper.setVoldyMatchesCount(matchesCount);
         context.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
         
-        // clear up hbase records
+        // clear up hbase records after transformation
         context.setHbaseFeedItemsByStatusGroup(Maps.newHashMap());
     }
 }

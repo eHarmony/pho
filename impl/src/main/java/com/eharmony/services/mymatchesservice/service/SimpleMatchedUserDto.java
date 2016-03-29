@@ -5,9 +5,6 @@ import java.util.Date;
 
 public class SimpleMatchedUserDto implements Serializable{
     
-    /**
-     * 
-     */
     private static final long serialVersionUID = 2966839896754261974L;
     private String matchId;
     private String matchedUserFirstName;
