@@ -25,13 +25,10 @@ import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.datastore.repository.MatchStoreSaveRepository;
-import com.eharmony.services.mymatchesservice.MergeModeEnum;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
-import com.eharmony.services.mymatchesservice.store.MatchDataFeedVoldyStore;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.google.common.collect.Sets;
@@ -48,16 +45,10 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
     private MatchStoreSaveRepository saveRepository;
 
     @Resource
-    private MatchDataFeedVoldyStore voldemortStore;
-
-    @Resource
     private Configuration config;
     
     @Resource
     private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
-
-    @Value("${feed.mergeMode}")
-    private MergeModeEnum mergeMode;
 
     @Value("${hbase.feed.parallel.fetch.enabled:true}")
     private boolean feedParallelFetchEnabled;
@@ -212,10 +203,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
     private void pupulateRequestWithQueryParams(final MatchFeedRequestContext request,
             final MatchStatusGroupEnum matchStatusGroup, final Set<MatchStatusEnum> matchStuses,
             MatchDataFeedQueryRequest requestQuery) {
-        FeedMergeStrategyType strategy = request.getFeedMergeType();
-        if (strategy != null && strategy == FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE) {
-            requestQuery.setSelectedFields(selectedProfileFields);
-        }
+
         List<Integer> statuses = new ArrayList<Integer>();
         if (CollectionUtils.isNotEmpty(matchStuses)) {
             for (MatchStatusEnum matchStatus : matchStuses) {
@@ -230,11 +218,8 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
     private void pupulateQueryWithLimitParams(final MatchFeedRequestContext request,
             final MatchStatusGroupEnum matchStatusGroup, MatchDataFeedQueryRequest requestQuery) {
         Integer feedLimit = null;
-        if (request.isFallbackRequest()) {
-            feedLimit = matchFeedLimitsByStatusConfiguration.getFallbackFeedLimitForGroup(matchStatusGroup);
-        } else {
-            feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(matchStatusGroup);
-        }
+        feedLimit = matchFeedLimitsByStatusConfiguration.getDefaultFeedLimitForGroup(matchStatusGroup);
+        
         if (feedLimit != null) {
             requestQuery.setStartPage(1);
             requestQuery.setPageSize(feedLimit);
@@ -259,10 +244,6 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
             if (CollectionUtils.isNotEmpty(matchStatuses)) {
                 requestQuery.setMatchStatusFilters(matchStatuses);
             }
-        }
-        FeedMergeStrategyType strategy = request.getFeedMergeType();
-        if (strategy != null && strategy == FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE) {
-            requestQuery.setSelectedFields(selectedProfileFields);
         }
     }
 

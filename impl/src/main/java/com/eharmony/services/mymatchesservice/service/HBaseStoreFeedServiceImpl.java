@@ -23,7 +23,6 @@ import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
@@ -104,12 +103,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
     protected void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
-        FeedMergeStrategyType strategy = request.getFeedMergeType();
-        if (strategy != null && strategy == FeedMergeStrategyType.VOLDY_FEED_WITH_PROFILE_MERGE) {
-            requestQuery.setSelectedFields(selectedProfileFields);
-        } else {
-            requestQuery.setSelectedFields(null);
-        }
+        
         List<Integer> statuses = new ArrayList<Integer>();
         Set<MatchStatusEnum> matchStuses = request.getMatchStatuses();
         if (CollectionUtils.isNotEmpty(matchStuses)) {
