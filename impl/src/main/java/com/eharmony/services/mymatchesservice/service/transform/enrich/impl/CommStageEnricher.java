@@ -37,6 +37,8 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer {
 			matchSection.put(MatchFeedModel.MATCH.STAGE, matchStage );
 			
 		}
+		
+		logger.info("Match Stage is {}", matchStage);
 	
 		CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
 		commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
