@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.store.impl.JsonDataStore;
-import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
@@ -74,7 +73,7 @@ public class MatchDataFeedVoldyStore extends JsonDataStore<LegacyMatchDataFeedDt
             feedWrapper.setError(t);
             feedWrapper.setFeedAvailable(false);
         } finally {
-            timerContext.stop();
+            timerContext.close();
             long endTime = System.currentTimeMillis();
             logger.info("Total time to get the feed from voldy for user {} is {} MS", userId, (endTime - startTime));
         }

@@ -12,7 +12,8 @@ public abstract class AbstractMatchFeedSectionTransformer implements IMatchFeedT
 	
 	Logger logger = LoggerFactory.getLogger(AbstractMatchFeedSectionTransformer.class);
 
-	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
+	@Override
+    public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
 
         if (context == null) {
         	logger.debug("Match feed context is null, returning without processing. Context={}",

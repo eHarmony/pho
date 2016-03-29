@@ -18,6 +18,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -263,6 +264,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 		assertEquals("REDIS_MATCH_FIRSTNAME", oneMatch.get(MatchFeedModel.SECTIONS.MATCH).get(MatchFeedModel.MATCH.FIRST_NAME));
 		assertEquals("REDIS_COMM_CAPTION", oneMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION).get(MatchFeedModel.COMMUNICATION.CAPTION));
 		
+	    ((AbstractApplicationContext)context).close();
+
     }
     
     
@@ -348,6 +351,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 		Map<String, Map<String, Object>> oneMatch = matches.get(MATCHID_FROM_singleMatchWithTimestamp_json);
 		assertNotNull(oneMatch);
 				
+		((AbstractApplicationContext)context).close();
+
     }
     
     
@@ -444,6 +449,8 @@ public class MatchFeedAsyncRequestHandlerIT {
 		Map<String, Map<String, Map<String, Object>>> matches = ctx.getLegacyMatchDataFeedDto().getMatches();
 		Map<String, Map<String, Object>> oneMatch = matches.get(MATCHID_FROM_singleMatchWithTimestamp_json);
 		assertNull(oneMatch);
+		
+		((AbstractApplicationContext)context).close();
 				
     }
 }

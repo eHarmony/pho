@@ -20,18 +20,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
 import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.event.RefreshEventSender;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
-import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
@@ -53,6 +47,11 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.services.profile.client.ProfileServiceClient;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
 import com.google.common.collect.Lists;
+
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests.
@@ -346,7 +345,7 @@ public class MatchFeedAsyncRequestHandler {
             logger.error("Exception while fetching feed from HBase fallback. user {}, duration {}", userId,
                     (endTime - startTime), ex);
         } finally {
-            t.stop();
+            t.close();
             long endTime = System.currentTimeMillis();
             logger.debug("Fetched feed from HBase for fallback. user {}, duration {}", userId, (endTime - startTime));
         }

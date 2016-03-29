@@ -51,11 +51,13 @@ public class UserSortedMatchObjectsListAsyncRequestHandler extends AbstractMatch
         return t;
     }
 
+    @Override
     protected void performFinalTasksHook(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         logger.debug("Match feed created for sorted matches list request for user {}", requestContext.getUserId());
 
     }
 
+    @Override
     protected ResponseBuilder buildResponse(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         if (feedNotFound) {
             // just logging it here for any action to be taken if the need be.

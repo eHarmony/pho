@@ -30,6 +30,7 @@ public class UserTeaserMatchesFeedAsyncRequestHandler extends AbstractMatchesFee
         return t;
     }
 
+    @Override
     protected void performFinalTasksHook(MatchFeedRequestContext requestContext, boolean feedNotFound) {
         logger.debug("Match feed created for teaser user {}", requestContext.getUserId());
         if (!feedNotFound) {

@@ -12,12 +12,14 @@ public class MockScoreServiceClient extends ScoreServiceClient{
 	
 	public MockScoreServiceClient(RestClient restClient,
 			String scoreServiceHost, String scoreServicePort) {
+	    
 		super(restClient, scoreServiceHost, scoreServicePort);
-		// TODO Auto-generated constructor stub
+		
 	}
 	
 
-	public ScoredUserListProto scoreMatches(Long userId, PairingPurposeProto pairingPurpose, PairingsProto pairingsProto) throws MalformedURLException {
+	@Override
+    public ScoredUserListProto scoreMatches(Long userId, PairingPurposeProto pairingPurpose, PairingsProto pairingsProto) throws MalformedURLException {
 		
 		ScoredUserListProto scoredUserList =   ScoredUserListProto.newBuilder().build();
 		return scoredUserList;

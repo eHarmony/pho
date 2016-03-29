@@ -41,6 +41,7 @@ public class ScoreServiceClientIntegrationTest {
 				pairingBuilder.build());
 		System.out.println("Result -> " + result.getScoredUsersList().get(0).getScore());
 		assertFalse(result.getScoredUsersList().get(0).getScore() == 0);
+		rc.close();
 
 	}
 

@@ -15,22 +15,30 @@ import com.eharmony.singles.common.communication.CommDisplayMessageDto;
 import com.eharmony.singles.common.communication.CommDisplayMessageService;
 import com.eharmony.singles.common.communication.CommDisplayMessageTypeEnum;
 
-public class CommNextStepsEnricher extends AbstractMatchFeedTransformer{
+public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer{
 
-	private static final Logger logger = LoggerFactory.getLogger(CommNextStepsEnricher.class);
+	private static final Logger logger = LoggerFactory.getLogger(CommNextStepsV1Enricher.class);
 
 
     @Resource private CommDisplayMessageService commDisplayMessageService;
 
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	protected boolean processMatch(Map<String, Map<String, Object>> match,
 			MatchFeedRequestContext context) {
+	    
+        if(context.isUseV2CommNextSteps()){
+            // Using V2, so this can be skipped
+            return true;
+        }
 
 		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
 		
 		long userId = context.getUserId();
 		
-		if(commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null){
+		// Only add if it does not already exist, or if it contains action, which means this is a V2 Object
+		if(commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null
+		        || ((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.ACTION)){
 
 	        CommDisplayMessageDto message = null;
 

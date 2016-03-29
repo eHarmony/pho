@@ -15,12 +15,7 @@ import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-
 import com.codahale.metrics.Timer;
-import com.eharmony.services.mymatchesservice.service.BasicStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
@@ -33,6 +28,10 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 import com.eharmony.singles.common.util.ResourceNotFoundException;
+
+import rx.Observable;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 
 /**
  * Handles the GetMatches feed async requests. specific implementation has to override the response handler method to

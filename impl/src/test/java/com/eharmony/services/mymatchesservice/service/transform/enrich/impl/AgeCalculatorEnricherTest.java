@@ -1,7 +1,9 @@
 package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.junit.Test;
@@ -42,7 +44,11 @@ public class AgeCalculatorEnricherTest {
 		
 		Map<String, Object> profileSection = 
 				ctx.getLegacyMatchDataFeedDto().getMatches().get("66531610").get(MatchFeedModel.SECTIONS.PROFILE);
-		//TODO FIXME
-		//assertEquals(39, profileSection.get(MatchFeedModel.PROFILE.AGE));
+
+		LocalDate birthdate = LocalDate.of(1977, 3, 7);
+		LocalDate now = LocalDate.now();
+		Long expectedAge = ChronoUnit.YEARS.between(birthdate, now);
+		assertEquals(expectedAge.intValue(), profileSection.get(MatchFeedModel.PROFILE.AGE));
+
 	}
 }

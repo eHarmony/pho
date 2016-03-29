@@ -81,7 +81,8 @@ public class MatchFeedAsyncResource {
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden,
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
             @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
-            @QueryParam("voldyState") DataServiceStateEnum voldyState) {
+            @QueryParam("voldyState") DataServiceStateEnum voldyState,
+            @QueryParam("useV2CommNextSteps") boolean useV2CommNextSteps) {
         validateMatchFeedRequest(statuses, locale);
         
         Set<String> normalizedStatuses = toLowerCase(statuses);
@@ -97,7 +98,9 @@ public class MatchFeedAsyncResource {
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)
                 .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden)
-                .setVoldyState(voldyState).build();
+                .setVoldyState(voldyState)
+                .setUseV2CommNextSteps(useV2CommNextSteps)
+                .build();
 
         log.info("fetching match feed for user ={}", userId);
         userMyMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
@@ -124,6 +127,7 @@ public class MatchFeedAsyncResource {
             @QueryParam("resultSize") Integer resultSize, 
             @HeaderParam("user-agent") String userAgent,
             @HeaderParam(EventConstant.PLATFORM) String platform,
+            @QueryParam("useV2CommNextSteps") boolean useV2CommNextSteps,
             @Suspended final AsyncResponse asyncResponse) {
 
         log.debug("fetching teaser match feed for user ={}", userId);
@@ -153,6 +157,7 @@ public class MatchFeedAsyncResource {
                 .setUserId(userId)
                 .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
                 .setRequestMetadata(eventContextInfo)
+                .setUseV2CommNextSteps(useV2CommNextSteps)
                 .build();
 
         userTeaserMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
@@ -206,6 +211,7 @@ public class MatchFeedAsyncResource {
     @Timed(name="getSimpleMatchedUserList")
     public void getSimpleMatchedUserList(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden, @QueryParam("sortBy") String sortBy,
+            @QueryParam("useV2CommNextSteps") boolean useV2CommNextSteps,
             @Suspended final AsyncResponse asyncResponse) {
         if (CollectionUtils.isEmpty(statuses)) {
             statuses = ALL;
@@ -215,8 +221,9 @@ public class MatchFeedAsyncResource {
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
                 .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
-                .setViewHidden(false).setVoldyState(ENABLED)
+                .setViewHidden(false).setVoldyState(ENABLED).setUseV2CommNextSteps(useV2CommNextSteps)
                 .setSortBy(sortBy).build();
+
 
         log.info("fetching matched users for user ={}", userId);
         userSortedMatchObjectsListAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);

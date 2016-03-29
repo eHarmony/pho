@@ -93,7 +93,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                     queryContext.getUserId(), request.getMatchStatusGroup(), e);
             response.setError(e);
         } finally {
-            metricsTimer.stop();
+            metricsTimer.close();
             long endTime = System.currentTimeMillis();
             logger.info("HBase response time {} for user {} and statusgroup {}", (endTime - startTime), request
                     .getMatchFeedQueryContext().getUserId(), request.getMatchStatusGroup() != null ? request

@@ -127,11 +127,6 @@ public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
         Date targetTs = new Date((Long) targetMatchSection.get(TIMESTAMP_NAME));
         Date deltaTs = new Date((Long) deltaMatchSection.get(TIMESTAMP_NAME));
 
-        if (targetTs == null || deltaTs == null) {
-            log.warn("match {} missing one or more timestamps: target {}, delta {}.", matchId, targetTs, deltaTs);
-            return;
-        }
-
         if (deltaTs.after(targetTs)) {
             targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
             targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,

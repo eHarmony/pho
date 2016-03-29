@@ -79,6 +79,7 @@
 	<import resource="data-transformation-context.xml"/>
 	<context:annotation-config />
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
+    <context:component-scan base-package="com.eharmony.communication" />
 
 
 	<!-- events section -->

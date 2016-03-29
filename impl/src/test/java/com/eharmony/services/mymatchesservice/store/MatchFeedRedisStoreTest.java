@@ -26,7 +26,8 @@ import com.eharmony.services.mymatchesservice.store.serializer.LegacyMatchDataFe
 public class MatchFeedRedisStoreTest {
 	MatchFeedRedisStore redisStore;
 
-	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
 	public void testGetUserMatchesSafeFromRedis() throws Exception {
 		long userid = 1234l;
 		MatchFeedQueryContext context = MatchFeedQueryContextBuilder.newInstance().setUserId(userid).build();
@@ -55,6 +56,7 @@ public class MatchFeedRedisStoreTest {
 		LegacyMatchDataFeedDtoWrapper result = redisStore.getUserMatchesSafeFromRedis(userid);
 		assertNotNull(result);
 		assertEquals(Integer.valueOf(1), result.getLegacyMatchDataFeedDto().getTotalMatches());
+		timerContext.close();
 	}
 
 }
