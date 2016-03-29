@@ -29,7 +29,6 @@ import com.codahale.metrics.Timer;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
-import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
@@ -39,8 +38,7 @@ import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserComparatorSelector;
 import com.eharmony.services.mymatchesservice.service.SimpleMatchedUserDto;
 import com.eharmony.services.mymatchesservice.service.UserMatchesHBaseStoreFeedService;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
+import com.eharmony.services.mymatchesservice.service.merger.HBaseRedisFeedMerger;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MapToMatchedUserDtoTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain;
@@ -113,13 +111,10 @@ public class MatchFeedAsyncRequestHandler {
     private int hbaseCallbackTimeout;
     
     @Resource
-    private FeedMergeStrategyManager feedMergeStrategyManager;
+    private HBaseRedisFeedMerger hbaseRedisFeedMerger;
     
     @Resource
     private ProfileServiceClient profileService;
-    
-    @Resource
-    private DataServiceThrottleManager throttle;
 
     /**
      * Matches feed will be returned after applying the filters and enriching the data from feed stores. Feed will be
@@ -209,8 +204,6 @@ public class MatchFeedAsyncRequestHandler {
     
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        FeedMergeStrategyType mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
-        request.setFeedMergeType(mergeType);
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         Observable<LegacyMatchDataFeedDtoWrapper> storeFeedObservable = redisStoreFeedService.getUserMatchesSafe(matchFeedQueryContext.getUserId());
         
@@ -219,7 +212,7 @@ public class MatchFeedAsyncRequestHandler {
                                           .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, mergeType);
+                matchFeedQueryContext);
         return matchQueryRequestObservable;
     }
     
@@ -288,7 +281,7 @@ public class MatchFeedAsyncRequestHandler {
 
     private Observable<MatchFeedRequestContext> chainHBaseFeedRequestsByStatus(
             Observable<MatchFeedRequestContext> matchQueryRequestObservable,
-            final MatchFeedQueryContext matchFeedQueryContext, final FeedMergeStrategyType feedMergeType) {
+            final MatchFeedQueryContext matchFeedQueryContext) {
 
         Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> requestedMatchStatusGroups = matchStatusGroupResolver
                 .buildMatchesStatusGroups(matchFeedQueryContext.getUserId(), matchFeedQueryContext.getStatuses());
@@ -304,7 +297,6 @@ public class MatchFeedAsyncRequestHandler {
             logger.debug("create observable to fetch matches for group {} and user {}", entry.getKey(),
                     matchFeedQueryContext.getUserId());
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
-            requestContext.setFeedMergeType(feedMergeType);
             requestContext.setMatchStatuses(entry.getValue());
             requestContext.setMatchStatusGroup(entry.getKey());
             matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
@@ -319,7 +311,7 @@ public class MatchFeedAsyncRequestHandler {
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
         throwExceptionIfFeedIsNotAvailable(context);
         // Merge to obtain final state of matches BEFORE filtering.
-        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
+       hbaseRedisFeedMerger.merge(context);
         getMatchesFeedFilterChain.execute(context);        
         getMatchesFeedEnricherChain.execute(context);
     }
@@ -336,7 +328,7 @@ public class MatchFeedAsyncRequestHandler {
         // need to do this here to honor the pagination
         hbaseToLegacyFeedTransformer.transformHBASEFeedToLegacyFeed(context);
         throwExceptionIfFeedIsNotAvailable(context);
-        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
+        hbaseRedisFeedMerger.merge(context);
         getTeaserMatchesFeedFilterChain.execute(context);
         getMatchesFeedEnricherChain.execute(context);
     }
@@ -394,11 +386,8 @@ public class MatchFeedAsyncRequestHandler {
     private Func2<MatchFeedRequestContext, LegacyMatchDataFeedDtoWrapper, MatchFeedRequestContext> populateLegacyMatchesFeed = (
             request, legacyMatchDataFeedDtoWrapper) -> {
 
-        if (throttle.isRedisSamplingEnabled(request.getMatchFeedQueryContext().getUserId())) {
-            request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
-        } else {
-            request.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
-        }
+        request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());
+        
         return request;
     };
 	

@@ -4,7 +4,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.collections.MapUtils;
 
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyManager;
+import com.eharmony.services.mymatchesservice.service.merger.HBaseRedisFeedMerger;
 import com.eharmony.services.mymatchesservice.service.transform.HBASEToLegacyFeedTransformer;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
@@ -18,9 +18,9 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
 
     @Resource
     private HBASEToLegacyFeedTransformer hbaseToLegacyFeedTransformer;
-
-    @Resource
-    private FeedMergeStrategyManager feedMergeStrategyManager;
+    
+    @Resource(name="HBaseRedisFeedMerger")
+    public HBaseRedisFeedMerger hbaseRedisFeedMerger;
 
     /**
      * Processes the match feed response by applying the transformations, filters and enriching the content
@@ -74,7 +74,7 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
      * 
      */
     protected void mergeHbaseFeedWithRedisDelta(MatchFeedRequestContext context) {
-        feedMergeStrategyManager.getMergeStrategy(context).merge(context);
+    	hbaseRedisFeedMerger.merge(context);
     }
 
     protected abstract void filterResults(MatchFeedRequestContext context);

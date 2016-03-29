@@ -13,7 +13,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import rx.Observable;
 
-import com.eharmony.services.mymatchesservice.rest.internal.DataServiceThrottleManager;
 import com.eharmony.services.mymatchesservice.service.ExecutorServiceProvider;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
