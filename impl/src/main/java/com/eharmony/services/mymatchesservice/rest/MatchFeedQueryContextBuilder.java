@@ -3,8 +3,6 @@ package com.eharmony.services.mymatchesservice.rest;
 import java.util.Map;
 import java.util.Set;
 
-import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
-
 public class MatchFeedQueryContextBuilder {
 
     private long userId;
@@ -19,8 +17,6 @@ public class MatchFeedQueryContextBuilder {
     private Map<String, String> requestMetadata;
     private String sortBy;
 
-    // Internal test flags
-    private DataServiceStateEnum voldyState;
 
 
     private MatchFeedQueryContextBuilder() {
@@ -29,8 +25,7 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-
-                allowedSeePhotos, voldyState, teaserResultSize, requestMetadata, sortBy, useV2CommNextSteps);
+        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, useV2CommNextSteps);
 
     }
 
@@ -48,12 +43,6 @@ public class MatchFeedQueryContextBuilder {
         private final Map<String, String> requestMetadata;
         private final String sortBy;
 
-        private final DataServiceStateEnum voldyState;
-
-        @Override
-        public DataServiceStateEnum getVoldyState() {
-            return voldyState;
-        }
 
         @Override
         public long getUserId() {
@@ -105,8 +94,9 @@ public class MatchFeedQueryContextBuilder {
 
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
-                final boolean allowedSeePhotos, final DataServiceStateEnum voldyState, int teaserResultSize,
+                final boolean allowedSeePhotos, int teaserResultSize,
                 final Map<String, String> requestMetadata, final String sortBy, boolean useV2CommNextSteps) {
+
 
             this.userId = userId;
             this.locale = locale;
@@ -120,7 +110,6 @@ public class MatchFeedQueryContextBuilder {
             this.requestMetadata = requestMetadata;
             this.sortBy = sortBy;
 
-            this.voldyState = (voldyState == null ? DataServiceStateEnum.ENABLED : voldyState);
         }
 
         @Override
@@ -175,11 +164,6 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContextBuilder setUseV2CommNextSteps(boolean useV2CommNextSteps) {
         this.useV2CommNextSteps = useV2CommNextSteps;
-        return this;
-    }
-
-    public MatchFeedQueryContextBuilder setVoldyState(DataServiceStateEnum voldyState) {
-        this.voldyState = voldyState;
         return this;
     }
 

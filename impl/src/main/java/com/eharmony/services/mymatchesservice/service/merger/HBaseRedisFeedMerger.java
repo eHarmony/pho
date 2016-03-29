@@ -14,14 +14,14 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.google.common.collect.Sets;
-@Component("HBaseRedisFeedMergeStrategy")
-public class HBaseRedisFeedMergeStrategyImpl implements FeedMergeStrategy {
+@Component("HBaseRedisFeedMerger")
+public class HBaseRedisFeedMerger {
+	
     public static final String TIMESTAMP_NAME = "lastModifiedDate";
 
 
-    private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMergeStrategyImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMerger.class);
 
-    @Override
     public void merge(MatchFeedRequestContext request) {
 
         LegacyMatchDataFeedDto hbaseFeed = request.getLegacyMatchDataFeedDto();
