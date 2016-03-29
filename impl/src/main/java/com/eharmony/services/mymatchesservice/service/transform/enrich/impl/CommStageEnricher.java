@@ -13,11 +13,14 @@ import com.eharmony.services.mymatchesservice.service.CommunicationStage;
 import com.eharmony.services.mymatchesservice.service.CommunicationStageResolver;
 import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
+import com.eharmony.singles.common.status.MatchStatus;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
-public class CommStageEncricher extends AbstractMatchFeedTransformer {
+public class CommStageEnricher extends AbstractMatchFeedTransformer {
 
-	private static final Logger logger = LoggerFactory.getLogger(CommStageEncricher.class);
+	private static final Integer DEFAULT_MATCH_STAGE = 0;
+	
+	private static final Logger logger = LoggerFactory.getLogger(CommStageEnricher.class);
 	@Resource
 	private CommunicationStageResolver commStageResolver;
 
@@ -28,15 +31,21 @@ public class CommStageEncricher extends AbstractMatchFeedTransformer {
 		Map<String, Object> matchSection = match.get(MatchFeedModel.SECTIONS.MATCH);
 		long userId = context.getUserId();
 		Object matchStage = matchSection.get(MatchFeedModel.MATCH.STAGE);
-		if (matchStage != null) {
-			CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
-			commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
-			commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
-			commSection.put(MatchFeedModel.COMMUNICATION.STATUS, getTurnOwner(match, commStage));
-			logger.debug("Enriched comm section={} , subSection={} , status={} for userId={}", commStage.getSectionId(),
-					commStage.getSubSectionId(), commSection.get(MatchFeedModel.COMMUNICATION.STATUS), userId);
-
+		if(matchStage == null){
+			
+			matchStage = DEFAULT_MATCH_STAGE;
+			matchSection.put(MatchFeedModel.MATCH.STAGE, matchStage );
+			
 		}
+	
+		CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
+		commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
+		commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
+		commSection.put(MatchFeedModel.COMMUNICATION.STATUS, getTurnOwner(match, commStage));
+		logger.debug("Enriched comm section={} , subSection={} , status={} for userId={}", commStage.getSectionId(),
+				commStage.getSubSectionId(), commSection.get(MatchFeedModel.COMMUNICATION.STATUS), userId);
+
+
 		return true;
 	}
 
