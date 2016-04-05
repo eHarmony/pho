@@ -39,27 +39,22 @@ public class CommNextStepsV2Enricher
     @Override
     protected boolean processMatch(Map<String, Map<String, Object>> matchMap,
             MatchFeedRequestContext context) {
-        
-        if(!context.isUseV2CommNextSteps()){
-            // Using V1, so this can be skipped
-            return true;
-        }
 
         Map<String, Object> commSection = matchMap
                 .get(MatchFeedModel.SECTIONS.COMMUNICATION);
 
         long userId = context.getUserId();
 
-        // Only add if it does not already exist, or if it contains action, which means this is a V1 Object
+        // Only add if it does not already exist, or if it does not contain action, which means this enricher has not processed it yet
         if (commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null 
-                || ((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.MESSAGE)) {
+                || !((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.ACTION)) {
 
             MatchCommunication matchCommunication = new MapBackedMatchImpl(
                     matchMap.get(MatchFeedModel.SECTIONS.MATCH));
             NextCommunicationAction nextCommunicationAction = nextCommunicationActionService
                     .determineNextCommunicationAction(matchCommunication);
 
-            Map<String, Object> nextCommunicationActionData = new HashMap<String, Object>();
+            Map<String, Object> nextCommunicationActionData = commSection.containsKey(MatchFeedModel.COMMUNICATION.NEXT_STEP) ? (HashMap<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) : new HashMap<String, Object>();
 
             nextCommunicationActionData.put(MatchFeedModel.COMMUNICATION.ACTION,
                     nextCommunicationAction.getAction());
