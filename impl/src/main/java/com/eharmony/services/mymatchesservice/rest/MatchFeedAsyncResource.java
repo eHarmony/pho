@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.MatrixParam;
@@ -149,6 +150,7 @@ public class MatchFeedAsyncResource {
                 .setUserId(userId)
                 .setTeaserResultSize(resultSize)        // This is the number of results to be returned back to the client/user.
                 .setRequestMetadata(eventContextInfo)
+                .setExcludeClosedMatches(true)		// Always exclude closed matches from Teaser result
                 .build();
 
         userTeaserMatchesFeedAsyncRequestHandler.getMatchesFeed(requestContext, asyncResponse);
@@ -202,6 +204,7 @@ public class MatchFeedAsyncResource {
     @Timed(name="getSimpleMatchedUserList")
     public void getSimpleMatchedUserList(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden, @QueryParam("sortBy") String sortBy,
+            @DefaultValue("false") @QueryParam("excludeClosed") boolean excludeClosedMatches,
             @Suspended final AsyncResponse asyncResponse) {
         if (CollectionUtils.isEmpty(statuses)) {
             statuses = ALL;
@@ -212,6 +215,7 @@ public class MatchFeedAsyncResource {
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
                 .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
                 .setViewHidden(false)
+                .setExcludeClosedMatches(excludeClosedMatches)
                 .setSortBy(sortBy).build();
 
         log.info("fetching matched users for user ={}", userId);

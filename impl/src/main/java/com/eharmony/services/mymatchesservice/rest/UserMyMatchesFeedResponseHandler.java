@@ -19,7 +19,7 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
     @Resource(name = "getMatchesFeedEnricherChain")
     private MatchFeedTransformerChain getMatchesFeedEnricherChain;
 
-    @Resource(name = "getMatchesFeedFilterChain")
+    @Resource(name = "getUserSortedMatchesFilterChain")
     private MatchFeedTransformerChain userMyMatchesFeedFilterChain;
 
     @Override
