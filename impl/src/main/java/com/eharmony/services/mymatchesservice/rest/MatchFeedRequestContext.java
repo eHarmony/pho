@@ -26,13 +26,11 @@ public class MatchFeedRequestContext {
      * Whether we should the new version of comm next steps which does not contain localized text
      */
     private boolean useV2CommNextSteps = false;
-    private boolean excludeClosedMatches = false;
 
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
         this.useV2CommNextSteps = matchFeedQueryContext.isUseV2CommNextSteps();
-        this.excludeClosedMatches = matchFeedQueryContext.isExcludeClosedMatches();
     }
 
     public MatchFeedRequestContext(final MatchFeedRequestContext matchFeedRequestContext) {
@@ -42,7 +40,6 @@ public class MatchFeedRequestContext {
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
         this.redisFeed = matchFeedRequestContext.getRedisFeed();
         this.useV2CommNextSteps = matchFeedRequestContext.isUseV2CommNextSteps();
-        this.excludeClosedMatches = matchFeedRequestContext.isExcludeClosedMatches();
     }
 
 	public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
@@ -127,11 +124,4 @@ public class MatchFeedRequestContext {
         this.useV2CommNextSteps = useV2CommNextSteps;
     }
     
-	public boolean isExcludeClosedMatches() {
-		return excludeClosedMatches;
-	}
-
-	public void setExcludeClosedMatches(boolean excludeClosedMatches) {
-		this.excludeClosedMatches = excludeClosedMatches;
-	}
 }

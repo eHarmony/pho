@@ -27,11 +27,6 @@ public class OpenMatchFilter extends AbstractMatchFilter {
 	@Override
 	protected boolean processMatchSection(Map<String, Object> matchSection, MatchFeedRequestContext context) {
 
-		if (!context.isExcludeClosedMatches()) {
-			// Don't filter closed matches.
-			return true;
-		}
-		
 		// Verify the status of the match.
 		Object closedStatusObj = matchSection.get(MatchFeedModel.MATCH.CLOSED_STATUS);
 

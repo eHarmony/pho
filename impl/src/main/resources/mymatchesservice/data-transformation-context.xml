@@ -67,25 +67,6 @@
 		</constructor-arg>
 	</bean>
 	
-	
-	<bean id="getUserSortedMatchesFilterChain"
-		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
-		<constructor-arg>
-			<util:list>
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.OpenMatchFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchStatusFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" />
-			</util:list>
-		</constructor-arg>
-	</bean>
-	
 	<bean id="getTeaserMatchesFeedFilterChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
 		<constructor-arg>

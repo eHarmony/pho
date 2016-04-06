@@ -24,5 +24,4 @@ public interface MatchFeedQueryContext {
     public Map<String, String> getRequestMetadata();
     
     public String getSortBy();
-	public boolean isExcludeClosedMatches();
 }
