@@ -12,8 +12,6 @@
  */
 package com.eharmony.services.mymatchesservice.rest;
 
-import static com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum.ENABLED;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -43,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
 import com.eharmony.services.mymatchesservice.event.EventConstant;
-import com.eharmony.services.mymatchesservice.rest.internal.DataServiceStateEnum;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.singles.common.status.MatchStatus;
 import com.google.common.collect.ImmutableSet;
@@ -80,8 +77,8 @@ public class MatchFeedAsyncResource {
     public void getMatches(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden,
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
-            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse, 
-            @QueryParam("voldyState") DataServiceStateEnum voldyState) {
+            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse){
+
         validateMatchFeedRequest(statuses, locale);
         
         Set<String> normalizedStatuses = toLowerCase(statuses);
@@ -97,7 +94,6 @@ public class MatchFeedAsyncResource {
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)
                 .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden)
-                .setVoldyState(voldyState)
                 .build();
 
         log.info("fetching match feed for user ={}", userId);
@@ -216,7 +212,7 @@ public class MatchFeedAsyncResource {
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance().setAllowedSeePhotos(true)
                 .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
-                .setViewHidden(false).setVoldyState(ENABLED)
+                .setViewHidden(false)
                 .setSortBy(sortBy).build();
 
 

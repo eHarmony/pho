@@ -22,7 +22,6 @@ import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedResponse;
 import com.eharmony.services.mymatchesservice.service.HBaseStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.MatchStatusGroupResolver;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
@@ -129,8 +128,6 @@ public abstract class AbstractMatchesFeedAsyncRequestHandler implements MatchesF
     protected Observable<MatchFeedRequestContext> makeMqsRequestObservable(
             final MatchFeedQueryContext matchFeedQueryContext) {
         MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
-        FeedMergeStrategyType mergeType = FeedMergeStrategyType.HBASE_FEED_WITH_MATCH_MERGE;
-        request.setFeedMergeType(mergeType);
         Observable<MatchFeedRequestContext> matchQueryRequestObservable = Observable.just(request);
         Observable<LegacyMatchDataFeedDtoWrapper> redisStoreFeedObservable = redisStoreFeedService
                 .getUserMatchesSafe(matchFeedQueryContext.getUserId());
@@ -139,13 +136,13 @@ public abstract class AbstractMatchesFeedAsyncRequestHandler implements MatchesF
                 populateRediesStoreMatchesFeed).subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
-                matchFeedQueryContext, mergeType);
+                matchFeedQueryContext);
         return matchQueryRequestObservable;
     }
 
     private Observable<MatchFeedRequestContext> chainHBaseFeedRequestsByStatus(
             Observable<MatchFeedRequestContext> matchQueryRequestObservable,
-            final MatchFeedQueryContext matchFeedQueryContext, final FeedMergeStrategyType feedMergeType) {
+            final MatchFeedQueryContext matchFeedQueryContext) {
 
         Map<MatchStatusGroupEnum, Set<MatchStatusEnum>> requestedMatchStatusGroups = matchStatusGroupResolver
                 .buildMatchesStatusGroups(matchFeedQueryContext.getUserId(), matchFeedQueryContext.getStatuses());
@@ -161,7 +158,6 @@ public abstract class AbstractMatchesFeedAsyncRequestHandler implements MatchesF
             logger.debug("create observable to fetch matches for group {} and user {}", entry.getKey(),
                     matchFeedQueryContext.getUserId());
             HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
-            requestContext.setFeedMergeType(feedMergeType);
             requestContext.setMatchStatuses(entry.getValue());
             requestContext.setMatchStatusGroup(entry.getKey());
             matchQueryRequestObservable = matchQueryRequestObservable.zipWith(

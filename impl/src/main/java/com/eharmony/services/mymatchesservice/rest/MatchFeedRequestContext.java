@@ -10,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
-import com.eharmony.services.mymatchesservice.service.merger.FeedMergeStrategyType;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
@@ -19,9 +18,7 @@ import com.google.common.base.Preconditions;
 public class MatchFeedRequestContext {
 
     private LegacyMatchDataFeedDtoWrapper legacyMatchDataFeedDtoWrapper;
-    private FeedMergeStrategyType feedMergeType;
     final MatchFeedQueryContext matchFeedQueryContext;
-    private boolean isFallbackRequest;
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
     private LegacyMatchDataFeedDto redisFeed = null;
 
@@ -34,8 +31,6 @@ public class MatchFeedRequestContext {
         Preconditions.checkNotNull(matchFeedRequestContext, "matchFeedRequestContext must not be null");
         this.matchFeedQueryContext = matchFeedRequestContext.getMatchFeedQueryContext();
         this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
-        this.feedMergeType = matchFeedRequestContext.getFeedMergeType();
-        this.isFallbackRequest = matchFeedRequestContext.isFallbackRequest();
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
         this.redisFeed = matchFeedRequestContext.getRedisFeed();
     }
@@ -63,22 +58,6 @@ public class MatchFeedRequestContext {
     public LegacyMatchDataFeedDto getRedisFeed() {
 		return redisFeed;
 	}
-
-    public boolean isFallbackRequest() {
-        return isFallbackRequest;
-    }
-
-    public void setFallbackRequest(boolean isFallbackRequest) {
-        this.isFallbackRequest = isFallbackRequest;
-    }
-
-    public FeedMergeStrategyType getFeedMergeType() {
-        return feedMergeType;
-    }
-
-    public void setFeedMergeType(FeedMergeStrategyType feedMergeType) {
-        this.feedMergeType = feedMergeType;
-    }
 
     public MatchFeedQueryContext getMatchFeedQueryContext() {
         return matchFeedQueryContext;

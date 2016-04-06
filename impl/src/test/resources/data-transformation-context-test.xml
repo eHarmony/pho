@@ -107,7 +107,7 @@
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV1Enricher">
 				</bean>
 				<bean id="commStageEnricher" 
-					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEncricher">
+					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEnricher">
 				</bean>	
 				<bean id="profileFieldsReadRemover"
 					class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.FieldSelectorEnricher">

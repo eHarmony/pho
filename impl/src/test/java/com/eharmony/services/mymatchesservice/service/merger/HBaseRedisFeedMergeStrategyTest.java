@@ -19,7 +19,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 	public void testMerge_SameTime() throws Exception {
 		LegacyMatchDataFeedDto match = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
 		String matchId = "66531610";
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 		Map<String, Map<String, Object>> oneMatch = match.getMatches().get(matchId);
 		long oldModifiedDate = (Long) oneMatch.get(MatchFeedModel.SECTIONS.MATCH).get("lastModifiedDate");
@@ -34,7 +34,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		LegacyMatchDataFeedDto match2 = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
 		String matchId = "66531610";
 
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 		Map<String, Map<String, Object>> target = match.getMatches().get(matchId);
 		target.get(MatchFeedModel.SECTIONS.MATCH).put(MatchFeedModel.MATCH.LAST_MODIFIED_DATE,
@@ -54,7 +54,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		LegacyMatchDataFeedDto match2 = MatchTestUtils.getTestFeed("json/singleMatchWithTimestamp.json");
 		String matchId = "66531610";
 
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 		Map<String, Map<String, Object>> target = match.getMatches().get(matchId);
 		Map<String, Map<String, Object>> delta = match2.getMatches().get(matchId);
@@ -80,7 +80,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		feedWrapper.setLegacyMatchDataFeedDto(match);
 		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
 		request.setRedisFeed(match2);
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
 		merger.merge(request);
@@ -99,7 +99,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		feedWrapper.setLegacyMatchDataFeedDto(match);
 		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
 		request.setRedisFeed(match2);
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
 		merger.merge(request);
@@ -118,7 +118,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		feedWrapper.setLegacyMatchDataFeedDto(match);
 		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
 		request.setRedisFeed(match2);
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
 		merger.merge(request);
@@ -141,7 +141,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 		match2.getMatches().get("66531610").get("match").put("stage", 6);
 
 		match2.getMatches().get("66531610").get("match").put("lastModifiedDate", 1106200000000L);
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
 		merger.merge(request);
@@ -167,7 +167,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 
 		match2.getMatches().put("66531611", matchesMap);
 		match2.getMatches().remove("66531610");
-		HBaseRedisFeedMergeStrategyImpl merger = new HBaseRedisFeedMergeStrategyImpl();
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
 		merger.merge(request);
