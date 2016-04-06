@@ -22,9 +22,15 @@ public class MatchFeedRequestContext {
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
     private LegacyMatchDataFeedDto redisFeed = null;
 
+    private boolean excludeClosedMatches = false;
+
+
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
+        
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
+        this.excludeClosedMatches = matchFeedQueryContext.isExcludeClosedMatches();
+
     }
 
     public MatchFeedRequestContext(final MatchFeedRequestContext matchFeedRequestContext) {
@@ -33,6 +39,7 @@ public class MatchFeedRequestContext {
         this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
         this.redisFeed = matchFeedRequestContext.getRedisFeed();
+        this.excludeClosedMatches = matchFeedRequestContext.isExcludeClosedMatches();
     }
 
 	public Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> getHbaseFeedItemsByStatusGroup() {
@@ -107,4 +114,11 @@ public class MatchFeedRequestContext {
         return storeFeedItems;
     }
     
+	public boolean isExcludeClosedMatches() {
+		return excludeClosedMatches;
+	}
+
+	public void setExcludeClosedMatches(boolean excludeClosedMatches) {
+		this.excludeClosedMatches = excludeClosedMatches;
+	}
 }

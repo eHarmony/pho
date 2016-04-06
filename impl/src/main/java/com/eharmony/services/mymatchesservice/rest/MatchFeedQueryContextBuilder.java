@@ -15,6 +15,7 @@ public class MatchFeedQueryContextBuilder {
     private int teaserResultSize;
     private Map<String, String> requestMetadata;
     private String sortBy;
+    private boolean excludeClosedMatches;
 
 
 
@@ -24,7 +25,7 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy);
+        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches);
 
     }
 
@@ -40,7 +41,7 @@ public class MatchFeedQueryContextBuilder {
         private final int teaserResultSize;
         private final Map<String, String> requestMetadata;
         private final String sortBy;
-
+        private final boolean excludeClosedMatches;
 
         @Override
         public long getUserId() {
@@ -81,12 +82,13 @@ public class MatchFeedQueryContextBuilder {
         public int getTeaserResultSize() {
             return teaserResultSize;
         }
+        
+        
 
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
-                final Map<String, String> requestMetadata, final String sortBy) {
-
+                final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches) {
 
             this.userId = userId;
             this.locale = locale;
@@ -98,6 +100,7 @@ public class MatchFeedQueryContextBuilder {
             this.teaserResultSize = teaserResultSize;
             this.requestMetadata = requestMetadata;
             this.sortBy = sortBy;
+            this.excludeClosedMatches = excludeClosedMatches;
 
         }
 
@@ -110,6 +113,11 @@ public class MatchFeedQueryContextBuilder {
         public String getSortBy() {
             return sortBy;
         }
+
+        @Override
+		public boolean isExcludeClosedMatches() {
+			return excludeClosedMatches;
+		}
     }
 
     public static MatchFeedQueryContextBuilder newInstance() {
@@ -165,6 +173,11 @@ public class MatchFeedQueryContextBuilder {
         this.sortBy = sortBy;
         return this;
     }
+    
+	public MatchFeedQueryContextBuilder setExcludeClosedMatches(boolean excludeClosedMatches) {
+		this.excludeClosedMatches = excludeClosedMatches;
+		return this;
+	}
 
 
 }
