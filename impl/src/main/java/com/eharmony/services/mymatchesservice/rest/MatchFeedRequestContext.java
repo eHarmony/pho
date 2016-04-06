@@ -21,18 +21,16 @@ public class MatchFeedRequestContext {
     final MatchFeedQueryContext matchFeedQueryContext;
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
     private LegacyMatchDataFeedDto redisFeed = null;
-    
-    /**
-     * Whether we should the new version of comm next steps which does not contain localized text
-     */
-    private boolean useV2CommNextSteps = false;
+
     private boolean excludeClosedMatches = false;
 
+
     public MatchFeedRequestContext(final MatchFeedQueryContext matchFeedQueryContext) {
+        
         Preconditions.checkNotNull(matchFeedQueryContext, "matchFeedQueryContext must not be null");
         this.matchFeedQueryContext = matchFeedQueryContext;
-        this.useV2CommNextSteps = matchFeedQueryContext.isUseV2CommNextSteps();
         this.excludeClosedMatches = matchFeedQueryContext.isExcludeClosedMatches();
+
     }
 
     public MatchFeedRequestContext(final MatchFeedRequestContext matchFeedRequestContext) {
@@ -41,7 +39,6 @@ public class MatchFeedRequestContext {
         this.legacyMatchDataFeedDtoWrapper = matchFeedRequestContext.getLegacyMatchDataFeedDtoWrapper();
         this.hbaseFeedItemsByStatusGroup = matchFeedRequestContext.getHbaseFeedItemsByStatusGroup();
         this.redisFeed = matchFeedRequestContext.getRedisFeed();
-        this.useV2CommNextSteps = matchFeedRequestContext.isUseV2CommNextSteps();
         this.excludeClosedMatches = matchFeedRequestContext.isExcludeClosedMatches();
     }
 
@@ -115,16 +112,6 @@ public class MatchFeedRequestContext {
             });
         }
         return storeFeedItems;
-    }
-
-    public boolean isUseV2CommNextSteps() {
-
-        return useV2CommNextSteps;
-    }
-
-    public void setUseV2CommNextSteps(boolean useV2CommNextSteps) {
-
-        this.useV2CommNextSteps = useV2CommNextSteps;
     }
     
 	public boolean isExcludeClosedMatches() {

@@ -13,12 +13,6 @@ public interface MatchFeedQueryContext {
     public boolean isViewHidden();
     public boolean isAllowedSeePhotos();
     public int getTeaserResultSize();
-    
-    /**
-     * Should we use the new versions of comm next steps
-     * @return <tt>true</tt> if we should use V2, <tt>false</tt> if we should use V1
-     */
-    public boolean isUseV2CommNextSteps();
 
     //platform and api request correlation info
     public Map<String, String> getRequestMetadata();

@@ -26,19 +26,14 @@ public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer{
     @Override
 	protected boolean processMatch(Map<String, Map<String, Object>> match,
 			MatchFeedRequestContext context) {
-	    
-        if(context.isUseV2CommNextSteps()){
-            // Using V2, so this can be skipped
-            return true;
-        }
 
 		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
 		
 		long userId = context.getUserId();
 		
-		// Only add if it does not already exist, or if it contains action, which means this is a V2 Object
+		// Only add if it does not already exist, or if it does not contain the message field meaning that it has not gone through this enricher yet
 		if(commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null
-		        || ((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.ACTION)){
+		        || !((Map<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP)).containsKey(MatchFeedModel.COMMUNICATION.MESSAGE)){
 
 	        CommDisplayMessageDto message = null;
 
@@ -65,8 +60,7 @@ public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer{
 	        }
 
 	  						
-	        Map<String, Object> displayMessageData = new HashMap<String, Object>();
-
+	        Map<String, Object> displayMessageData = commSection.containsKey(MatchFeedModel.COMMUNICATION.NEXT_STEP) ? (HashMap<String, Object>) commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) : new HashMap<String, Object>();
 	        // this could be caused by the match being in a bad-state
 	        if (message == null) {
 

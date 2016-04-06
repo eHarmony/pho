@@ -13,7 +13,6 @@ public class MatchFeedQueryContextBuilder {
     private boolean viewHidden;
     private boolean allowedSeePhotos;
     private int teaserResultSize;
-    private boolean useV2CommNextSteps;
     private Map<String, String> requestMetadata;
     private String sortBy;
     private boolean excludeClosedMatches;
@@ -26,7 +25,7 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContext build() {
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, useV2CommNextSteps, excludeClosedMatches);
+        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches);
 
     }
 
@@ -40,7 +39,6 @@ public class MatchFeedQueryContextBuilder {
         private final boolean viewHidden;
         private final boolean allowedSeePhotos;
         private final int teaserResultSize;
-        private final boolean useV2CommNextSteps;
         private final Map<String, String> requestMetadata;
         private final String sortBy;
         private final boolean excludeClosedMatches;
@@ -83,22 +81,14 @@ public class MatchFeedQueryContextBuilder {
         @Override
         public int getTeaserResultSize() {
             return teaserResultSize;
-        } 
-
-        @Override
-        public boolean isUseV2CommNextSteps() {
-
-            return useV2CommNextSteps;
-
         }
         
         
 
-
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
-                final Map<String, String> requestMetadata, final String sortBy, boolean useV2CommNextSteps, final boolean excludeClosedMatches) {
+                final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches) {
 
             this.userId = userId;
             this.locale = locale;
@@ -108,7 +98,6 @@ public class MatchFeedQueryContextBuilder {
             this.viewHidden = viewHidden;
             this.allowedSeePhotos = allowedSeePhotos;
             this.teaserResultSize = teaserResultSize;
-            this.useV2CommNextSteps = useV2CommNextSteps;
             this.requestMetadata = requestMetadata;
             this.sortBy = sortBy;
             this.excludeClosedMatches = excludeClosedMatches;
@@ -167,11 +156,6 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContextBuilder setAllowedSeePhotos(boolean allowedSeePhotos) {
         this.allowedSeePhotos = allowedSeePhotos;
-        return this;
-    }
-
-    public MatchFeedQueryContextBuilder setUseV2CommNextSteps(boolean useV2CommNextSteps) {
-        this.useV2CommNextSteps = useV2CommNextSteps;
         return this;
     }
 
