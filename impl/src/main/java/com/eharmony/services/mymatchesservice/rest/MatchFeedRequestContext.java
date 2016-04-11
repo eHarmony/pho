@@ -21,7 +21,6 @@ public class MatchFeedRequestContext {
     final MatchFeedQueryContext matchFeedQueryContext;
     private Map<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>> hbaseFeedItemsByStatusGroup = new HashMap<MatchStatusGroupEnum, Set<MatchDataFeedItemDto>>();
     private LegacyMatchDataFeedDto redisFeed = null;
-
     private boolean excludeClosedMatches = false;
 
 
@@ -113,7 +112,7 @@ public class MatchFeedRequestContext {
         }
         return storeFeedItems;
     }
-    
+
 	public boolean isExcludeClosedMatches() {
 		return excludeClosedMatches;
 	}
