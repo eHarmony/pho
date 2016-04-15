@@ -101,6 +101,8 @@ public abstract class MatchFeedModel {
        static final String VERSION = "version";
        
        static final String PHOTO_COUNT = "photoCount";
+       
+       static final String SPOTLIGHT_END_DATE = "spotlightEndDate";
 
    }
 

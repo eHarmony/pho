@@ -65,7 +65,7 @@ public class UserSortedMatchObjectsListAsyncRequestHandler extends AbstractMatch
             logger.info("Feed not available for userId: {}", requestContext.getUserId());
         }
         Comparator<SimpleMatchedUserDto> sortComparator = simpleMatchedUserComparatorSelector
-                .selectComparator(requestContext.getMatchFeedQueryContext().getSortBy());
+                .selectComparator(requestContext.getMatchFeedQueryContext().getOrderings());
         List<SimpleMatchedUserDto> localResult = new ArrayList<SimpleMatchedUserDto>();
 
         if (requestContext.getLegacyMatchDataFeedDto() != null) {

@@ -1,5 +1,8 @@
 package com.eharmony.services.mymatchesservice.service.transform;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +84,12 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
+        if(elem.getSpotlightEnd() != null && elem.getSpotlightEnd().after(new Date())){
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(elem.getSpotlightEnd().toInstant(), ZoneId.systemDefault())));
+        } else {
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, null);
+        }
+        
         if(elem.getPhotos() != 0 ){
         	
         	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());

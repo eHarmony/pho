@@ -3,6 +3,7 @@ package com.eharmony.services.mymatchesservice.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Arrays;
 
 import javax.annotation.Resource;
 
@@ -17,6 +18,9 @@ import rx.Observable;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.query.criterion.Ordering;
+import com.eharmony.datastore.query.criterion.Ordering.NullOrdering;
+import com.eharmony.datastore.query.criterion.Ordering.Order;
 import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
@@ -46,6 +50,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private int newMatchThresholdDays;
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
+
+    private static final List<Ordering> DEFAULT_ORDERINGS = Arrays.asList(new Ordering("spotlightEnd", Order.ASCENDING, NullOrdering.LAST), new Ordering(DEFAULT_SORT_BY_FIELD, Order.DESCENDING, NullOrdering.LAST));
     // private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
@@ -70,9 +76,11 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     }
 
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
+        
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
+        
         long startTime = System.currentTimeMillis();
         Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETBYSTATUS_METHOD, matchStatusGroup);
@@ -114,20 +122,20 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             populateQueryWithLimitParams(request, requestQuery);
 
         }
-        requestQuery.setSortBy(resolveSortBy(request.getMatchStatusGroup()));
+        requestQuery.setOrderings(resolveOrderings(request.getMatchStatusGroup()));
     }
 
-    private String resolveSortBy(MatchStatusGroupEnum matchStatusGroup) {
+    private List<Ordering> resolveOrderings(MatchStatusGroupEnum matchStatusGroup) {
         if (matchStatusGroup == null) {
-            return DEFAULT_SORT_BY_FIELD;
+            return DEFAULT_ORDERINGS;
         }
         if (matchStatusGroup.equals(MatchStatusGroupEnum.COMMUNICATION)) {
             // return COMM_SORT_BY_FIELD;
             // TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
-            return DEFAULT_SORT_BY_FIELD;
+            return DEFAULT_ORDERINGS;
         }
 
-        return DEFAULT_SORT_BY_FIELD;
+        return DEFAULT_ORDERINGS;
     }
 
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,

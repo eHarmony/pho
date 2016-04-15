@@ -41,7 +41,7 @@
 		<oro.version>2.0.8</oro.version>
 		<commons.beanutils.version>1.8.2</commons.beanutils.version>
 		<joda.time.version>1.6</joda.time.version>
-		<mockito.all.version>1.8.5</mockito.all.version>
+		<mockito.all.version>1.10.19</mockito.all.version>
 		<easymock.version>3.0</easymock.version>
 		<httpunit.version>1.6.2</httpunit.version>
 		<junit.version>4.12</junit.version>
@@ -58,7 +58,7 @@
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>
 		<event.library.version>2.2.1</event.library.version>
-		<matchdata.datastore.api.version>0.1.14</matchdata.datastore.api.version>
+		<matchdata.datastore.api.version>0.1.15-SNAPSHOT</matchdata.datastore.api.version>
 		<spring.data.redis.version>1.6.2.RELEASE</spring.data.redis.version>
         <jedis.version>2.8.0</jedis.version>
         <profile.service.version>36</profile.service.version>

@@ -7,14 +7,18 @@
  * This software is a work of authorship by eharmony.com and protected by
  * the copyright laws of the United States and foreign jurisdictions.
  *
- * Copyright 2000-2012 eharmony.com, Inc. All rights reserved.
+ * Copyright 2000-2016 eharmony.com, Inc. All rights reserved.
  *
  */
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
@@ -38,7 +42,22 @@ public class StatusDateIdMatchInfoComparator
         int result = matchStatusComparator.compare(matchStatus1, matchStatus2);
 
         if (result == 0) { // same status
-
+            
+            // Compare spotlight status
+            String spotlit1ISODate = (String) matchInfo1.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
+            String spotlit2ISODate = (String) matchInfo2.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
+            if(StringUtils.isBlank(spotlit1ISODate) && !StringUtils.isBlank(spotlit2ISODate)){
+                return 1;
+            }
+            if(!StringUtils.isBlank(spotlit1ISODate) && StringUtils.isBlank(spotlit2ISODate)){
+                return -1;
+            }
+            if(!StringUtils.isBlank(spotlit1ISODate) && !StringUtils.isBlank(spotlit2ISODate)){
+                LocalDateTime spotlight1EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit1ISODate, LocalDateTime::from);
+                LocalDateTime spotlight2EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit2ISODate, LocalDateTime::from);
+                return spotlight1EndDate.compareTo(spotlight2EndDate);
+            }
+            
             // compare delivered date - can be Integer or Long
             Number date1 =
                 (Number) matchInfo1.get(MatchFeedModel.SECTIONS.MATCH)

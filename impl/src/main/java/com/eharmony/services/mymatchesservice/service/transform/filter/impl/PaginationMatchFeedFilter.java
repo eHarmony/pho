@@ -1,12 +1,12 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
       
-    private StatusDateIdMatchInfoComparator comparator = new StatusDateIdMatchInfoComparator();
+    private Comparator<Map.Entry<String, Map<String, Map<String, Object>>>> comparator = new StatusDateIdMatchInfoComparator();
 
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
@@ -51,58 +51,24 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         feed.setTotalMatches(matches.size());
         
         int pageNum = context.getMatchFeedQueryContext().getStartPage();
+        int pageSize = context.getMatchFeedQueryContext().getPageSize();
         if (pageNum < 1) {
 
-            log.debug("Match feed context doesn't request pagination (pageNum={}), returning without processing. Context={}",
-                      pageNum, context);
-            feed.setTotalMatches(feed.getMatches().size());
-            return context;
+            pageNum = 1;
+            pageSize = matches.size();
 
         }
 
-        int pageSize = context.getMatchFeedQueryContext().getPageSize();
-        pageSize =
-            (pageSize < 1) ? matches.size()
-                           : pageSize; // fall back to default
+        pageSize =  (pageSize < 1) ? matches.size() : pageSize;
 
         // 1. order the matches based on buckets, deliveredDate and matchId
         List<Map.Entry<String, Map<String, Map<String, Object>>>> entries =
-            new LinkedList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
+            new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
         Collections.sort(entries, comparator);
-
-        // 2. advance to required window
-        Iterator<Entry<String, Map<String, Map<String, Object>>>> it = entries.iterator();
-        int currentRecord = 1;
-        int starting = ((pageNum - 1) * pageSize) + 1;
-        while ((currentRecord < starting) && it.hasNext()) {
-
-            Entry<String, Map<String, Map<String, Object>>> entry = it.next();
-
-            log.debug("skipped record#={} for matchId={} matchInfo={}",
-            				currentRecord, entry.getKey(), entry.getValue());
-
-            currentRecord++;
-
-        }
-
-        // 3. pick N elements, store them in the ordered map
-        Map<String, Map<String, Map<String, Object>>> result =
-            new LinkedHashMap<String, Map<String, Map<String, Object>>>(); // must be linked map to preserve the order !!
-        int picked = 0;
-        while ((picked < pageSize) && it.hasNext()) {
-
-            Entry<String, Map<String, Map<String, Object>>> entry = it.next();
-            result.put(entry.getKey(), entry.getValue());
-            picked++;
-
-            log.debug("added record#={} as #={} for matchId={} matchInfo={}",
-                          new Object[] { starting + picked - 1, picked, entry.getKey(), entry.getValue() });
-
-        }
-
-        // 4. re-wire ordered map into the context
-        context.getLegacyMatchDataFeedDto().setMatches(result);
-
+        entries = entries.subList((pageNum - 1) * pageSize, pageNum * pageSize);
+        Map<String, Map<String, Map<String, Object>>> entryMap = entries.stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),(k,v) ->{ throw new RuntimeException(String.format("Duplicate key %s", k));},
+                LinkedHashMap::new));
+        context.getLegacyMatchDataFeedDto().setMatches(entryMap);
         return context;
 
     }

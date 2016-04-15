@@ -13,7 +13,6 @@ import com.eharmony.services.mymatchesservice.service.CommunicationStage;
 import com.eharmony.services.mymatchesservice.service.CommunicationStageResolver;
 import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
-import com.eharmony.singles.common.status.MatchStatus;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
 public class CommStageEnricher extends AbstractMatchFeedTransformer {

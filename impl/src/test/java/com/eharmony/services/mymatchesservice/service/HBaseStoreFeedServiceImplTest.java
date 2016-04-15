@@ -38,8 +38,6 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
  */
 public class HBaseStoreFeedServiceImplTest {
 
-    private static final int FALLBACK_FEED_LIMIT = 10;
-
     private static final int FEED_LIMIT = 5;
 
     @Mock

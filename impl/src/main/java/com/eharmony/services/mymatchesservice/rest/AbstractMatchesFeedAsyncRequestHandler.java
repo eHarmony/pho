@@ -137,6 +137,7 @@ public abstract class AbstractMatchesFeedAsyncRequestHandler implements MatchesF
 
         matchQueryRequestObservable = chainHBaseFeedRequestsByStatus(matchQueryRequestObservable,
                 matchFeedQueryContext);
+        
         return matchQueryRequestObservable;
     }
 

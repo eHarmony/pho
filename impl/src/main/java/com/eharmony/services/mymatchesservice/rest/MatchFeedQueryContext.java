@@ -1,7 +1,10 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.eharmony.datastore.query.criterion.Ordering;
 
 public interface MatchFeedQueryContext {
 
@@ -17,6 +20,6 @@ public interface MatchFeedQueryContext {
     //platform and api request correlation info
     public Map<String, String> getRequestMetadata();
     
-    public String getSortBy();
+    public List<Ordering> getOrderings();
 	public boolean isExcludeClosedMatches();
 }
