@@ -36,14 +36,10 @@ public class SimpleMatchedUserComparatorSelector {
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public  Comparator<SimpleMatchedUserDto> selectComparator(String sortBy) {
-        if (StringUtils.isEmpty(sortBy)) {
-            return null;
+        if (StringUtils.isEmpty(sortBy) || keyExtractorMap.get(sortBy) == null) {
+            sortBy = DELIVERED_DATE_CRITERIA;   // By default sort by delivery date. SFT-19621
         }
         Function<? super SimpleMatchedUserDto, ? extends Comparable> keyExtractor =  keyExtractorMap.get(sortBy);
-        if (keyExtractor == null) {
-            log.warn("unkown sortBy criteria {}", sortBy);
-            return null;
-        }
-        return Comparator.comparing(keyExtractor);
+        return Comparator.comparing(keyExtractor).reversed();
     }
 }
