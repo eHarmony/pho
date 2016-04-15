@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.eharmony.services.match-query-service</groupId>
 	<artifactId>match-query-service</artifactId>
-	<version>1.0.31-SNAPSHOT</version>
+	<version>1.0.32-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Match Query Service</name>
 	<description>Provides the API's to manage the user matches feed </description>
@@ -53,7 +53,7 @@
 		<stop.port>7911</stop.port>
 		<oracle.jdbc.version>11.2.0.3.0</oracle.jdbc.version>
 		<hibernate.commons.annotations.version>3.5.6-Final</hibernate.commons.annotations.version>
-		<hibernate.version>4.3.10.Final</hibernate.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
 		<c3p0.version>0.9.1.2</c3p0.version>
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>

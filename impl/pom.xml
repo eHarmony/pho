@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.eharmony.services.match-query-service</groupId>
 		<artifactId>match-query-service</artifactId>
-		<version>1.0.31-SNAPSHOT</version>
+		<version>1.0.32-SNAPSHOT</version>
 	</parent>
 	<name>match query service Impl</name>
 	<artifactId>match-query-service-impl</artifactId>
@@ -28,10 +28,7 @@
 		<matching-protobuf-version>1.0.33</matching-protobuf-version>
 		<jersey.client.version>1.19</jersey.client.version>
 		<apache.httpclient.version>4.5.1</apache.httpclient.version>
-        <communication.flow.library.version>0.0.1</communication.flow.library.version>
-		<c3p0.version>0.9.1.2</c3p0.version>
-		<hibernate.version>4.3.11.Final</hibernate.version>
-		<asm.version>3.3.1</asm.version>
+        <communication.flow.library.version>0.0.2</communication.flow.library.version>
 	</properties>
 
 	<dependencies>

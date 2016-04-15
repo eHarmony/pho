@@ -37,6 +37,12 @@ public class MRSAndSORAMatchMerger {
 			
 			Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
 			buildMatchFromMRSDto(oneMatch, matchId, mrsDto);
+			
+			// Create empty Profile section, to be enriched later
+			Map<String, Object> profileSection = new HashMap<String, Object>();
+			profileSection.put(MatchFeedModel.PROFILE.USERID, matchSummaryDo.getCandidateUserId());
+			oneMatch.get(Long.toString(matchId)).put(MatchFeedModel.SECTIONS.PROFILE, profileSection);		
+
 			buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
 			
 			dto.setMatches(oneMatch);

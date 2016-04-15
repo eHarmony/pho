@@ -25,6 +25,7 @@ public class MatchFeedQueryContextBuilder {
     }
 
     public MatchFeedQueryContext build() {
+
         return new MatchFeedQueryContextImpl(userId, matchId, locale, startPage, pageSize, statuses, viewHidden,
         			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches, singleMatchRequest);
 
@@ -199,6 +200,5 @@ public class MatchFeedQueryContextBuilder {
 		this.excludeClosedMatches = excludeClosedMatches;
 		return this;
 	}
-
 
 }

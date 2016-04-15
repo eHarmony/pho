@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import rx.Observable;
@@ -64,13 +65,20 @@ import com.eharmony.singles.common.util.ResourceNotFoundException;
 	    @Resource(name="mrsAndSoraMatchMerger")
 	    private MRSAndSORAMatchMerger mrsAndSORAMatchMerger;
 	    
+	    @Resource(name = "getSingleMatchEnricherChain")
+	    private MatchFeedTransformerChain getSingleMatchEnricherChain;
+
 	    @Resource(name = "getMatchesFeedEnricherChain")
 	    private MatchFeedTransformerChain getMatchesFeedEnricherChain;
+
+	    @Resource(name = "getMatchesFeedFilterChain")
+	    private MatchFeedTransformerChain getMatchesFeedFilterChain;
+	    
 	    
 	    private static final String METRICS_HIERARCHY_PREFIX = "com.eharmony.services.mymatchesservice.rest.MatchFeedAsyncRequestHandler";
 	    private static final String METRICS_GETSINGLEMATCH_ASYNC = "getSingleMatch";
 	    
-    	final boolean __HBASE_ENABLED__ = false;
+    	private boolean __INTERNAL_NOTFORPRODUCTION_HBASE_ENABLED__ = true;
 	    
 		protected Context buildTimerContext() {
 			
@@ -102,7 +110,7 @@ import com.eharmony.singles.common.util.ResourceNotFoundException;
 	                feedNotFound = true;
 	            }
 	            
-	        	if(isDataAvailable(response, userId, matchId)){
+	        	if(isDataAvailable(response, userId, matchId) && __INTERNAL_NOTFORPRODUCTION_HBASE_ENABLED__){
 	        		
 	                long duration = t.stop();
 	                logger.debug("Single match feed created for user {}, duration {}", userId, duration);
@@ -118,8 +126,13 @@ import com.eharmony.singles.common.util.ResourceNotFoundException;
 		        	fallbackObservable.subscribe(response2 -> {
 		                boolean backupFeedNotFound = false;
 		        		try{
-		                	// proceed with enrich processing.
+		                	// Do profile enrichment...
+		        			getSingleMatchEnricherChain.execute(response2);
+		        			
+		        			// Then proceed with usual filtering/enrichment...
 		        			getMatchesFeedEnricherChain.execute(response2);
+
+		        			getMatchesFeedFilterChain.execute(response2);
 		        			
 		    	        } catch (ResourceNotFoundException e) {
 		    	        	backupFeedNotFound = true;
