@@ -69,7 +69,28 @@ public class MatchFeedAsyncResource {
     
     @Resource(name="userSortedMatchObjectsListAsyncRequestHandler")
     private MatchesFeedAsyncRequestHandler userSortedMatchObjectsListAsyncRequestHandler;
+
+    @Resource(name="userSingleMatchAsyncRequestHandler")
+    private UserSingleMatchAsyncRequestHandler userSingleMatchAsyncRequestHandler;
+
     
+    @GET
+    @Path("/users/{userId}/matches/{matchId}")
+    @Produces(MediaType.APPLICATION_JSON) 
+    public void getMatch(   @PathParam("userId") long userId, 
+    						@PathParam("matchId") long matchId,
+    						@Suspended final AsyncResponse asyncResponse){
+    	
+    	Set<String> statuses = new HashSet<String>();
+    	statuses.add("all");
+    	MatchFeedQueryContext queryContext = MatchFeedQueryContextBuilder.newInstance()
+                .setMatchId(matchId).setUserId(userId).setStatuses(statuses)
+                .build();
+
+        log.info("fetching single match for userId {} matchId {}", userId, matchId);
+        userSingleMatchAsyncRequestHandler.getSingleMatch(queryContext, asyncResponse);  	 
+    }
+
     
     
     @GET

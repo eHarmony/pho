@@ -6,6 +6,7 @@ import java.util.Set;
 public interface MatchFeedQueryContext {
 
     public long getUserId();
+    public long getMatchId();
     public String getLocale();
     public int getStartPage();
     public int getPageSize();
@@ -19,4 +20,6 @@ public interface MatchFeedQueryContext {
     
     public String getSortBy();
 	public boolean isExcludeClosedMatches();
+	
+	public boolean isSingleMatchRequest();
 }

@@ -92,7 +92,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
         try {
             MatchDataFeedItemDto matchDataFeeditem = queryRepository.getMatchDataFeedItemDto(request);
             if (matchDataFeeditem != null) {
-                logger.debug("found match for user {} and matchid {}", userId, matchId);
+                logger.info("found match for user {} and matchid {}", userId, matchId);
                 return matchDataFeeditem;
             }
         } catch (Exception ex) {

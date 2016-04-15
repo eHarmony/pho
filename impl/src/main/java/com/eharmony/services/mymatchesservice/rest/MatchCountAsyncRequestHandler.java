@@ -33,7 +33,7 @@ import com.eharmony.singles.common.status.MatchStatus;
 public class MatchCountAsyncRequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(MatchCountAsyncRequestHandler.class);
 
-    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName();
+    private static final String METRICS_HIERARCHY_PREFIX = "com.eharmony.services.mymatchesservice.rest.MatchFeedAsyncRequestHandler";
     private static final String METRICS_COUNTMATCHES_ASYNC = "getUserMatchesCount";
 
     @Resource

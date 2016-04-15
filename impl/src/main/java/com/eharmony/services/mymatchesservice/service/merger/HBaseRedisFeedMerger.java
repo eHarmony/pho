@@ -18,6 +18,9 @@ import com.google.common.collect.Sets;
 public class HBaseRedisFeedMerger {
 	
     public static final String TIMESTAMP_NAME = "lastModifiedDate";
+    
+    // match id is not set if it is this value.
+    public static final long NULL_MATCH_ID = 0;  
 
 
     private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMerger.class);
@@ -46,7 +49,7 @@ public class HBaseRedisFeedMerger {
                 handleHBaseHasMatchesRedisIsEmpty(userId);
             } else {
                 //apply delta in Redis to Hbase
-                handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
+                handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed, request);
             }
         }
         
@@ -80,14 +83,23 @@ public class HBaseRedisFeedMerger {
         log.warn("HBase has no data for userId {}. Using Redis feed.", userId);
 
         LegacyMatchDataFeedDtoWrapper wrapper = request.getLegacyMatchDataFeedDtoWrapper();
+        
+        if(request.getMatchFeedQueryContext().isSingleMatchRequest()){
+        	// remove all but the single match from Redis feed.
+        	long matchId = request.getMatchFeedQueryContext().getMatchId();
+        	
+        	Map<String, Map<String, Object>> singleMatch = redisFeed.getMatches().get(Long.toString(matchId));
+        	redisFeed.getMatches().clear();
+        	redisFeed.getMatches().put(Long.toString(matchId), singleMatch);
+        }
+        
         wrapper.setLegacyMatchDataFeedDto(redisFeed);
         wrapper.setFeedAvailable(true);
-
-    }
+     }
 
     //actual merge, check time stamp on both sides and take the latest.
     private void handleHBaseHasMatchesRedisHasMatches(LegacyMatchDataFeedDto hbaseFeed,
-            LegacyMatchDataFeedDto redisFeed) {
+            LegacyMatchDataFeedDto redisFeed, MatchFeedRequestContext context) {
 
         Map<String, Map<String, Map<String, Object>>> hbaseMatches = hbaseFeed.getMatches();
         final Map<String, Map<String, Map<String, Object>>> redisMatches = redisFeed.getMatches();
@@ -109,12 +121,16 @@ public class HBaseRedisFeedMerger {
             }
         });
         
-        suplementryIdSet.stream().forEach((matchId) -> {
-            Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
-            hbaseFeed.getMatches().put(matchId, redisMatch);
-            int totalMatches = hbaseFeed.getTotalMatches();
-			hbaseFeed.setTotalMatches(totalMatches + 1);
-        });
+        // If merge is for single match, ignore remaining Redis feed items.
+        if(!context.getMatchFeedQueryContext().isSingleMatchRequest()){
+        
+	        suplementryIdSet.stream().forEach((matchId) -> {
+	            Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
+	            hbaseFeed.getMatches().put(matchId, redisMatch);
+	            int totalMatches = hbaseFeed.getTotalMatches();
+				hbaseFeed.setTotalMatches(totalMatches + 1);
+	        });
+        }
 
     }
     

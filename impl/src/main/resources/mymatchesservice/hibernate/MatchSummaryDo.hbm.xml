@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.eharmony.services.mymatchesservice.store.data">
+    <class name="MatchSummaryDo" table="MATCH_SUMMARIES">
+
+        <composite-id>
+            <key-property name="userId">
+                <column name="USER_ID"></column>
+            </key-property>
+            <key-property name="candidateUserId">
+                <column name="CANDIDATE_ID"></column>
+            </key-property>
+        </composite-id>
+
+        <property name="candidateFirstName" column="CANDIDATE_FIRST_NAME" not-null="false" access="field"/>
+        <property name="createdDate" column="CREATED_AT" type="timestamp" not-null="false"
+                  update="false"/>
+        <property name="deliveredDate" column="DELIVERY_DATE" type="timestamp" not-null="false"
+                  update="false"/>
+        <property name="displayTab" column="DISPLAY_TAB" type="MatchDisplayTabEnum" not-null="false"/>
+        <property name="distance" column="DISTANCE" not-null="false" access="field"/>
+        <property name="lastCommDate" column="LAST_COMM_DATE" type="timestamp" not-null="false"/>
+        <property name="ownerIsUser" column="IS_USER" not-null="false"/>
+        <property name="stage" column="SEQUENCE_ID" not-null="false"/>
+        <property name="turnOwner" column="TURN_OWNER" not-null="false"/>
+        <property name="updatedDate" column="UPDATED_AT" type="timestamp" not-null="false"/>
+        <property name="userFirstName" column="USER_FIRST_NAME" not-null="false" access="field"/>
+        <property name="matchId" column="MATCH_ID" not-null="true" access="field"/>
+
+    </class>
+</hibernate-mapping>

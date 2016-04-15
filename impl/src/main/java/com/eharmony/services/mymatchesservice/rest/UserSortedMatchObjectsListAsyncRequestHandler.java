@@ -35,7 +35,7 @@ public class UserSortedMatchObjectsListAsyncRequestHandler extends AbstractMatch
     @Resource
     private MapToMatchedUserDtoTransformer mapToMatchedUserDtoTransformer;
 
-    private static final String METRICS_HIERARCHY_PREFIX = MatchFeedAsyncRequestHandler.class.getCanonicalName();
+    private static final String METRICS_HIERARCHY_PREFIX = "com.eharmony.services.mymatchesservice.rest.MatchFeedAsyncRequestHandler";
     private static final String METRICS_GETMATCHUSER_ASYNC = "getSimpleMatchedUserList";
 
     @Override

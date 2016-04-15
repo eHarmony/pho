@@ -14,5 +14,5 @@ package com.eharmony.services.mymatchesservice.rest;
 public interface FeedResponseHandler {
 
     public void processMatchFeedResponse(MatchFeedRequestContext context);
-    
+        
 }

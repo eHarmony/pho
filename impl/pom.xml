@@ -29,6 +29,9 @@
 		<jersey.client.version>1.19</jersey.client.version>
 		<apache.httpclient.version>4.5.1</apache.httpclient.version>
         <communication.flow.library.version>0.0.1</communication.flow.library.version>
+		<c3p0.version>0.9.1.2</c3p0.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
+		<asm.version>3.3.1</asm.version>
 	</properties>
 
 	<dependencies>
@@ -51,7 +54,109 @@
 			</exclusions>
 		</dependency>
 
-	
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6_g</artifactId>
+			<version>${oracle.jdbc.version}</version>
+		</dependency>
+		
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>${c3p0.version}</version>
+         </dependency>
+         
+         <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>${asm.version}</version><!--$NO-MVN-MAN-VER$-->
+         </dependency>
+         
+         <!--
+         <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-c3p0</artifactId>
+            <version>4.1.10.Final</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.jboss.logging</groupId>
+            		<artifactId>jboss-logging</artifactId>
+            	</exclusion>
+            </exclusions>
+         </dependency> 
+         -->    	 
+      	 <!-- ############# Hibernate Dependencies ############## -->
+      	
+      	<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate.common</groupId>
+					<artifactId>hibernate-commons-annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+  	    <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.hibernate</groupId>
+            		<artifactId>hibernate</artifactId>
+            	</exclusion>
+            	
+            	<exclusion>
+            		<groupId>xml-apis</groupId>
+            		<artifactId>xml-apis</artifactId>
+            	</exclusion>
+            	
+            	
+            </exclusions>          
+        </dependency>	
+       
+       		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate.common</groupId>
+					<artifactId>hibernate-commons-annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+  
+			<dependency>
+				 <groupId>org.hibernate</groupId>
+				 <artifactId>hibernate-ehcache</artifactId>
+				 <version>4.3.11.Final</version>
+			</dependency>
+       
 		<dependency>
 			<groupId>com.eharmony.event</groupId>
 			<artifactId>event-library</artifactId>
@@ -250,7 +355,15 @@
 			<exclusion>
 				<groupId>com.eharmony.event</groupId>
 				<artifactId>commons</artifactId>
-			</exclusion>	
+			</exclusion>
+			<exclusion>
+				<artifactId>hibernate-annotations</artifactId>
+				<groupId>org.hibernate</groupId>
+			</exclusion>
+			<exclusion>
+					<artifactId>hibernate</artifactId>
+					<groupId>org.hibernate</groupId>
+			</exclusion>
 		  </exclusions>
 	  	</dependency>
 

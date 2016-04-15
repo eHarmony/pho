@@ -7,6 +7,10 @@ import rx.Observable;
 public interface HBaseStoreFeedService {
 
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request);
+
     public Observable<HBaseStoreCountResponse> getUserMatchesCount(MatchCountRequestContext request);
     public Observable<HBaseStoreCountResponse> getUserNewMatchesCount(MatchCountRequestContext request);
+
+    public Observable<HBaseStoreFeedResponse> getUserMatchSafe(HBaseStoreFeedRequestContext request);
+
 }

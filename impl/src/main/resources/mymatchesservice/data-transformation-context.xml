@@ -161,6 +161,16 @@
 		<value>matchId</value>
 		<value>matchedUserId</value>
 	</util:set>
-
-
+ 
+	<bean id="getSingleMatchEnricherChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.MatchFeedTransformerChain">
+		<constructor-arg>
+			<util:list>
+				<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleProfileEnricher" />
+				<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.ContextLocaleEnricher" />
+    			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEnricher"/>
+    			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV2Enricher"/>
+			</util:list>
+		</constructor-arg>
+	</bean>
 </beans>
