@@ -179,6 +179,13 @@ public class MatchFeedQueryContextBuilder {
         return this;
     }
     
+    /**
+     * Add a property name to the list of properties to order the results by.
+     * The results will be in descending order and nulls will be last.
+     * 
+     * @param propertyName the name of the property to order the results by
+     * @return this builder
+     */
     public MatchFeedQueryContextBuilder addOrderBy(String propertyName) {
         if(orderings == null){
             orderings = new ArrayList<Ordering>();

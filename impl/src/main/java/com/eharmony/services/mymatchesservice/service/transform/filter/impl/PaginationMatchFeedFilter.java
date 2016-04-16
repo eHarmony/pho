@@ -52,6 +52,8 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         
         int pageNum = context.getMatchFeedQueryContext().getStartPage();
         int pageSize = context.getMatchFeedQueryContext().getPageSize();
+        
+        // If pagination is disabled, consider us to be on page 1 where the page size equals the results size
         if (pageNum < 1) {
 
             pageNum = 1;
@@ -61,14 +63,23 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
         pageSize =  (pageSize < 1) ? matches.size() : pageSize;
 
-        // 1. order the matches based on buckets, deliveredDate and matchId
+        // 1. Place all the matches into a list, so that they can be sorted
         List<Map.Entry<String, Map<String, Map<String, Object>>>> entries =
             new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
+        
+        // 2. Sort the list
         Collections.sort(entries, comparator);
+        
+        // 3. Select the sub-list to be returned on this page
         entries = entries.subList((pageNum - 1) * pageSize, pageNum * pageSize);
+        
+        // 4. Put the entries back into map form, but use a LinkedHashMap to maintain the ordering
         Map<String, Map<String, Map<String, Object>>> entryMap = entries.stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),(k,v) ->{ throw new RuntimeException(String.format("Duplicate key %s", k));},
                 LinkedHashMap::new));
+        
+        // 5. Set the new ordered map on the response
         context.getLegacyMatchDataFeedDto().setMatches(entryMap);
+        
         return context;
 
     }
