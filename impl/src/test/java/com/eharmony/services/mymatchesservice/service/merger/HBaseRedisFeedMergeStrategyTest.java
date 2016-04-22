@@ -16,6 +16,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 public class HBaseRedisFeedMergeStrategyTest {
 
 	public static final String SINGLE_MATCH_JSON_FILENAME = "json/singleMatchWithTimestamp.json";
+	public static final String SINGLE_MATCH2_JSON_FILENAME = "json/singleMatch2WithTimestamp.json";
 	public static final String TWO_MATCHES_JSON_FILENAME = "json/twoMatchesWithTimestamp.json";
 	public static final String FORTY_MATCHES_JSON_FILENAME = "json/getMatches_40_matches.json";
 
@@ -24,6 +25,8 @@ public class HBaseRedisFeedMergeStrategyTest {
 	public static final String SINGLE_MATCH_ID2 = "66531611";
 	public static final String MATCH_ID_IN_40 = "11790355637";
 	
+	public static final String MATCH_ID_IN_SINGLE_MATCH2 = "11790355664"; 
+
 	
 	@Test
 	public void testMerge_SameTime() throws Exception {
@@ -185,7 +188,7 @@ public class HBaseRedisFeedMergeStrategyTest {
 	
 	
 	@Test
-	public void testSingleMatchMerge_HbaseIsEmptyAndRedisHasOneMatch() throws Exception {
+	public void testSingleMatchMerge_HbaseEmpty_RedisHasSingleMatchOnly() throws Exception {
 
 		LegacyMatchDataFeedDto match2 = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
 		LegacyMatchDataFeedDto match = new LegacyMatchDataFeedDto();
@@ -204,11 +207,13 @@ public class HBaseRedisFeedMergeStrategyTest {
 	}
 	
 	@Test
-	public void testSingleMatchMerge_HbaseIsEmptyAndRedisHasManyMatches() throws Exception {
+	public void testSingleMatchMerge_HbaseEmpty_MatchInRedisFeed() throws Exception {
 
 		LegacyMatchDataFeedDto match2 = MatchTestUtils.getTestFeed(FORTY_MATCHES_JSON_FILENAME);
 		LegacyMatchDataFeedDto match = new LegacyMatchDataFeedDto();
-		MatchFeedQueryContext matchFeedQueryContext =  MatchFeedQueryContextBuilder.newInstance().setMatchId(Long.parseLong(MATCH_ID_IN_40)).build();
+		MatchFeedQueryContext matchFeedQueryContext =  
+				MatchFeedQueryContextBuilder.newInstance()
+				.setMatchId(Long.parseLong(MATCH_ID_IN_40)).build();
 		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
 		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
 		feedWrapper.setLegacyMatchDataFeedDto(match);
@@ -223,20 +228,106 @@ public class HBaseRedisFeedMergeStrategyTest {
 	}
 	
 	@Test
-	public void testSingleMatchMerge_RedisHasManyMatches() throws Exception {
+	public void testSingleMatchMerge_HbaseEmpty_MatchNotInRedisFeed() throws Exception {
 
-		LegacyMatchDataFeedDto match2 = MatchTestUtils.getTestFeed(TWO_MATCHES_JSON_FILENAME);
-		LegacyMatchDataFeedDto match = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
+		String INVALID_MATCH_ID = "999";
+		long INVALID_MATCH_AS_LONG = 999L;
 		
-		MatchFeedQueryContext matchFeedQueryContext =  MatchFeedQueryContextBuilder.newInstance().setMatchId(Long.parseLong(SINGLE_MATCH_ID)).build();
+		LegacyMatchDataFeedDto redisDto = MatchTestUtils.getTestFeed(TWO_MATCHES_JSON_FILENAME);
+		LegacyMatchDataFeedDto hbaseDto = new LegacyMatchDataFeedDto();
+		
+		MatchFeedQueryContext matchFeedQueryContext =  
+				MatchFeedQueryContextBuilder.newInstance()
+				.setMatchId(Long.parseLong(INVALID_MATCH_ID)).build();
+		
 		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
 		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
-		feedWrapper.setLegacyMatchDataFeedDto(match);
+		feedWrapper.setLegacyMatchDataFeedDto(hbaseDto);
 		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
-		request.setRedisFeed(match2);
-		match2.getMatches().get(SINGLE_MATCH_ID).get("match").put("stage", 6);
+		request.setRedisFeed(redisDto);
 
-		match2.getMatches().get(SINGLE_MATCH_ID).get("match").put("lastModifiedDate", 1106200000000L);
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
+
+		merger.merge(request);
+
+		assertEquals(1, request.getLegacyMatchDataFeedDto().getMatches().size());
+		assertEquals(null, request.getLegacyMatchDataFeedDto().getMatches().get(INVALID_MATCH_AS_LONG));
+	}
+	
+	@Test
+	public void testSingleMatchMerge_HbaseOK_RedisHasSingleMatchOnly() throws Exception {
+
+		LegacyMatchDataFeedDto redisDto = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
+		LegacyMatchDataFeedDto hbaseDto = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
+				
+		MatchFeedQueryContext matchFeedQueryContext =  
+				MatchFeedQueryContextBuilder.newInstance()
+				.setMatchId(Long.parseLong(SINGLE_MATCH_ID)).build();
+		
+		long timestamp = 1106200000000L;
+		
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
+		hbaseDto.getMatches().get(SINGLE_MATCH_ID).get("match").put("stage", 6);
+		hbaseDto.getMatches().get(SINGLE_MATCH_ID).get("match").put("lastModifiedDate", timestamp);
+		feedWrapper.setLegacyMatchDataFeedDto(hbaseDto);
+		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+		
+		request.setRedisFeed(redisDto);
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
+
+
+		merger.merge(request);
+
+		assertEquals(1, request.getLegacyMatchDataFeedDto().getMatches().size());
+		//assert Delta has been applied to base
+		assertEquals(6, request.getLegacyMatchDataFeedDto().getMatches().get(SINGLE_MATCH_ID).get("match").get("stage"));
+		assertEquals(timestamp, request.getLegacyMatchDataFeedDto().getMatches()
+				.get(SINGLE_MATCH_ID).get("match").get("lastModifiedDate"));
+
+	}
+	
+	@Test
+	public void testSingleMatchMerge_HbaseOK_MatchNotInRedisFeed() throws Exception {
+
+		LegacyMatchDataFeedDto redisDto = MatchTestUtils.getTestFeed(FORTY_MATCHES_JSON_FILENAME);
+		LegacyMatchDataFeedDto hbaseDto = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
+		
+		MatchFeedQueryContext matchFeedQueryContext =  
+				MatchFeedQueryContextBuilder.newInstance()
+				.setMatchId(Long.parseLong(SINGLE_MATCH_ID)).build();
+		
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
+		feedWrapper.setLegacyMatchDataFeedDto(hbaseDto);
+		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+		request.setRedisFeed(redisDto);
+
+		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
+
+		merger.merge(request);
+
+		assertEquals(1, request.getLegacyMatchDataFeedDto().getMatches().size());
+	}
+	
+	@Test
+	public void testSingleMatchMerge_HBaseOK_RedisEmpty() throws Exception {
+
+		LegacyMatchDataFeedDto redisDto = new LegacyMatchDataFeedDto();
+		LegacyMatchDataFeedDto hbaseDto = MatchTestUtils.getTestFeed(SINGLE_MATCH_JSON_FILENAME);
+				
+		MatchFeedQueryContext matchFeedQueryContext =  
+				MatchFeedQueryContextBuilder.newInstance()
+				.setMatchId(Long.parseLong(SINGLE_MATCH_ID)).build();
+		
+		MatchFeedRequestContext request = new MatchFeedRequestContext(matchFeedQueryContext);
+		LegacyMatchDataFeedDtoWrapper feedWrapper = new LegacyMatchDataFeedDtoWrapper(1111L);
+		hbaseDto.getMatches().get(SINGLE_MATCH_ID).get("match").put("stage", 6);
+		hbaseDto.getMatches().get(SINGLE_MATCH_ID).get("match").put("lastModifiedDate", 1106200000000L);
+		feedWrapper.setLegacyMatchDataFeedDto(hbaseDto);
+		request.setLegacyMatchDataFeedDtoWrapper(feedWrapper);
+		
+		request.setRedisFeed(redisDto);
 		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
 
 
@@ -246,4 +337,5 @@ public class HBaseRedisFeedMergeStrategyTest {
 		//assert Delta has been applied to base
 		assertEquals(6, request.getLegacyMatchDataFeedDto().getMatches().get(SINGLE_MATCH_ID).get("match").get("stage"));
 	}
+
 }

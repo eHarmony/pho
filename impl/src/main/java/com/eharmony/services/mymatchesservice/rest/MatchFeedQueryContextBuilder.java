@@ -17,17 +17,14 @@ public class MatchFeedQueryContextBuilder {
     private Map<String, String> requestMetadata;
     private String sortBy;
     private boolean excludeClosedMatches;
-    private boolean singleMatchRequest;
 
     private MatchFeedQueryContextBuilder() {
-
-    	this.singleMatchRequest = false;
     }
 
     public MatchFeedQueryContext build() {
 
         return new MatchFeedQueryContextImpl(userId, matchId, locale, startPage, pageSize, statuses, viewHidden,
-        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches, singleMatchRequest);
+        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches);
 
     }
 
@@ -46,8 +43,6 @@ public class MatchFeedQueryContextBuilder {
         private final String sortBy;
         private final boolean excludeClosedMatches;
         
-        private final boolean singleMatchRequest;
-
         @Override
         public long getUserId() {
             return userId;
@@ -92,17 +87,11 @@ public class MatchFeedQueryContextBuilder {
         public int getTeaserResultSize() {
             return teaserResultSize;
         }
-
-        @Override
-        public boolean isSingleMatchRequest() {
-            return singleMatchRequest;
-        }
         
         private MatchFeedQueryContextImpl(final long userId, final long matchId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
-                final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches, 
-                final boolean singleMatchRequest) {
+                final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches) {
 
             this.userId = userId;
             this.matchId = matchId;
@@ -117,7 +106,6 @@ public class MatchFeedQueryContextBuilder {
             this.sortBy = sortBy;
             this.excludeClosedMatches = excludeClosedMatches;
 
-            this.singleMatchRequest = singleMatchRequest;
         }
 
         @Override
@@ -147,7 +135,6 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContextBuilder setMatchId(long matchId) {
         this.matchId = matchId;
-        this.singleMatchRequest = true;
         return this;
     }
     

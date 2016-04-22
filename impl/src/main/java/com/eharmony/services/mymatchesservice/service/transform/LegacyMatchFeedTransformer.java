@@ -54,7 +54,7 @@ public class LegacyMatchFeedTransformer {
         return feedDto;
     }
 
-    private Map<String, Map<String, Object>> buildLegacyFeedItem(MatchDataFeedItemDto matchDataFeedItemDto) {
+    protected Map<String, Map<String, Object>> buildLegacyFeedItem(MatchDataFeedItemDto matchDataFeedItemDto) {
         Map<String, Map<String, Object>> feedItemMap = new HashMap<String, Map<String, Object>>();
 
         feedItemMap.put(MatchFeedModel.SECTIONS.MATCH, createMatchFeedMatch(matchDataFeedItemDto));

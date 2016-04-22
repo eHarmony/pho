@@ -20,6 +20,4 @@ public interface MatchFeedQueryContext {
     
     public String getSortBy();
 	public boolean isExcludeClosedMatches();
-	
-	public boolean isSingleMatchRequest();
 }

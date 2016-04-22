@@ -3,9 +3,10 @@ package com.eharmony.services.mymatchesservice.service.merger;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
@@ -13,52 +14,57 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchDoToMatchDataFeedItemDtoMapper;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
+import com.eharmony.singles.common.enumeration.FastTrackAvailableEnum;
+import com.eharmony.singles.common.enumeration.FastTrackStatusEnum;
+import com.eharmony.singles.common.enumeration.IcebreakerStateEnum;
+import com.eharmony.singles.common.enumeration.MatchArchiveStatusEnum;
+import com.eharmony.singles.common.enumeration.MatchDisplayTabEnum;
+import com.eharmony.singles.common.enumeration.MatchInitializerEnum;
 
-@Component("mrsAndSoraMatchMerger")
 public class MRSAndSORAMatchMerger {
 
 	private MatchDoToMatchDataFeedItemDtoMapper mapper = new MatchDoToMatchDataFeedItemDtoMapper();
+	
+	private static final Logger log = LoggerFactory.getLogger(MRSAndSORAMatchMerger.class);
 
-	public LegacyMatchDataFeedDtoWrapper mergeMatch(MatchFeedRequestContext request, 
-									MRSDto mrsDto, MatchDo matchDo, MatchSummaryDo matchSummaryDo){
+	public void mergeMatch(SingleMatchRequestContext request){
 		
-    	long userId = request.getMatchFeedQueryContext().getUserId();
-		long matchId = request.getMatchFeedQueryContext().getMatchId();
+    	long userId = request.getQueryContext().getUserId();
+		long matchId = request.getQueryContext().getMatchId();
+		String matchIdAsStr = Long.toString(matchId);
+		
+		MatchDo matchDo = request.getMatchDo();
+		MRSDto mrsDto = request.getMrsDto();
+		MatchSummaryDo matchSummaryDo = request.getMatchSummaryDo();
 
 		// If we have EHMATCHES record, use that only
 		if(matchDo != null){
-			return buildMatchFromEHMatches(userId, matchId, matchDo);
-		}
+			buildMatchFromEHMatches(userId, matchId, matchDo);
+		}else{
 		
-		// If we have MATCH_SUMMARIES record, merge with MRS
-		if(mrsDto != null && matchSummaryDo != null){
-			LegacyMatchDataFeedDtoWrapper resultWrapper = new LegacyMatchDataFeedDtoWrapper(userId);
-			LegacyMatchDataFeedDto dto = new LegacyMatchDataFeedDto();
-			
-			Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
-			buildMatchFromMRSDto(oneMatch, matchId, mrsDto);
-			
-			// Create empty Profile section, to be enriched later
-			Map<String, Object> profileSection = new HashMap<String, Object>();
-			profileSection.put(MatchFeedModel.PROFILE.USERID, matchSummaryDo.getCandidateUserId());
-			oneMatch.get(Long.toString(matchId)).put(MatchFeedModel.SECTIONS.PROFILE, profileSection);		
+			// If we have MATCH_SUMMARIES record, merge with MRS
+			if(mrsDto != null && matchSummaryDo != null){
+				
+				log.info("Building match from merging matchSummaries + MRS for userId {} matchId {}", userId, matchId);
+				
+				Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
+				buildMatchFromMRSDto(oneMatch, matchId, mrsDto);
+				
+				// Create empty Profile section, to be enriched later
+				Map<String, Object> profileSection = new HashMap<String, Object>();
+				profileSection.put(MatchFeedModel.PROFILE.USERID, matchSummaryDo.getCandidateUserId());
+				oneMatch.get(matchIdAsStr).put(MatchFeedModel.SECTIONS.PROFILE, profileSection);		
+	
+				buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
 
-			buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
-			
-			dto.setMatches(oneMatch);
-			
-			resultWrapper.setLegacyMatchDataFeedDto(dto);
-			resultWrapper.setFeedAvailable(true);
-			resultWrapper.setMatchesCount(oneMatch.size());
-			
-			request.setLegacyMatchDataFeedDtoWrapper(resultWrapper);
-			
-			return resultWrapper;
+				request.setSingleMatch(oneMatch.get(matchIdAsStr));
+			}
 		}
-		return null;
 	}
 	
 	private LegacyMatchDataFeedDtoWrapper buildMatchFromEHMatches(long userId, long matchId, MatchDo matchDo){
+		
+		log.info("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
 		
 		Map<String,Map<String, Object>> oneMatchContent = mapper.transform(matchDo);
 		Map<String, Map<String,Map<String, Object>>> oneMatch = new HashMap<>();
@@ -86,15 +92,48 @@ public class MRSAndSORAMatchMerger {
 		Map<String, Object> matchSection = new HashMap<>();
 		matchSection.put(MatchFeedModel.MATCH.MATCHEDUSERID, matchDto.getMatchedUserId());
 		matchSection.put(MatchFeedModel.MATCH.CLOSED_STATUS, matchDto.getCloseFlag());
-		matchSection.put(MatchFeedModel.MATCH.DELIVERED_DATE, matchDto.getDeliveryDate());
 		matchSection.put(MatchFeedModel.MATCH.ONE_WAY_STATUS, matchDto.getOneWay());
+		matchSection.put(MatchFeedModel.MATCH.RELAXED, matchDto.getRelaxed());
 		matchSection.put(MatchFeedModel.MATCH.USER_ID, matchDto.getUserId());
+		matchSection.put(MatchFeedModel.MATCH.MATCHEDUSERID, matchDto.getMatchedUserId());
 		matchSection.put(MatchFeedModel.MATCH.DISTANCE, matchDto.getDistance());
+		matchSection.put(MatchFeedModel.MATCH.ID, matchId);
+		matchSection.put(MatchFeedModel.MATCH.DELIVERED_DATE, matchDto.getDeliveryDate());
+		//matchSection.put(MATCH.FIRST_NAME, userMatchSummary.getUserFirstName());
+		//matchSection.put(MATCH.MATCH_FIRST_NAME, userMatchSummary.getCandidateFirstName());	
 		
+		//=======================================================================================
+		//
+		// Below the default values are set.
+		//
+		//=======================================================================================
+		matchSection.put(MatchFeedModel.MATCH.STATUS, "new");
+		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
+		matchSection.put(MatchFeedModel.MATCH.ARCHIVE_STATUS, MatchArchiveStatusEnum.OPEN.toInt());
+		matchSection.put(MatchFeedModel.MATCH.COMM_LAST_SENT, null); 
+		matchSection.put(MatchFeedModel.MATCH.MATCH_COMM_LAST_SENT, null);
+		matchSection.put(MatchFeedModel.MATCH.READ_MATCH_DETAILS, false);
+		matchSection.put(MatchFeedModel.MATCH.NEW_MESSAGE_COUNT, 0);
+		matchSection.put(MatchFeedModel.MATCH.INITIALIZER, MatchInitializerEnum.UNINITIALIZED.toInt());
+		matchSection.put(MatchFeedModel.MATCH.DISPLAY_TAB, MatchDisplayTabEnum.NEW_TAB.toInt());
+		matchSection.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, null);
+		matchSection.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, null);
+		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, FastTrackAvailableEnum.AVAILABLE_TO_BOTH.toInt());
+		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STATUS, FastTrackStatusEnum.NONE.toInt());
+		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
+		matchSection.put(MatchFeedModel.MATCH.LAST_NUDGE_DATE, null);
+		matchSection.put(MatchFeedModel.MATCH.MATCH_CLOSED_COUNT, null);
+		matchSection.put(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB, MatchDisplayTabEnum.NEW_TAB.toInt());
+		matchSection.put(MatchFeedModel.MATCH.NEW_MATCH_MESSAGE_COUNT, 0);
+		matchSection.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, null);
+		matchSection.put(MatchFeedModel.MATCH.STAGE, 27);
+		matchSection.put(MatchFeedModel.MATCH.TURN_OWNER, 0);
+		 
 		oneMatchSection.put(MatchFeedModel.SECTIONS.MATCH, matchSection);
 		
 		oneMatch.put(Long.toString(matchId), oneMatchSection);
 	}
+ 
 	
 	private void buildCommFromMatchSummaries(
 			Map<String, Map<String, Map<String, Object>>> oneMatch, long matchId,
@@ -102,6 +141,10 @@ public class MRSAndSORAMatchMerger {
 				
 		Map<String, Object> commSection = new HashMap<>();
 		commSection.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, comm.getLastCommDate());
+		
+		// Default values
+		commSection.put(MatchFeedModel.COMMUNICATION.NEW_MESSAGE_COUNT, 0);
+		commSection.put(MatchFeedModel.COMMUNICATION.VIEWED_PROFILE, false);
 				
 		oneMatch.get(Long.toString(matchId)).put(MatchFeedModel.SECTIONS.COMMUNICATION, commSection);		
 	}

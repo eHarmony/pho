@@ -39,8 +39,6 @@
       <property name="userRelaxed" column="FEMALE_RELAXED" not-null="false" access="field"/>
       <property name="userId" column="USERID" not-null="true" insert="false" update="false" access="field"/>
       <property name="userDisplayTab" column="UserDisplayTab" type="MatchDisplayTabEnum" not-null="false"/>
-
-	  <one-to-one name="communication" property-ref="matchId" cascade="none" class="com.eharmony.services.mymatchesservice.store.data.CommunicationDo" access="field"/>
      
    </class>
 </hibernate-mapping>

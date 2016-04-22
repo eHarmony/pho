@@ -3,22 +3,17 @@
    "-//Hibernate/Hibernate Mapping DTD//EN"
    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="com.eharmony.singles.common.hibernate.usertypes">
-    <typedef name="CaptionStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
-        <param name="enumClass">com.eharmony.verona.service.photo.enumeration.CaptionStatusEnum</param>
+
+    <typedef name="FastTrackStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.FastTrackStatusEnum</param>
     </typedef>
     <typedef name="FastTrackAvailableEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
         <param name="enumClass">com.eharmony.singles.common.enumeration.FastTrackAvailableEnum</param>
     </typedef>    
-    <typedef name="FastTrackStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
-        <param name="enumClass">com.eharmony.singles.common.enumeration.FastTrackStatusEnum</param>
-    </typedef>
 	<typedef name="IcebreakerStateEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
 		<param name="enumClass">com.eharmony.singles.common.enumeration.IcebreakerStateEnum</param>
 	</typedef>
-    <typedef name="GenderEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
-        <param name="enumClass">com.eharmony.verona.service.enumeration.GenderEnum</param>
-    </typedef>
-    <typedef name="MatchArchiveStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+	<typedef name="MatchArchiveStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
         <param name="enumClass">com.eharmony.singles.common.enumeration.MatchArchiveStatusEnum</param>
     </typedef>
     <typedef name="MatchInitializerEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
@@ -29,16 +24,44 @@
     </typedef>
     <typedef name="MatchDisplayTabEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
         <param name="enumClass">com.eharmony.singles.common.enumeration.MatchDisplayTabEnum</param>
-    </typedef>    
+    </typedef>  
     <typedef name="NudgeStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
         <param name="enumClass">com.eharmony.singles.common.enumeration.NudgeStatusEnum</param>
     </typedef>
-	<typedef name="NudgeHistoryStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
-		<param name="enumClass">com.eharmony.singles.common.enumeration.NudgeHistoryStatusEnum</param>
-	</typedef>
     <typedef name="OneWayStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
         <param name="enumClass">com.eharmony.singles.common.enumeration.OneWayStatusEnum</param>
     </typedef>
+    <typedef name="MatchDistanceEnum"	class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+		<param name="enumClass">com.eharmony.singles.common.settings.enumeration.MatchDistanceEnum</param>
+	</typedef>
+    
+<!-- 
+FastTrackStatusEnum
+FastTrackAvailableEnum
+MatchArchiveStatusEnum
+MatchDisplayTabEnum
+MatchClosedStatusEnum
+MatchInitializerEnum
+IcebreakerStateEnum
+NudgeStatusEnum
+OneWayStatusEnum
+ -->
+ 
+<!-- 
+    <typedef name="CaptionStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.verona.service.photo.enumeration.CaptionStatusEnum</param>
+    </typedef>
+
+    <typedef name="GenderEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.verona.service.enumeration.GenderEnum</param>
+    </typedef>
+
+  
+
+	<typedef name="NudgeHistoryStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+		<param name="enumClass">com.eharmony.singles.common.enumeration.NudgeHistoryStatusEnum</param>
+	</typedef>
+
 	<typedef name="PhotoRequestStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
 		<param name="enumClass">com.eharmony.verona.service.photo.enumeration.PhotoRequestStatusEnum</param>
 	</typedef>
@@ -91,4 +114,5 @@
 	<typedef name="PromotionCodeTypeEnum"	class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
 		<param name="enumClass">com.eharmony.singles.common.promotioncode.enumeration.PromotionCodeTypeEnum</param>
 	</typedef>
+-->
 </hibernate-mapping>

@@ -13,7 +13,9 @@ import com.eharmony.communication.MatchCommunication;
 import com.eharmony.communication.nextcommunicationaction.NextCommunicationAction;
 import com.eharmony.communication.nextcommunicationaction.NextCommunicationActionService;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
 /**
@@ -27,7 +29,7 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
  *
  */
 public class CommNextStepsV2Enricher
-        extends AbstractMatchFeedTransformer {
+        extends AbstractMatchFeedTransformer  implements IMatchTransformer{
 
     private static final Logger logger = LoggerFactory
             .getLogger(CommNextStepsV2Enricher.class);
@@ -35,15 +37,22 @@ public class CommNextStepsV2Enricher
     @Resource
     private NextCommunicationActionService nextCommunicationActionService;
 
-    @SuppressWarnings("unchecked")
     @Override
     protected boolean processMatch(Map<String, Map<String, Object>> matchMap,
             MatchFeedRequestContext context) {
 
+        long userId = context.getUserId();
+        
+        return processMatch(matchMap, userId);
+
+    }
+    
+    @SuppressWarnings("unchecked")
+    private boolean processMatch(Map<String, Map<String, Object>> matchMap, long userId){
+
         Map<String, Object> commSection = matchMap
                 .get(MatchFeedModel.SECTIONS.COMMUNICATION);
 
-        long userId = context.getUserId();
 
         // Only add if it does not already exist, or if it does not contain action, which means this enricher has not processed it yet
         if (commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null 
@@ -74,5 +83,18 @@ public class CommNextStepsV2Enricher
 
         return true;
     }
+    
+
+	@Override
+	public SingleMatchRequestContext processSingleMatch(
+			SingleMatchRequestContext context) {
+
+		if(context.matchIsAvailable()){
+			long userId = context.getQueryContext().getUserId();
+			processMatch(context.getSingleMatch(), userId);
+		}
+		
+		return context;
+	}
 
 }

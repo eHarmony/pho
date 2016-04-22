@@ -22,7 +22,6 @@
         <property name="sourceList">
             <list>
                 <value>classpath:/mymatchesservice/hibernate/typedefs.hbm.xml</value>
-                <value>classpath:/mymatchesservice/hibernate/CommunicationDo.hbm.xml</value>
                 <value>classpath:/mymatchesservice/hibernate/MatchSummaryDo.hbm.xml</value>
                 <value>classpath:/mymatchesservice/hibernate/MatchDo.hbm.xml</value>
             </list>

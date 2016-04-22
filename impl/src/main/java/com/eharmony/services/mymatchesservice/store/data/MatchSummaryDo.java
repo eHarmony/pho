@@ -7,7 +7,7 @@
  * This software is a work of authorship by eharmony.com and protected by
  * the copyright laws of the United States and foreign jurisdictions.
  *
- * Copyright 2000-2009 eharmony.com, Inc. All rights reserved.
+ * Copyright 2000-2016 eharmony.com, Inc. All rights reserved.
  *
  */
 package com.eharmony.services.mymatchesservice.store.data;

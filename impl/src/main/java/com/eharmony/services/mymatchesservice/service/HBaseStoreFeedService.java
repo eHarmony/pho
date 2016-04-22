@@ -11,6 +11,6 @@ public interface HBaseStoreFeedService {
     public Observable<HBaseStoreCountResponse> getUserMatchesCount(MatchCountRequestContext request);
     public Observable<HBaseStoreCountResponse> getUserNewMatchesCount(MatchCountRequestContext request);
 
-    public Observable<HBaseStoreFeedResponse> getUserMatchSafe(HBaseStoreFeedRequestContext request);
+    public Observable<HBaseStoreSingleMatchResponse> getUserMatchSafe(HBaseStoreSingleMatchRequestContext request);
 
 }

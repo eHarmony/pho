@@ -66,7 +66,6 @@ public class MatchDo
     protected Boolean userReadDetails;
     protected Date userReadDetailsDate;
     protected Boolean userRelaxed;
-    protected CommunicationDo communication;
 
     
     
@@ -109,7 +108,6 @@ public class MatchDo
             builder.append(this.getCandidateReadDetailsDate(), other.getCandidateReadDetailsDate());
             builder.append(this.getCandidateRelaxed(), other.getCandidateRelaxed());
             builder.append(this.getCandidateUserId(), other.getCandidateUserId());
-            builder.append(this.getCommunication(), other.getCommunication());
             builder.append(this.getDistance(), other.getDistance());
             builder.append(this.getIcebreakerStatus(), other.getIcebreakerStatus());
             builder.append(this.getId(), other.getId());
@@ -129,7 +127,6 @@ public class MatchDo
             builder.append(this.getUserReadDetailsDate(), other.getUserReadDetailsDate());
             builder.append(this.getUserRelaxed(), other.getUserRelaxed());
             builder.append(this.getUserId(), other.getUserId());
-            builder.append(this.getCommunication(), other.getCommunication());
             builder.append(userDisplayTab, other.userDisplayTab);
             builder.append(candidateDisplayTab, other.candidateDisplayTab);
             equals = builder.isEquals();
@@ -204,14 +201,6 @@ public class MatchDo
 
         return closedStatus;
 
-    }
-
-    public CommunicationDo getCommunication() {
-        return communication;
-    }
-
-    public void setCommunication(CommunicationDo communication) {
-        this.communication = (CommunicationDo) communication;
     }
     
     public Integer getDistance() {
@@ -342,7 +331,6 @@ public class MatchDo
         builder.append(this.getCandidateReadDetailsDate());
         builder.append(this.getCandidateRelaxed());
         builder.append(this.getCandidateUserId());
-        builder.append(this.getCommunication());
         builder.append(this.getDistance());
         builder.append(this.getIcebreakerStatus());
         builder.append(this.getInitializer());
@@ -361,7 +349,6 @@ public class MatchDo
         builder.append(this.getUserReadDetailsDate());
         builder.append(this.getUserRelaxed());
         builder.append(this.getUserId());
-        builder.append(this.getCommunication());
         builder.append(userDisplayTab);
         builder.append(candidateDisplayTab);
         return builder.toHashCode();
@@ -543,7 +530,6 @@ public class MatchDo
         builder.append("candidateReadDetailsDate", this.getCandidateReadDetailsDate());
         builder.append("candidateRelaxed", this.getCandidateRelaxed());
         builder.append("candidateUserId", this.getCandidateUserId());
-        builder.append("communication", this.getCommunication());
         builder.append("distance", this.getDistance());
         builder.append("icebreakerState", this.getIcebreakerStatus());
         builder.append("initializer", this.getInitializer());
@@ -563,7 +549,6 @@ public class MatchDo
         builder.append("userRelaxed", this.getUserRelaxed());
         builder.append("userId", this.getUserId());
         builder.append("userDisplayTab", userDisplayTab);
-        builder.append("communication", this.getCommunication());
         builder.append("candidateDisplayTab", candidateDisplayTab);
         return builder.toString();
 

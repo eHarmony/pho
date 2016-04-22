@@ -18,15 +18,14 @@ import rx.Observable;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
-
 import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
-
 import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
+import com.eharmony.services.mymatchesservice.rest.SingleMatchQueryContext;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
@@ -78,37 +77,35 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     }
     
 	@Override
-	public Observable<HBaseStoreFeedResponse> getUserMatchSafe(
-			HBaseStoreFeedRequestContext request) {
+	public Observable<HBaseStoreSingleMatchResponse> getUserMatchSafe(
+			HBaseStoreSingleMatchRequestContext request) {
 		
-        Observable<HBaseStoreFeedResponse> hbaseStoreFeedResponse = Observable.defer(() -> Observable
+        Observable<HBaseStoreSingleMatchResponse> hbaseStoreSingleMatchResponse = Observable.defer(() -> Observable
                 .just(getUserMatch(request)));
         
-        hbaseStoreFeedResponse.onErrorReturn(ex -> {
+        hbaseStoreSingleMatchResponse.onErrorReturn(ex -> {
             logger.warn(
-                    "Exception while fetching data from hbase for user {} and returning empty feed for safe method",
-                    request.getMatchFeedQueryContext().getUserId(), ex);
-            HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
+                    "Exception while fetching data from hbase for userId {} matchId {}, returning empty result for safe method",
+                    request.getSingleMatchQueryContext().getUserId(), request.getSingleMatchQueryContext().getMatchId(), ex);
+            HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
             response.setError(ex);
             return response;
         });
-        return hbaseStoreFeedResponse;
+        return hbaseStoreSingleMatchResponse;
 	}
 	
-    private HBaseStoreFeedResponse getUserMatch(final HBaseStoreFeedRequestContext request) {
-        HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
-        MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
-        MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
+    private HBaseStoreSingleMatchResponse getUserMatch(final HBaseStoreSingleMatchRequestContext request) {
+    	HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
+        SingleMatchQueryContext queryContext = request.getSingleMatchQueryContext();
+        
         long startTime = System.currentTimeMillis();
         Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX, 
-        																		METRICS_GETMATCH_METHOD, 
-                                                                              matchStatusGroup);
+        																		METRICS_GETMATCH_METHOD);
         Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
-        																		METRICS_GETMATCH_METHOD,
-                                                                             matchStatusGroup);
+        																		METRICS_GETMATCH_METHOD);
         
         long userId = queryContext.getUserId();
-        long matchId = request.getMatchFeedQueryContext().getMatchId();
+        long matchId = queryContext.getMatchId();
         
         try {
         	MatchDataFeedItemQueryRequest requestQuery = new MatchDataFeedItemQueryRequest(userId);       
@@ -116,15 +113,10 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         	
             MatchDataFeedItemDto oneMatch = queryRepository.getMatchDataFeedItemDto(requestQuery);
             
-            Set<MatchDataFeedItemDto> resultSet = new HashSet<MatchDataFeedItemDto>();
-            if(oneMatch != null){
-            	resultSet.add(oneMatch);
-            }
-            
-            response.setHbaseStoreFeedItems(resultSet);
-            if (CollectionUtils.isNotEmpty(resultSet)) {
+            response.setHbaseStoreFeedItem(oneMatch);
+            if (oneMatch != null) {
                 response.setDataAvailable(true);
-                metricsHistogram.update(resultSet.size());
+                metricsHistogram.update(1);
             }
         } catch (Throwable e) {
             logger.warn("Exception while fetching single match from HBase store for user {} and matchId {}",

@@ -84,15 +84,6 @@ public class HBaseRedisFeedMerger {
 
         LegacyMatchDataFeedDtoWrapper wrapper = request.getLegacyMatchDataFeedDtoWrapper();
         
-        if(request.getMatchFeedQueryContext().isSingleMatchRequest()){
-        	// remove all but the single match from Redis feed.
-        	long matchId = request.getMatchFeedQueryContext().getMatchId();
-        	
-        	Map<String, Map<String, Object>> singleMatch = redisFeed.getMatches().get(Long.toString(matchId));
-        	redisFeed.getMatches().clear();
-        	redisFeed.getMatches().put(Long.toString(matchId), singleMatch);
-        }
-        
         wrapper.setLegacyMatchDataFeedDto(redisFeed);
         wrapper.setFeedAvailable(true);
      }
@@ -120,18 +111,13 @@ public class HBaseRedisFeedMerger {
                 
             }
         });
-        
-        // If merge is for single match, ignore remaining Redis feed items.
-        if(!context.getMatchFeedQueryContext().isSingleMatchRequest()){
-        
-	        suplementryIdSet.stream().forEach((matchId) -> {
-	            Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
-	            hbaseFeed.getMatches().put(matchId, redisMatch);
-	            int totalMatches = hbaseFeed.getTotalMatches();
-				hbaseFeed.setTotalMatches(totalMatches + 1);
-	        });
-        }
-
+                
+        suplementryIdSet.stream().forEach((matchId) -> {
+            Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
+            hbaseFeed.getMatches().put(matchId, redisMatch);
+            int totalMatches = hbaseFeed.getTotalMatches();
+			hbaseFeed.setTotalMatches(totalMatches + 1);
+        });
     }
     
     protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch, 

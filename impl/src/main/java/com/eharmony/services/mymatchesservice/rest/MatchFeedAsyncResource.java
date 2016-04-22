@@ -77,15 +77,14 @@ public class MatchFeedAsyncResource {
     @GET
     @Path("/users/{userId}/matches/{matchId}")
     @Produces(MediaType.APPLICATION_JSON) 
+    @Timed(name="getMatch")
     public void getMatch(   @PathParam("userId") long userId, 
     						@PathParam("matchId") long matchId,
     						@Suspended final AsyncResponse asyncResponse){
     	
-    	Set<String> statuses = new HashSet<String>();
-    	statuses.add("all");
-    	MatchFeedQueryContext queryContext = MatchFeedQueryContextBuilder.newInstance()
-                .setMatchId(matchId).setUserId(userId).setStatuses(statuses)
-                .build();
+    	SingleMatchQueryContext queryContext = new SingleMatchQueryContext();
+    	queryContext.setMatchId(matchId)
+    				.setUserId(userId);
 
         log.info("fetching single match for userId {} matchId {}", userId, matchId);
         userSingleMatchAsyncRequestHandler.getSingleMatch(queryContext, asyncResponse);  	 

@@ -6,9 +6,12 @@ public class MRSDto {
 	private long matchId;
 	private long matchedUserId;
 	private int distance;
-	private String deliveryDate;
+	private long deliveryDate;
 	private int closeFlag;
 	private int oneWay;
+	private boolean relaxed;
+	private int oneWayStatus;
+	private int archiveStatus;
 	
 	public long getUserId() {
 		return userId;
@@ -28,10 +31,10 @@ public class MRSDto {
 	public void setDistance(int distance) {
 		this.distance = distance;
 	}
-	public String getDeliveryDate() {
+	public long getDeliveryDate() {
 		return deliveryDate;
 	}
-	public void setDeliveryDate(String deliveryDate) {
+	public void setDeliveryDate(long deliveryDate) {
 		this.deliveryDate = deliveryDate;
 	}
 	public int getCloseFlag() {
@@ -51,5 +54,24 @@ public class MRSDto {
 	}
 	public void setMatchId(long matchId) {
 		this.matchId = matchId;
+	}
+
+	public void setArchiveStatus(int as) {
+		this.archiveStatus = as;
+	}
+	public boolean getRelaxed() {
+		return relaxed;
+	}
+	public int getOneWayStatus() {
+		return oneWayStatus;
+	}
+	public int getArchiveStatus() {
+		return archiveStatus;
+	}
+	public void setRelaxed(boolean userRelaxed) {
+		this.relaxed = userRelaxed;
+	}
+	public void setOneWayStatus(int ows) {
+		this.oneWayStatus = ows;
 	}
 }
