@@ -71,7 +71,17 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         Collections.sort(entries, comparator);
         
         // 3. Select the sub-list to be returned on this page
-        entries = entries.subList((pageNum - 1) * pageSize, pageNum * pageSize);
+        int fromIndex = (pageNum - 1) * pageSize;
+        int toIndex = pageNum * pageSize;
+        int size = entries.size();
+        if(toIndex > size){
+            toIndex = size;
+        }
+        if(fromIndex > toIndex){
+            entries =  Collections.emptyList();
+        } else {
+            entries = entries.subList(fromIndex, toIndex);
+        }
         
         // 4. Put the entries back into map form, but use a LinkedHashMap to maintain the ordering
         Map<String, Map<String, Map<String, Object>>> entryMap = entries.stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),(k,v) ->{ throw new RuntimeException(String.format("Duplicate key %s", k));},

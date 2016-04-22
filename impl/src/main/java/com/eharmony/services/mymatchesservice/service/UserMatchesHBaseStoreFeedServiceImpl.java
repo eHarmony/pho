@@ -122,6 +122,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
         }
     }
 
+    @SuppressWarnings("resource")
     @Deprecated
     private Set<MatchDataFeedItemDto> getMatchesFeedSync(MatchFeedRequestContext request) {
         Timer.Context timerContext = GraphiteReportingConfiguration.getRegistry()
@@ -142,6 +143,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
         }
     }
 
+    @SuppressWarnings("resource")
     private Set<MatchDataFeedItemDto> fetchMatchesFeedInParallel(MatchFeedRequestContext request) {
 
         Timer.Context timerContext = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX, METRICS_GET_HBASE_PARALLEL);

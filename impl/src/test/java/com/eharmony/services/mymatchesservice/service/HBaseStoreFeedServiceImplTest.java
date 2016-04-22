@@ -144,7 +144,9 @@ public class HBaseStoreFeedServiceImplTest {
         Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
         for (int i = 0; i < FEED_LIMIT; i++) {
-            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+            MatchDataFeedItemDto item = new MatchDataFeedItemDto();
+            item.getMatch().setMatchId(i);
+            matchDataFeedItemSet.add(item);
         }
 
         when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
@@ -238,7 +240,9 @@ public class HBaseStoreFeedServiceImplTest {
         Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
         for (int i = 0; i < 100; i++) {
-            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+            MatchDataFeedItemDto item = new MatchDataFeedItemDto();
+            item.getMatch().setMatchId(i);
+            matchDataFeedItemSet.add(item);
         }
 
         when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
