@@ -74,9 +74,9 @@ public class SimpleMatchedUserComparatorSelector {
                 orderingComparator = orderingComparator.reversed();
             }
             if (ordering.getNullOrdering().equals(NullOrdering.FIRST)) {
-                orderingComparator = Comparator.nullsFirst(comparator);
+                orderingComparator = Comparator.nullsFirst(orderingComparator);
             } else {
-                orderingComparator = Comparator.nullsLast(comparator);
+                orderingComparator = Comparator.nullsLast(orderingComparator);
             }
             
             if(comparator == null){
