@@ -99,14 +99,16 @@ public class MRSAndSORAMatchMerger {
 		matchSection.put(MatchFeedModel.MATCH.DISTANCE, matchDto.getDistance());
 		matchSection.put(MatchFeedModel.MATCH.ID, matchId);
 		matchSection.put(MatchFeedModel.MATCH.DELIVERED_DATE, matchDto.getDeliveryDate());
-		//matchSection.put(MATCH.FIRST_NAME, userMatchSummary.getUserFirstName());
-		//matchSection.put(MATCH.MATCH_FIRST_NAME, userMatchSummary.getCandidateFirstName());	
 		
-		//=======================================================================================
-		//
-		// Below the default values are set.
-		//
-		//=======================================================================================
+		buildMatchSectionDefaultValues(matchSection);
+		 
+		oneMatchSection.put(MatchFeedModel.SECTIONS.MATCH, matchSection);
+		
+		oneMatch.put(Long.toString(matchId), oneMatchSection);
+	}
+	
+	private void buildMatchSectionDefaultValues(Map<String, Object> matchSection){
+
 		matchSection.put(MatchFeedModel.MATCH.STATUS, "new");
 		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
 		matchSection.put(MatchFeedModel.MATCH.ARCHIVE_STATUS, MatchArchiveStatusEnum.OPEN.toInt());
@@ -128,10 +130,7 @@ public class MRSAndSORAMatchMerger {
 		matchSection.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, null);
 		matchSection.put(MatchFeedModel.MATCH.STAGE, 27);
 		matchSection.put(MatchFeedModel.MATCH.TURN_OWNER, 0);
-		 
-		oneMatchSection.put(MatchFeedModel.SECTIONS.MATCH, matchSection);
-		
-		oneMatch.put(Long.toString(matchId), oneMatchSection);
+
 	}
  
 	

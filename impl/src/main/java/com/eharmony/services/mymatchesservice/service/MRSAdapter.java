@@ -83,7 +83,7 @@ public class MRSAdapter{
 
         this.templateBuilder = UriBuilder.fromUri(serviceUrl)
                                          .path(CONTEXT + "/" + VERSION);
-        logger.info("Initialized Matchmaker Client for {}", templateBuilder.build());
+        logger.debug("Initialized Matchmaker Client for {}", templateBuilder.build());
 
     }
 }

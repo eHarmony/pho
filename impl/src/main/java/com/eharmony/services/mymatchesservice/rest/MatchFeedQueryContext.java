@@ -6,7 +6,6 @@ import java.util.Set;
 public interface MatchFeedQueryContext {
 
     public long getUserId();
-    public long getMatchId();
     public String getLocale();
     public int getStartPage();
     public int getPageSize();

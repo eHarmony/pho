@@ -1,7 +1,6 @@
 package com.eharmony.services.mymatchesservice.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +24,6 @@ import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
 import com.eharmony.services.mymatchesservice.rest.MatchCountRequestContext;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
-import com.eharmony.services.mymatchesservice.rest.SingleMatchQueryContext;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
 
@@ -51,7 +49,6 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
-    // private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
@@ -80,13 +77,12 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 	public Observable<HBaseStoreSingleMatchResponse> getUserMatchSafe(
 			HBaseStoreSingleMatchRequestContext request) {
 		
-        Observable<HBaseStoreSingleMatchResponse> hbaseStoreSingleMatchResponse = Observable.defer(() -> Observable
-                .just(getUserMatch(request)));
+        Observable<HBaseStoreSingleMatchResponse> hbaseStoreSingleMatchResponse = Observable.just(getUserMatch(request));
         
         hbaseStoreSingleMatchResponse.onErrorReturn(ex -> {
             logger.warn(
                     "Exception while fetching data from hbase for userId {} matchId {}, returning empty result for safe method",
-                    request.getSingleMatchQueryContext().getUserId(), request.getSingleMatchQueryContext().getMatchId(), ex);
+                    request.getUserId(), request.getMatchId(), ex);
             HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
             response.setError(ex);
             return response;
@@ -96,7 +92,6 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 	
     private HBaseStoreSingleMatchResponse getUserMatch(final HBaseStoreSingleMatchRequestContext request) {
     	HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
-        SingleMatchQueryContext queryContext = request.getSingleMatchQueryContext();
         
         long startTime = System.currentTimeMillis();
         Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX, 
@@ -104,8 +99,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
         																		METRICS_GETMATCH_METHOD);
         
-        long userId = queryContext.getUserId();
-        long matchId = queryContext.getMatchId();
+        long userId = request.getUserId();
+        long matchId = request.getMatchId();
         
         try {
         	MatchDataFeedItemQueryRequest requestQuery = new MatchDataFeedItemQueryRequest(userId);       

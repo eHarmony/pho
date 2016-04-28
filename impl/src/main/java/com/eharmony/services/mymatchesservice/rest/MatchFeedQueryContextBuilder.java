@@ -6,7 +6,6 @@ import java.util.Set;
 public class MatchFeedQueryContextBuilder {
 
     private long userId;
-    private long matchId;
     private String locale;
     private int startPage;
     private int pageSize;
@@ -23,7 +22,7 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContext build() {
 
-        return new MatchFeedQueryContextImpl(userId, matchId, locale, startPage, pageSize, statuses, viewHidden,
+        return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
         			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches);
 
     }
@@ -31,7 +30,6 @@ public class MatchFeedQueryContextBuilder {
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
 
         private final long userId;
-        private final long matchId;
         private final String locale;
         private final int startPage;
         private final int pageSize;
@@ -48,11 +46,6 @@ public class MatchFeedQueryContextBuilder {
             return userId;
         }
 
-        @Override
-        public long getMatchId() {
-            return matchId;
-        }
-		
         @Override
         public String getLocale() {
             return locale;
@@ -88,13 +81,12 @@ public class MatchFeedQueryContextBuilder {
             return teaserResultSize;
         }
         
-        private MatchFeedQueryContextImpl(final long userId, final long matchId, final String locale, final int startPage,
+        private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
                 final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches) {
 
             this.userId = userId;
-            this.matchId = matchId;
             this.locale = locale;
             this.startPage = startPage;
             this.pageSize = pageSize;
@@ -130,11 +122,6 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContextBuilder setUserId(long userId) {
         this.userId = userId;
-        return this;
-    }
-
-    public MatchFeedQueryContextBuilder setMatchId(long matchId) {
-        this.matchId = matchId;
         return this;
     }
     

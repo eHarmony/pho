@@ -10,7 +10,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import rx.Observable;
@@ -29,6 +28,7 @@ import com.eharmony.services.mymatchesservice.service.MRSAdapter;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain;
+import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedSORAStore;
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
@@ -67,10 +67,6 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	    private static final String METRICS_HIERARCHY_PREFIX = "com.eharmony.services.mymatchesservice.rest.MatchFeedAsyncRequestHandler";
 	    private static final String METRICS_GETSINGLEMATCH_ASYNC = "getSingleMatch";
 	    
-	    
-	    @Value("${qa.hbase.enabled:true}")
-    	private boolean hbaseEnabledFlag;
-	    
 		protected Context buildTimerContext() {
 			
 	        Timer.Context t = matchQueryMetricsFactroy
@@ -87,9 +83,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	
 	        singleMatchQueryRequestObservable.subscribe(response -> {
 	        	            
-	        	if(hbaseEnabledFlag){
-	        		singleMatchResponseHandler.processMatchFromHBaseAndRedis(response);
-	        	}
+	        	singleMatchResponseHandler.processMatchFromHBaseAndRedis(response);
 	        	
 	        	if(response.matchIsAvailable()){
 	        		
@@ -108,20 +102,20 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 		        							makeSingleMatchFallbackRequestObservable(singleMatchQueryContext);
 		        	fallbackObservable.subscribe(response2 -> {
 		        		
-		        		singleMatchResponseHandler.processMatchFromMRSAndMORA(response2);
+		        		singleMatchResponseHandler.processMatchFromMRSAndSORA(response2);
 		        		if(response2.matchIsAvailable()){
 		
-		        			logger.debug("Single match created for user {}, matchId {}", userId, matchId);
+		        			logger.debug("Single match found for user {}, matchId {}", userId, matchId);
 			        		singleMatchTransformerChain.execute(response2);
 		        		}
 		        		
 		                long duration = t.stop();
-		                logger.debug("Single match created for user {}, duration {}", userId, duration);
+		                logger.debug("Single match for user {}, duration {}", userId, duration);
 		                ResponseBuilder builder = buildResponse(response2);
 		                asyncResponse.resume(builder.build());
 		
 		            }, (throwable2) -> {
-		                logger.error("Exception creating single match for user {}, matchId {} : {}", userId, matchId, throwable2);
+		                logger.error("Exception fetching single match for user {}, matchId {} : {}", userId, matchId, throwable2);
 		                asyncResponse.resume(throwable2);
 		            }, () -> {
 		                asyncResponse.resume("");
@@ -131,7 +125,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	        }, (throwable) -> {
 	        	
 	            long duration = t.stop();
-	            logger.error("Exception creating single match for user {}, duration {}", userId, duration, throwable);
+	            logger.error("Exception fetching single match for user {}, duration {}", userId, duration, throwable);
 	            asyncResponse.resume(throwable);
 	            
 	        }, () -> {
@@ -151,13 +145,15 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 			
 			// prep Redis...
 			Observable<LegacyMatchDataFeedDtoWrapper> redisStoreFeedObservable = 
-			redisStoreFeedService.getUserMatchesSafe(singleMatchQueryContext.getUserId());
+					redisStoreFeedService.getUserMatchesSafe(singleMatchQueryContext.getUserId());
 			
 			// prep Hbase...
-			HBaseStoreSingleMatchRequestContext hbaseRequestContext = new HBaseStoreSingleMatchRequestContext(singleMatchQueryContext);
+			HBaseStoreSingleMatchRequestContext hbaseRequestContext = new HBaseStoreSingleMatchRequestContext(
+																		singleMatchQueryContext.getUserId(), 
+																		singleMatchQueryContext.getMatchId());
 			
 			matchQueryRequestObservable = matchQueryRequestObservable
-			.zipWith(redisStoreFeedObservable, populateRedisMatchFeed)
+			.zipWith(redisStoreFeedObservable, populateRedisSingleMatch)
 			.zipWith(hbaseStoreFeedService.getUserMatchSafe(hbaseRequestContext), populateHBaseSingleMatch)
 			.subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
 			
@@ -200,18 +196,18 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	    };
 	    
 	    // Handler for async feed request from Redis
-	    private Func2<SingleMatchRequestContext, LegacyMatchDataFeedDtoWrapper, SingleMatchRequestContext> populateRedisMatchFeed = (
+	    private Func2<SingleMatchRequestContext, LegacyMatchDataFeedDtoWrapper, SingleMatchRequestContext> populateRedisSingleMatch = (
 	            request, legacyMatchDataFeedDtoWrapper) -> {
-	            
-	        request.setRedisFeed(legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto());       
+	            	
+	        String matchId = Long.toString(request.getQueryContext().getMatchId());
+	        
+	        LegacyMatchDataFeedDto redisFeed =  legacyMatchDataFeedDtoWrapper.getLegacyMatchDataFeedDto();
+	        if(redisFeed != null && redisFeed.getMatches() != null){
+	        	request.setRedisMatch(redisFeed.getMatches().get(matchId)); 
+	        }
 	        return request;
 	    };
-	
-	    protected boolean isMatchAvailable(SingleMatchRequestContext context){
-	    	
-	    	return (context.getHbaseMatch() != null ||
-	    		(context.getRedisFeed() != null && context.getRedisFeed().getMatches().size() > 0));    
-	    }
+
 
 	    protected ResponseBuilder buildResponse(SingleMatchRequestContext requestContext) {
 

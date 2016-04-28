@@ -17,7 +17,7 @@ public class SingleMatchResponseHandler{
     	hbaseRedisMatchMerger.merge(requestContext);
 	}
 	
-	public void processMatchFromMRSAndMORA(SingleMatchRequestContext requestContext){
+	public void processMatchFromMRSAndSORA(SingleMatchRequestContext requestContext){
 		
 		mrsAndSORAMatchMerger.mergeMatch(requestContext);
 	}

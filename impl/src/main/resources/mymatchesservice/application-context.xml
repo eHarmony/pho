@@ -30,7 +30,6 @@
 		<property name="locations">
 			<list>
 				<value>classpath:mymatchesservice/mymatchesservice.global.properties</value>
-				<value>classpath:mymatchesservice/mymatches.voldemort.properties</value>
 				<value>classpath:mymatchesservice/hibernate/hibernate.properties</value>
 				<value>classpath:mymatchesservice/hibernate/jdbc.properties</value>
 				<value>file:${config.overrides.location}</value>

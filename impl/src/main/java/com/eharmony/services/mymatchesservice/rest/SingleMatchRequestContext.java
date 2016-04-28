@@ -4,7 +4,6 @@ import java.util.Map;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
-import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 
@@ -24,7 +23,7 @@ public class SingleMatchRequestContext {
 	private Map<String, Map<String, Object>> singleMatch;
 
 	// Data sources we gather to build single match
-    private LegacyMatchDataFeedDto redisFeed;
+    private Map<String, Map<String, Object>> redisMatch;
     private MatchDataFeedItemDto hbaseMatch;
     private MatchDo matchDo;
     private MatchSummaryDo matchSummaryDo;
@@ -73,12 +72,12 @@ public class SingleMatchRequestContext {
 		return singleMatch;
 	}
 	
-	public LegacyMatchDataFeedDto getRedisFeed() {
-		return redisFeed;
+	public Map<String, Map<String, Object>> getRedisMatch() {
+		return redisMatch;
 	}
 	
-	public void setRedisFeed(LegacyMatchDataFeedDto redisFeed) {
-		this.redisFeed = redisFeed;
+	public void setRedisMatch(Map<String, Map<String, Object>> match) {
+		this.redisMatch = match;
 	}
 	
 	public MatchDataFeedItemDto getHbaseMatch() {

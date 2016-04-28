@@ -107,7 +107,7 @@ public class HBaseRedisFeedMerger {
 
             if (redisMatch != null) {
                 Map<String, Map<String, Object>> hbaseMatch = hbaseMatches.get(matchId);
-                mergeMatchByTimestamp(matchId, hbaseMatch, redisMatch);
+                hbaseMatch = MergeUtils.mergeMatchByTimestamp(hbaseMatch, redisMatch);
                 
             }
         });
@@ -118,22 +118,5 @@ public class HBaseRedisFeedMerger {
             int totalMatches = hbaseFeed.getTotalMatches();
 			hbaseFeed.setTotalMatches(totalMatches + 1);
         });
-    }
-    
-    protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch, 
-            Map<String, Map<String, Object>> deltaMatch) {
-
-        Map<String, Object> targetMatchSection = targetMatch.get(MatchFeedModel.SECTIONS.MATCH);
-        Map<String, Object> deltaMatchSection = deltaMatch.get(MatchFeedModel.SECTIONS.MATCH);
-
-        Date targetTs = new Date((Long) targetMatchSection.get(TIMESTAMP_NAME));
-        Date deltaTs = new Date((Long) deltaMatchSection.get(TIMESTAMP_NAME));
-
-        if (deltaTs.after(targetTs)) {
-            targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
-            targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
-                    deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
-            log.debug("match {} updated by delta.", matchId);
-        }
     }
 }

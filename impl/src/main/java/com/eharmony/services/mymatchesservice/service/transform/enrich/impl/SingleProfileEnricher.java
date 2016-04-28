@@ -17,7 +17,6 @@ public class SingleProfileEnricher implements IMatchTransformer {
     @Resource 
     private ProfileServiceClient profileService;
 
-	// See MDS.ProfileBatchRetriever
 	@Override
 	public SingleMatchRequestContext processSingleMatch(SingleMatchRequestContext context) {
 		

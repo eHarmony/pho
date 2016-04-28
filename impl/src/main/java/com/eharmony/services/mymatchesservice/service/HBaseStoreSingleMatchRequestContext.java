@@ -1,20 +1,26 @@
 package com.eharmony.services.mymatchesservice.service;
 
-import com.eharmony.services.mymatchesservice.rest.SingleMatchQueryContext;
 import com.google.common.base.Preconditions;
 
 public class HBaseStoreSingleMatchRequestContext {
-
-	private SingleMatchQueryContext singleMatchQueryContext;
 	
-	public HBaseStoreSingleMatchRequestContext(SingleMatchQueryContext queryCtx){ 
-		Preconditions.checkNotNull(queryCtx, "SingleMatchQueryContext must not be null");
-		this.singleMatchQueryContext = queryCtx;
+	private long userId;
+	private long matchId;
+	
+	public HBaseStoreSingleMatchRequestContext(long userId, long matchId){ 
+		Preconditions.checkNotNull(matchId, "matchId must not be null");
+		Preconditions.checkNotNull(userId, "userId must not be null");
+		
+		this.matchId = matchId;
+		this.userId = matchId;
 	}
 
-	public SingleMatchQueryContext getSingleMatchQueryContext() {
-		return singleMatchQueryContext;
+	public long getUserId() {
+		return userId;
 	}
 
+	public long getMatchId() {
+		return matchId;
+	}
 
 }

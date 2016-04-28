@@ -7,6 +7,10 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 public class LegacyMatchTransformer extends LegacyMatchFeedTransformer{
 
 	public Map<String, Map<String, Object>> transform(MatchDataFeedItemDto oneMatch){
+		
+		if(oneMatch == null){
+			return null;
+		}
 		return buildLegacyFeedItem(oneMatch);
 	}
 }
