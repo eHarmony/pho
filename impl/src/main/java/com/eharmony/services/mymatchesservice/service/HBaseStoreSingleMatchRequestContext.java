@@ -12,7 +12,7 @@ public class HBaseStoreSingleMatchRequestContext {
 		Preconditions.checkNotNull(userId, "userId must not be null");
 		
 		this.matchId = matchId;
-		this.userId = matchId;
+		this.userId = userId;
 	}
 
 	public long getUserId() {

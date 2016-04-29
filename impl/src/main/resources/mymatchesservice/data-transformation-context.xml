@@ -166,11 +166,20 @@
 		class="com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain">
 		<constructor-arg>
 		   <util:list>
-			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleProfileEnricher"/>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleMatchProfileEnricher"/>
 			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher" />		
 			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV1Enricher"/>
 			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV2Enricher"/>
             <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEnricher"/>
+            <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleMatchCommStateEnricher"/>
+            <bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.SingleMatchProfileFilter">
+            	<constructor-arg>
+            		<util:set>
+            			<value>birthdate</value>
+            			<value>locale</value>
+            		</util:set>
+            	</constructor-arg>
+            </bean>
 		  </util:list>
 		</constructor-arg>
 	</bean> 

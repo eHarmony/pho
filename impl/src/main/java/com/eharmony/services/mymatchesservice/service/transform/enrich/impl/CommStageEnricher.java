@@ -49,7 +49,11 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer  implements 
 		CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
 		commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
 		commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
-		commSection.put(MatchFeedModel.COMMUNICATION.STATUS, getTurnOwner(match, commStage));
+		
+		String turnOwner = getTurnOwner(match, commStage);
+		commSection.put(MatchFeedModel.COMMUNICATION.STATUS, turnOwner);
+		matchSection.put(MatchFeedModel.MATCH.STATUS, turnOwner);
+		
 		logger.debug("Enriched comm section={} , subSection={} , status={} for userId={}", commStage.getSectionId(),
 				commStage.getSubSectionId(), commSection.get(MatchFeedModel.COMMUNICATION.STATUS), userId);
 
@@ -84,6 +88,7 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer  implements 
 		matchStatusCallParams.put("stage", commStage.getWorkflowId());
 		matchStatusCallParams.put("matchId", matchSection.get(MatchFeedModel.MATCH.ID));
 		String turnOwner = MatchStatusUtilities.getStatus(matchStatusCallParams);
+		
 		return turnOwner;
 	}
 }

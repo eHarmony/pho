@@ -39,7 +39,10 @@ public class MRSAndSORAMatchMerger {
 
 		// If we have EHMATCHES record, use that only
 		if(matchDo != null){
-			buildMatchFromEHMatches(userId, matchId, matchDo);
+			
+			LegacyMatchDataFeedDtoWrapper match = buildMatchFromEHMatches(userId, matchId, matchDo);
+			request.setSingleMatch(match.getLegacyMatchDataFeedDto().getMatches().get(matchIdAsStr));
+			
 		}else{
 		
 			// If we have MATCH_SUMMARIES record, merge with MRS
@@ -66,7 +69,8 @@ public class MRSAndSORAMatchMerger {
 		
 		log.info("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
 		
-		Map<String,Map<String, Object>> oneMatchContent = mapper.transform(matchDo);
+		Map<String,Map<String, Object>> oneMatchContent = mapper.transform(userId, matchDo);
+		
 		Map<String, Map<String,Map<String, Object>>> oneMatch = new HashMap<>();
 		oneMatch.put(Long.toString(matchId), oneMatchContent);
 		

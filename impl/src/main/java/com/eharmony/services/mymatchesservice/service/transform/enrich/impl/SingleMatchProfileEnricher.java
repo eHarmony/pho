@@ -1,6 +1,7 @@
 package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,8 +13,10 @@ import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.profile.ProfileType;
 import com.eharmony.services.profile.client.ProfileServiceClient;
 
-public class SingleProfileEnricher implements IMatchTransformer {
+public class SingleMatchProfileEnricher implements IMatchTransformer {
 
+	public static final int PROFILE_VERSION = 1;
+	
     @Resource 
     private ProfileServiceClient profileService;
 
@@ -27,6 +30,7 @@ public class SingleProfileEnricher implements IMatchTransformer {
 		
 			String userId = matchSection.get(MatchFeedModel.MATCH.USER_ID).toString();
 			String candidateId = profileSection.get(MatchFeedModel.PROFILE.USERID).toString();
+
 			List<String> userIds = new ArrayList<String>();
 			userIds.add(userId);
 			userIds.add(candidateId);
@@ -44,6 +48,7 @@ public class SingleProfileEnricher implements IMatchTransformer {
 			profileSection.put(MatchFeedModel.PROFILE.USERID, candidateProfile.get(MatchFeedModel.PROFILE.USERID));
 			profileSection.put(MatchFeedModel.PROFILE.AGE, candidateProfile.get(MatchFeedModel.PROFILE.AGE));
 			profileSection.put(MatchFeedModel.PROFILE.BIRTHDATE, candidateProfile.get(MatchFeedModel.PROFILE.BIRTHDATE));
+			profileSection.put(MatchFeedModel.PROFILE.VERSION, PROFILE_VERSION);
 			
 			matchSection.put(MatchFeedModel.MATCH.FIRST_NAME, userProfile.get(MatchFeedModel.PROFILE.FIRSTNAME));
 			matchSection.put(MatchFeedModel.MATCH.MATCH_FIRST_NAME, candidateProfile.get(MatchFeedModel.PROFILE.FIRSTNAME));
@@ -51,4 +56,6 @@ public class SingleProfileEnricher implements IMatchTransformer {
 		
 		return context;
 	}
+	
+	
 }
