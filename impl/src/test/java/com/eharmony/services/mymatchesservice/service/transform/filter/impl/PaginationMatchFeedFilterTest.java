@@ -96,4 +96,5 @@ public class PaginationMatchFeedFilterTest {
 		assertEquals(40, ctx.getLegacyMatchDataFeedDto().getTotalMatches().intValue());
 
 	}
+	
 }

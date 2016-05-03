@@ -62,7 +62,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private static final String METRICS_GETSPOTLITBYSTATUS_METHOD = "getSpotlitUserMatchesByStatusGroup";
     private static final String METRICS_GETCOUNT_METHOD = "getUserMatchesCount";
 
-    private static final int MAXIMUM_SPOTLIT_USERS = 4;
+    @Value("${spotlight.users.to.elevate.maximum:4}")
+    private int maximumSpotlitUsers;
 
     @Override
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request) {
@@ -185,7 +186,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                 statuses.add(matchStatus.toInt());
             }
             requestQuery.setMatchStatusFilters(statuses);
-            requestQuery.setPageSize(MAXIMUM_SPOTLIT_USERS);
+            requestQuery.setPageSize(maximumSpotlitUsers);
 
         }
         requestQuery.setOrderings(SPOTLIT_ORDERINGS);

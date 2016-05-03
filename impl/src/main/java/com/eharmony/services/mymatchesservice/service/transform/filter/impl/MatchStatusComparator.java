@@ -7,7 +7,7 @@
  * This software is a work of authorship by eharmony.com and protected by
  * the copyright laws of the United States and foreign jurisdictions.
  *
- * Copyright 2000-2012 eharmony.com, Inc. All rights reserved.
+ * Copyright 2000-2016 eharmony.com, Inc. All rights reserved.
  *
  */
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
@@ -15,6 +15,8 @@ package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
+
+import org.springframework.stereotype.Component;
 
 import com.eharmony.singles.common.status.MatchStatus;
 import com.google.common.collect.Maps;
@@ -25,6 +27,7 @@ import com.google.common.collect.Maps;
  * NEW, MYTURN, OPENCOMM, THEIRTURN, ARCHIVED
  *
  */
+@Component
 public class MatchStatusComparator
           implements Comparator<String> {
 

@@ -2,25 +2,38 @@ package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.IMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
+@Component("paginationMatchFeedFilter")
 public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
-      
-    private Comparator<Map.Entry<String, Map<String, Map<String, Object>>>> comparator = new StatusDateIdMatchInfoComparator();
+    
+    @Autowired
+    private StatusDateIdMatchInfoComparator statusDateIdMatchInfoComparator;
+    
+    @Autowired
+    private SpotlightComparator spotlightComparator;
+
+    @Value("${spotlight.users.to.elevate.maximum:4}")
+    private int maximumSpotlitUsers;
 
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
@@ -67,8 +80,11 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         List<Map.Entry<String, Map<String, Map<String, Object>>>> entries =
             new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
         
-        // 2. Sort the list
-        Collections.sort(entries, comparator);
+        // 2. Sort spotlight users first (up to limit) followed by the rest sorted by delivery date
+        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries.stream().filter(entry -> StringUtils.isNotBlank((String) entry.getValue().get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE))).sorted(spotlightComparator).limit(maximumSpotlitUsers).collect(Collectors.toList());
+        entries.removeAll(spotlightPortion);
+        Collections.sort(entries, statusDateIdMatchInfoComparator);
+        entries.addAll(0, spotlightPortion);
         
         // 3. Select the sub-list to be returned on this page
         int fromIndex = (pageNum - 1) * pageSize;

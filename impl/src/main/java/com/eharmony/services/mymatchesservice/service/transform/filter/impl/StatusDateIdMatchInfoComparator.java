@@ -12,21 +12,21 @@
  */
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
-
+@Component
 public class StatusDateIdMatchInfoComparator
           implements Comparator<Map.Entry<String, Map<String, Map<String, Object>>>> {
 
-    private Comparator<String> matchStatusComparator = new MatchStatusComparator();
+    @Autowired
+    private Comparator<String> matchStatusComparator;
 
     @Override public int compare(Entry<String, Map<String, Map<String, Object>>> matchInfoEntry1,
                                  Entry<String, Map<String, Map<String, Object>>> matchInfoEntry2) {
@@ -43,27 +43,7 @@ public class StatusDateIdMatchInfoComparator
 
         if (result == 0) { // same status
             
-            // Compare spotlight status
-            String spotlit1ISODate = (String) matchInfo1.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
-            String spotlit2ISODate = (String) matchInfo2.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
-            
-            // Match 1 does not have spotlight and Match 2 does, so Match 2 is first
-            if(StringUtils.isBlank(spotlit1ISODate) && !StringUtils.isBlank(spotlit2ISODate)){
-                return 1;
-            }
-            
-            // Match 1 does have spotlight and Match 2 does not, so Match 1 is first
-            if(!StringUtils.isBlank(spotlit1ISODate) && StringUtils.isBlank(spotlit2ISODate)){
-                return -1;
-            }
-            // They both have spotlight, so whichever spotlight ends first (and was therefore purchased first) comes first
-            if(!StringUtils.isBlank(spotlit1ISODate) && !StringUtils.isBlank(spotlit2ISODate)){
-                LocalDateTime spotlight1EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit1ISODate, LocalDateTime::from);
-                LocalDateTime spotlight2EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit2ISODate, LocalDateTime::from);
-                return spotlight1EndDate.compareTo(spotlight2EndDate);
-            }
-            
-            // Both do not have spotlight, so compare delivered date - can be Integer or Long
+            // Both have the same status, so compare delivered date - can be Integer or Long
             Number date1 =
                 (Number) matchInfo1.get(MatchFeedModel.SECTIONS.MATCH)
                                    .get(MatchFeedModel.MATCH.DELIVERED_DATE);
@@ -82,7 +62,7 @@ public class StatusDateIdMatchInfoComparator
                                         : -1); // descending, most recent (larger) date goes first (determined to be less than)
 
         }
-        if (result == 0) { // same status, and same spotlight, and same delivery date
+        if (result == 0) { // same status and same delivery date
 
             // compare matchId, take the earliest ones to go first
 
