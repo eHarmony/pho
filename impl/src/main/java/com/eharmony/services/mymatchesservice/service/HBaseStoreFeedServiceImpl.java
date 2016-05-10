@@ -86,7 +86,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
                 .just(getSpotlitUserMatches(request)));
         hbaseStoreFeedResponse.onErrorReturn(ex -> {
             logger.warn(
-                    "Exception while fetching data from hbase for user {} and returning empty feed for safe method",
+                    "Exception while fetching spotlit matches from hbase for user {} and returning empty feed for safe method",
                     request.getMatchFeedQueryContext().getUserId(), ex);
             HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
             response.setError(ex);
