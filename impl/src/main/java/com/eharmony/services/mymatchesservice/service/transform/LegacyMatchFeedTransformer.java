@@ -86,8 +86,8 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
         
         // Only enrich with spotlight info if spotlight is not expired
-        if(elem.getSpotlightEnd() != null && elem.getSpotlightEnd().after(new Date())){
-            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(elem.getSpotlightEnd().toInstant(), ZoneId.systemDefault())));
+        if(elem.getSpotlightEndDate() != null && elem.getSpotlightEndDate().after(new Date())){
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(elem.getSpotlightEndDate().toInstant(), ZoneId.systemDefault())));
         } else {
             profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, null);
         }
