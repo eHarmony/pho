@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
+import com.eharmony.singles.common.status.MatchStatusUtilities;
 
 public class MatchDoToMatchDataFeedItemDtoMapper {
 
@@ -28,7 +29,7 @@ public class MatchDoToMatchDataFeedItemDtoMapper {
 
 		matchSection.put(MatchFeedModel.MATCH.INITIALIZER, 
 				(matchDo.getInitializer() == null ? null : matchDo.getInitializer().toInt()));
-		matchSection.put(MatchFeedModel.MATCH.CLOSED_STATUS, matchDo.getClosedStatus());
+		matchSection.put(MatchFeedModel.MATCH.CLOSED_STATUS, matchDo.getClosedStatus().toInt());		
 		matchSection.put(MatchFeedModel.MATCH.DISTANCE, matchDo.getDistance());
 		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, 
 				(matchDo.getIcebreakerStatus() == null ? null : matchDo.getIcebreakerStatus().toInt()));
@@ -43,6 +44,8 @@ public class MatchDoToMatchDataFeedItemDtoMapper {
 		
 		boolean isUser = deriveIsUser(userId, matchDo);
 		matchSection.put(MatchFeedModel.MATCH.IS_USER, isUser);
+		matchSection.put(MatchFeedModel.MATCH.STATUS, MatchStatusUtilities.getStatus(matchSection));
+
 		
 		mapMatchFieldsWithOrientation(matchSection, isUser, userId, matchDo);
 
@@ -53,6 +56,7 @@ public class MatchDoToMatchDataFeedItemDtoMapper {
 		match.put(MatchFeedModel.SECTIONS.COMMUNICATION, new HashMap<String, Object>());
 		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
 		commSection.put(MatchFeedModel.COMMUNICATION.NEW_MESSAGE_COUNT, matchDo.getUserNewMessageCount());
+		commSection.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, null);
 		mapCommFieldsWithOrientation(commSection, isUser, matchDo);
 
 	}

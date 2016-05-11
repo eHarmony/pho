@@ -1,10 +1,11 @@
 package com.eharmony.services.mymatchesservice.service;
 
-import java.net.URI;
+import java.net.MalformedURLException;
 
 import javax.annotation.Resource;
 import javax.ws.rs.core.UriBuilder;
 
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,35 +20,68 @@ public class MRSAdapter{
 	
 	@Resource(name="restClient")
 	private RestClient restClient;
-	
-    private UriBuilder templateBuilder;
-	
+		
 	private static final Logger logger= LoggerFactory.getLogger(MRSAdapter.class);
 	
-    private static final String CONTEXT = "/mrs";
-    private static final String VERSION = "2.0";	
-    private static final String GET_MATCH_PATH = "/matches/{matchId}";
+	private final String MRS_URL_TEMPLATE = "http://{mrsUrl}/mrs/2.0";
+
+    private static final String GET_MATCH_PATH		  = "/matches/{matchId}/users/{userId}";
+    private static final String GET_MATCH_PATH_BACKUP = "/matches/{matchId}";
+    
+    @Value("${matchretrieval.service.url}")
+    private String mrsUrl;
+
 	
 	public MRSDto getMatch(long userId, long matchId){
 
-        // build the URI
-        UriBuilder builder = templateBuilder.clone().path(GET_MATCH_PATH);
-
-        // build final URI
-        URI requestURI = builder.build(matchId);
-
-        MRSMatchProto match =  restClient.get(requestURI.toString(), MRSMatchProto.class);
-        
-        return mrsMatchProto2MRSDto(userId, match);
-	}
+		try{
+	        // build final URI
+	        String requestURI =  JerseyUriBuilder.fromPath(MRS_URL_TEMPLATE + GET_MATCH_PATH)
+	        .resolveTemplate("mrsUrl", mrsUrl)
+			.resolveTemplate("matchId", matchId)
+			.resolveTemplate("userId", userId).build().toURL().toString();
 	
+	        MRSMatchProto match =  restClient.get(requestURI.toString(), MRSMatchProto.class);
+	        if(match != null){
+	        	return mrsMatchProto2MRSDto(userId, match);
+	        }
+	        
+	        logger.info("Oriented getMatch for matchId {} NYI, using backup.", matchId);
+	        // call backup.
+	        requestURI =  JerseyUriBuilder.fromPath(MRS_URL_TEMPLATE + GET_MATCH_PATH_BACKUP)
+	        .resolveTemplate("mrsUrl", mrsUrl)
+			.resolveTemplate("matchId", matchId)
+			.build().toURL().toString();
+	
+	         match =  restClient.get(requestURI.toString(), MRSMatchProto.class);
+
+	        return mrsMatchProto2MRSDtoWithOrientation(userId, match);
+		}catch(MalformedURLException ex){
+			
+			logger.warn("Exception while calling mrs for matchId {}: {}", matchId, ex.getMessage());
+			return null;
+		}
+	}
+
     private MRSDto mrsMatchProto2MRSDto(long userId, MRSMatchProto match) {
 
     	MRSDto result = new MRSDto();
         result.setDistance(match.getDistance());
         result.setOneWayStatus(match.getOneWayStatus().getNumber());
     	result.setArchiveStatus(match.getArchiveStatus().getNumber());
+    	result.setStatus(match.getStatus().getNumber());
        
+    	return buildMrsDtoFromUserSide(result, match);
+   	}
+    
+    private MRSDto mrsMatchProto2MRSDtoWithOrientation(long userId, MRSMatchProto match) {
+
+    	MRSDto result = new MRSDto();
+        result.setDistance(match.getDistance());
+        result.setOneWayStatus(match.getOneWayStatus().getNumber());
+    	result.setArchiveStatus(match.getArchiveStatus().getNumber());
+    	result.setStatus(match.getStatus().getNumber());
+     
     	if(userId == match.getUserId()){
     		return buildMrsDtoFromUserSide(result, match);
     	}else{
@@ -74,16 +108,5 @@ public class MRSAdapter{
         
     	return result;
     }
-    
-    
-	@Value("${matchretrieval.service.url}")
-    public void setServiceUrl(String serviceUrl) {
 
-        Assert.hasText(serviceUrl, "serviceUrl parameter cannot be null");
-
-        this.templateBuilder = UriBuilder.fromUri(serviceUrl)
-                                         .path(CONTEXT + "/" + VERSION);
-        logger.debug("Initialized Matchmaker Client for {}", templateBuilder.build());
-
-    }
 }

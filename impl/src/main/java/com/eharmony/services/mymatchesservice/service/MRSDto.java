@@ -7,12 +7,15 @@ public class MRSDto {
 	private long matchedUserId;
 	private int distance;
 	private long deliveryDate;
-	private int closeFlag;
 	private int oneWay;
 	private boolean relaxed;
 	private int oneWayStatus;
 	private int archiveStatus;
+	private int status;
 	
+	public int getStatus() {
+		return status;
+	}
 	public long getUserId() {
 		return userId;
 	}
@@ -37,12 +40,7 @@ public class MRSDto {
 	public void setDeliveryDate(long deliveryDate) {
 		this.deliveryDate = deliveryDate;
 	}
-	public int getCloseFlag() {
-		return closeFlag;
-	}
-	public void setCloseFlag(int closeFlag) {
-		this.closeFlag = closeFlag;
-	}
+
 	public int getOneWay() {
 		return oneWay;
 	}
@@ -73,5 +71,9 @@ public class MRSDto {
 	}
 	public void setOneWayStatus(int ows) {
 		this.oneWayStatus = ows;
+	}
+	public void setStatus(int number) {
+
+		this.status = number;
 	}
 }

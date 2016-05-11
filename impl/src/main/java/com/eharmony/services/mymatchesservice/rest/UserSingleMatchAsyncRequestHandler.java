@@ -85,7 +85,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	        	            
 	        	singleMatchResponseHandler.processMatchFromHBaseAndRedis(response);
 	        	
-	        	if(response.matchIsAvailable()){
+	        	if(response.matchIsAvailable() && singleMatchQueryContext.isHBaseRedisEnabled()){
 	        		
 	        		singleMatchTransformerChain.execute(response);
 	        		

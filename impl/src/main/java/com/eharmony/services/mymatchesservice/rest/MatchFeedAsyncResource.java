@@ -80,18 +80,14 @@ public class MatchFeedAsyncResource {
     @Timed(name="getMatch")
     public void getMatch(   @PathParam("userId") long userId, 
     						@PathParam("matchId") long matchId,
-    						@QueryParam("sources") Integer sources,
+                            @MatrixParam("disabledSources") String sources,
     						@Suspended final AsyncResponse asyncResponse){
-    	
-    	if(sources == null){
-    		sources = SingleMatchQueryContext.ALL_SOURCES;
-    	}
     	
     	SingleMatchQueryContext queryContext = new SingleMatchQueryContext();
     	queryContext.setMatchId(matchId)
     				.setUserId(userId)
-    				.setSources(sources);
-System.err.println("Request: " + queryContext.toString());
+    				.setDisabledSources(sources);
+System.err.println("[MatchFeedAsyncResource] - Request disabledSources:" + queryContext.getDisabledSources());
         log.info("fetching single match for userId {} matchId {}", userId, matchId);
         userSingleMatchAsyncRequestHandler.getSingleMatch(queryContext, asyncResponse);  	 
     }

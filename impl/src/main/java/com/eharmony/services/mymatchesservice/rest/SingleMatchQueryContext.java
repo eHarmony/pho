@@ -1,33 +1,21 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import org.apache.commons.lang3.StringUtils;
+
 
 public class SingleMatchQueryContext {
-
-	public static final int SRC_HBASE_REDIS = 1;
-	public static final int SRC_SORA = 2;
-	public static final int SRC_MRS_MATCHSUMMARIES = 4;
-	public static final int ALL_SOURCES = 7;
 	
     private long matchId;
     private long userId;
-    private int sources;
+    private Set<String> disabledSources;
     
-	public boolean isHBaseRedisEnabled() {
-		return (sources & SRC_HBASE_REDIS) > 0;
-	}
-
-	public boolean isSORAEnabled() {
-		return (sources & SRC_SORA) > 0;
-	}
+    public static final String SRC_HBASE = "hbase";
+    public static final String SRC_SORA = "sora";
 	
-	public boolean isMRSMatchSummariesEnabled() {
-		return (sources & SRC_MRS_MATCHSUMMARIES) > 0;
-	}
-	
-	public SingleMatchQueryContext setSources(int sources) {
-		this.sources = sources;
-		return this;
-	}
 	public long getMatchId() {
 		return matchId;
 	}
@@ -42,14 +30,36 @@ public class SingleMatchQueryContext {
 		this.userId = userId;
 		return this;
 	}
+	public Set<String> getDisabledSources() {
+		return disabledSources;
+	}
 	
-	public String toString(){
+	public void setDisabledSources(String sources) {
+		disabledSources = new HashSet<String>();
+		if(StringUtils.isEmpty(sources)){
+			return;
+		}
 		
-		return "userId= " + userId + ",matchId=" + matchId + ",sources=" + 
-				(isHBaseRedisEnabled() ? "HBASE/REDIS ":"") + 
-				(isSORAEnabled() ? "SORA ":"") + 
-				(isMRSMatchSummariesEnabled() ? "MRS/MatchSummaries ":"");
-					
+		StringTokenizer st = new StringTokenizer(sources, ",");
+		
+		while(st.hasMoreTokens()){
+			String source = st.nextToken();
+			if(source.equalsIgnoreCase("hbase")){
+				disabledSources.add(SRC_HBASE);
+			}else if(source.equalsIgnoreCase("sora")){
+				disabledSources.add(SRC_SORA);
+			}
+		}
 	}
 
+	
+	public boolean isHBaseRedisEnabled(){
+		System.err.println("*** [SingleMatchQueryContext] - HBASE/REDIS DISABLED: " + disabledSources.contains(SRC_HBASE) + " ***");
+		return(!disabledSources.contains(SRC_HBASE));
+	}
+
+	public boolean isSORAEnabled(){
+		System.err.println("*** [SingleMatchQueryContext] - SORA DISABLED: " + disabledSources.contains(SRC_SORA) + " ***");
+		return(!disabledSources.contains(SRC_SORA));
+	}
 }

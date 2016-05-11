@@ -18,6 +18,9 @@ public class SingleMatchTransformerChain {
 		for(IMatchTransformer filter : transformers){
 			
 			filter.processSingleMatch(context);
+			if(context.getSingleMatch() == null){
+				break;
+			}
 		}
 		
 		return context;

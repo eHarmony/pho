@@ -15,6 +15,7 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.MATCH;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 
@@ -136,6 +137,11 @@ public class LegacyMatchFeedTransformer {
 
         // pulled from profileElement
         match.put(MatchFeedModel.MATCH.MATCH_FIRST_NAME, profileElem.getFirstName());
+        
+        // default values
+        match.put(MatchFeedModel.MATCH.MATCH_CLOSED_COUNT, 0);
+        match.put(MatchFeedModel.MATCH.NEW_MATCH_MESSAGE_COUNT, 0);
+        match.put(MatchFeedModel.MATCH.NEW_MESSAGE_COUNT, 0);
 
         return match;
     }

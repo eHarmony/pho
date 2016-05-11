@@ -172,6 +172,7 @@
 			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV2Enricher"/>
             <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEnricher"/>
             <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleMatchCommStateEnricher"/>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.ClosedMatchFilter"/>
             <bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.SingleMatchProfileFilter">
             	<constructor-arg>
             		<util:set>

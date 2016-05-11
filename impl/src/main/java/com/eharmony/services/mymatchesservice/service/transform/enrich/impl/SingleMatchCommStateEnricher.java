@@ -1,6 +1,5 @@
 package com.eharmony.services.mymatchesservice.service.transform.enrich.impl;
 
-import java.util.Date;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -42,8 +41,8 @@ public class SingleMatchCommStateEnricher implements IMatchTransformer {
 		
 		if(commState == null){
 			logger.debug("No comm state found for matchId {}", context.getQueryContext().getMatchId());
-			setDefaultMatchStateValues(matchSection);
-			setDefaultCommStateValues(commSection);
+			setDefaultMatchStateValuesIfNotAlreadySet(matchSection);
+			setDefaultCommStateValuesIfNotAlreadySet(commSection);
 			return context;
 		}
 		
@@ -79,22 +78,42 @@ public class SingleMatchCommStateEnricher implements IMatchTransformer {
 		}
 	}
 	
-	private void setDefaultMatchStateValues(Map<String, Object> matchSection){
+	private void setDefaultMatchStateValuesIfNotAlreadySet(Map<String, Object> matchSection){
 		
-		matchSection.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, null);
-		matchSection.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, null);
-		matchSection.put(MatchFeedModel.MATCH.DISPLAY_TAB, 1);
-		matchSection.put(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB, 1);
-		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, null);
-		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STAGE, null);
-		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STATUS, null);
-		matchSection.put(MatchFeedModel.MATCH.STATUS, "new");
-		matchSection.put(MatchFeedModel.MATCH.MATCH_COMM_LAST_SENT, null);
-		matchSection.put(MatchFeedModel.MATCH.COMM_LAST_SENT, null);
+		if(matchSection.get(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE) == null) 
+			matchSection.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.COMM_STARTED_DATE) == null) 
+			matchSection.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.DISPLAY_TAB) == null) 
+			matchSection.put(MatchFeedModel.MATCH.DISPLAY_TAB, 1);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB) == null) 
+			matchSection.put(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB, 1);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE) == null) 
+			matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.FAST_TRACK_STAGE) == null) 
+			matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STAGE, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.FAST_TRACK_STATUS) == null) 
+			matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STATUS, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.STATUS) == null) 
+			matchSection.put(MatchFeedModel.MATCH.STATUS, "new");
+		
+		if(matchSection.get(MatchFeedModel.MATCH.MATCH_COMM_LAST_SENT) == null) 
+			matchSection.put(MatchFeedModel.MATCH.MATCH_COMM_LAST_SENT, null);
+		
+		if(matchSection.get(MatchFeedModel.MATCH.COMM_LAST_SENT) == null) 
+			matchSection.put(MatchFeedModel.MATCH.COMM_LAST_SENT, null);
 	}
 
-	private void setDefaultCommStateValues(Map<String, Object> commSection){
+	private void setDefaultCommStateValuesIfNotAlreadySet(Map<String, Object> commSection){
 		
-		commSection.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, null);
+		if(commSection.get(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE) != null)
+			commSection.put(MatchFeedModel.COMMUNICATION.LAST_COMM_DATE, null);
 	}
 }
