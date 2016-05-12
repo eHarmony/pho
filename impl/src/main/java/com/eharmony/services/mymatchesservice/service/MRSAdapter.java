@@ -46,7 +46,7 @@ public class MRSAdapter{
 	        	return mrsMatchProto2MRSDto(userId, match);
 	        }
 	        
-	        logger.info("Oriented getMatch for matchId {} NYI, using backup.", matchId);
+	        logger.info("Oriented getMatch for matchId {} NYI, using non-Oriented getMatch.", matchId);
 	        // call backup.
 	        requestURI =  JerseyUriBuilder.fromPath(MRS_URL_TEMPLATE + GET_MATCH_PATH_BACKUP)
 	        .resolveTemplate("mrsUrl", mrsUrl)
@@ -69,7 +69,7 @@ public class MRSAdapter{
         result.setDistance(match.getDistance());
         result.setOneWayStatus(match.getOneWayStatus().getNumber());
     	result.setArchiveStatus(match.getArchiveStatus().getNumber());
-    	result.setStatus(match.getStatus().getNumber());
+    	result.setClosedStatus(match.getStatus().getNumber());
        
     	return buildMrsDtoFromUserSide(result, match);
    	}
@@ -80,7 +80,7 @@ public class MRSAdapter{
         result.setDistance(match.getDistance());
         result.setOneWayStatus(match.getOneWayStatus().getNumber());
     	result.setArchiveStatus(match.getArchiveStatus().getNumber());
-    	result.setStatus(match.getStatus().getNumber());
+    	result.setClosedStatus(match.getStatus().getNumber());
      
     	if(userId == match.getUserId()){
     		return buildMrsDtoFromUserSide(result, match);

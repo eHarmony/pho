@@ -104,8 +104,9 @@ public class MRSAndSORAMatchMerger {
 		matchSection.put(MatchFeedModel.MATCH.ID, matchId);
 		matchSection.put(MatchFeedModel.MATCH.DELIVERED_DATE, matchDto.getDeliveryDate());
 		matchSection.put(MatchFeedModel.MATCH.IS_USER, matchSummaryDo.getOwnerIsUser());
-		//matchSection.put(MatchFeedModel.MATCH.STATUS, MatchStatusUtilities.getStatus(matchSection));
-		matchSection.put(MatchFeedModel.MATCH.STATUS, matchDto.getStatus());
+		matchSection.put(MatchFeedModel.MATCH.CLOSED_STATUS, matchDto.getClosedStatus());
+
+		matchSection.put(MatchFeedModel.MATCH.STATUS, MatchStatusUtilities.getStatus(matchSection));
 
 		//buildMatchSectionDefaultValues(matchSection);
 		 

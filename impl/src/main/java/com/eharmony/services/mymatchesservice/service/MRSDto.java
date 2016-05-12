@@ -11,10 +11,10 @@ public class MRSDto {
 	private boolean relaxed;
 	private int oneWayStatus;
 	private int archiveStatus;
-	private int status;
+	private int closedStatus;
 	
-	public int getStatus() {
-		return status;
+	public int getClosedStatus() {
+		return closedStatus;
 	}
 	public long getUserId() {
 		return userId;
@@ -72,8 +72,8 @@ public class MRSDto {
 	public void setOneWayStatus(int ows) {
 		this.oneWayStatus = ows;
 	}
-	public void setStatus(int number) {
+	public void setClosedStatus(int number) {
 
-		this.status = number;
+		this.closedStatus = number;
 	}
 }
