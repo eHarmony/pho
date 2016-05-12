@@ -1,8 +1,5 @@
 package com.eharmony.services.mymatchesservice.service.transform;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,7 +84,7 @@ public class LegacyMatchFeedTransformer {
         
         // Only enrich with spotlight info if spotlight is not expired
         if(elem.getSpotlightEndDate() != null && elem.getSpotlightEndDate().after(new Date())){
-            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(elem.getSpotlightEndDate().toInstant(), ZoneId.systemDefault())));
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, getTimeInMillisNullSafe(elem.getSpotlightEndDate()));
         } else {
             profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, null);
         }

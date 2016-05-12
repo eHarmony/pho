@@ -1,12 +1,10 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
@@ -26,27 +24,39 @@ public class SpotlightComparator implements
         Map<String, Map<String, Object>> matchInfo2 = matchInfoEntry2.getValue();
         
         // Compare spotlight status
-        String spotlit1ISODate = (String) matchInfo1.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
-        String spotlit2ISODate = (String) matchInfo2.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
+        Date spotlit1Date = getDateNullSafe(matchInfo1.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE));
+        Date spotlit2Date = getDateNullSafe(matchInfo2.get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE));
         
-        if(StringUtils.isBlank(spotlit1ISODate) && StringUtils.isBlank(spotlit2ISODate)){
+        if(spotlit1Date == null && spotlit2Date == null){
             return 0;
         }
         
         // Match 1 does not have spotlight and Match 2 does, so Match 2 is first
-        if(StringUtils.isBlank(spotlit1ISODate) && !StringUtils.isBlank(spotlit2ISODate)){
+        if(spotlit1Date == null && spotlit2Date != null){
             return 1;
         }
         
         // Match 1 does have spotlight and Match 2 does not, so Match 1 is first
-        if(!StringUtils.isBlank(spotlit1ISODate) && StringUtils.isBlank(spotlit2ISODate)){
+        if(spotlit1Date != null && spotlit2Date == null){
             return -1;
         }
-        // They both have spotlight, so whichever spotlight ends first (and was therefore purchased first) comes first
-        LocalDateTime spotlight1EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit1ISODate, LocalDateTime::from);
-        LocalDateTime spotlight2EndDate = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(spotlit2ISODate, LocalDateTime::from);
-        return spotlight1EndDate.compareTo(spotlight2EndDate);
         
+        return spotlit1Date.compareTo(spotlit2Date);
+        
+    }
+
+    private Date getDateNullSafe(Object object) {
+
+        if(object == null){
+            return null;
+        }
+        
+        Long epochTime = (Long) object;
+        
+        Date date = new Date();
+        date.setTime(epochTime);
+        
+        return date;
     }
 
     
