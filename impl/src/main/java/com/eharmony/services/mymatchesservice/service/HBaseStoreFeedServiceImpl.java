@@ -52,7 +52,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
 
     private static final List<Ordering> DEFAULT_ORDERINGS = Arrays.asList(new Ordering(DEFAULT_SORT_BY_FIELD, Order.DESCENDING, NullOrdering.LAST));
-    private static final List<Ordering> SPOTLIT_ORDERINGS = Arrays.asList(new Ordering("spotlightEnd", Order.ASCENDING, NullOrdering.LAST));
+    private static final List<Ordering> SPOTLIT_ORDERINGS = Arrays.asList(new Ordering("spotlightEndDate", Order.ASCENDING, NullOrdering.LAST));
     // private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
