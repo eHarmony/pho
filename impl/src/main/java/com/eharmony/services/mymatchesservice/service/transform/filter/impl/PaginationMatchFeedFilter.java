@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +80,27 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
             new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
         
         // 2. Sort spotlight users first (up to limit) followed by the rest sorted by delivery date
-        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries.stream().filter(entry -> entry.getValue().get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE) != null).sorted(spotlightComparator).limit(maximumSpotlitUsers).collect(Collectors.toList());
+        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries
+                .stream().filter(entry -> {
+                    if (entry == null) {
+                        return false;
+                    }
+                    Map<String, Map<String, Object>> value = entry.getValue();
+                    if (value == null) {
+                        return false;
+                    }
+                    Map<String, Object> profile = value
+                            .get(MatchFeedModel.SECTIONS.PROFILE);
+                    if (profile == null) {
+                        return false;
+                    }
+                    Object spotlightEndDate = profile
+                            .get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
+                    return spotlightEndDate != null;
+                })
+                .sorted(spotlightComparator)
+                .limit(maximumSpotlitUsers)
+                .collect(Collectors.toList());
         entries.removeAll(spotlightPortion);
         Collections.sort(entries, statusDateIdMatchInfoComparator);
         entries.addAll(0, spotlightPortion);
