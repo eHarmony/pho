@@ -81,7 +81,7 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
             new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
         
         // 2. Sort spotlight users first (up to limit) followed by the rest sorted by delivery date
-        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries.stream().filter(entry -> StringUtils.isNotBlank((String) entry.getValue().get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE))).sorted(spotlightComparator).limit(maximumSpotlitUsers).collect(Collectors.toList());
+        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries.stream().filter(entry -> entry.getValue().get(MatchFeedModel.SECTIONS.PROFILE).get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE) != null).sorted(spotlightComparator).limit(maximumSpotlitUsers).collect(Collectors.toList());
         entries.removeAll(spotlightPortion);
         Collections.sort(entries, statusDateIdMatchInfoComparator);
         entries.addAll(0, spotlightPortion);
