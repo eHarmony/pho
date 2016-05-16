@@ -171,7 +171,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 				
 			SingleMatchRequestContext request = new SingleMatchRequestContext(singleMatchQueryContext);        
 	    	
-			Observable<MatchDo> match = Observable.just(soraStore.getMatch(matchId));
+			Observable<MatchDo> match = Observable.just(soraStore.getMatch(userId, matchId));
 			Observable<MatchSummaryDo> matchSummary = Observable.just(soraStore.getMatchSummary(userId, matchId));
 			Observable<MRSDto> mrsDto = Observable.just(mrsAdapter.getMatch(userId, matchId));
 			

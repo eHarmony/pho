@@ -39,7 +39,7 @@
 		<value>status</value>
 		<value>stage</value>
 	</util:set>
-	
+
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
     	<property name="basename">
 			<value>messages</value>
@@ -162,6 +162,16 @@
 		<value>matchedUserId</value>
 	</util:set>
 
+	
+	<util:set id="matchFieldsNullList">
+		<value>commLastSent</value>
+		<value>fastTrackStage</value>
+		<value>fastTrackStatus</value>
+		<value>fastTrackAvailable</value>
+		<value>matchClosedCount</value>
+		<value>nudgeStatus</value>
+	</util:set>
+		
 	<bean id="singleMatchTransformerChain"
 		class="com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain">
 		<constructor-arg>
@@ -181,6 +191,10 @@
             		</util:set>
             	</constructor-arg>
             </bean>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.FieldNullifierFilter">
+					<constructor-arg index="0" ref="matchSectionName" />
+					<constructor-arg index="1" ref="matchFieldsNullList" />
+			</bean>
 		  </util:list>
 		</constructor-arg>
 	</bean> 

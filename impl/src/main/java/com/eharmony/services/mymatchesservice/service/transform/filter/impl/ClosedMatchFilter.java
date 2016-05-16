@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
+import com.eharmony.singles.common.enumeration.MatchClosedStatusEnum;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
 public class ClosedMatchFilter  implements IMatchTransformer{
@@ -23,8 +24,12 @@ public class ClosedMatchFilter  implements IMatchTransformer{
 		
     	if (MatchStatusUtilities.isClosed(matchSection)) {
     		
-    		logger.info("user requested closed match {}, filtering out.", context.getQueryContext().getMatchId());
-    		context.setSingleMatch(null);
+    		//only if risk-flagged/anonymized
+    		if(MatchClosedStatusEnum.LEGACY_CLOSED_NOT_VIEWABLE.toInt() == (Integer) matchSection.get(MatchFeedModel.MATCH.CLOSED_STATUS)){
+    		
+	    		logger.info("user requested closed match {}, filtering out.", context.getQueryContext().getMatchId());
+	    		context.setSingleMatch(null);
+    		}
     	}
     	
     	return context;

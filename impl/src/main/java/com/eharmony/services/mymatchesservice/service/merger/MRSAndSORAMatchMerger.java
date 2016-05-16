@@ -14,12 +14,7 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrappe
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchDoToMatchDataFeedItemDtoMapper;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
-import com.eharmony.singles.common.enumeration.FastTrackAvailableEnum;
-import com.eharmony.singles.common.enumeration.FastTrackStatusEnum;
 import com.eharmony.singles.common.enumeration.IcebreakerStateEnum;
-import com.eharmony.singles.common.enumeration.MatchArchiveStatusEnum;
-import com.eharmony.singles.common.enumeration.MatchDisplayTabEnum;
-import com.eharmony.singles.common.enumeration.MatchInitializerEnum;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
 public class MRSAndSORAMatchMerger {
@@ -108,39 +103,21 @@ public class MRSAndSORAMatchMerger {
 
 		matchSection.put(MatchFeedModel.MATCH.STATUS, MatchStatusUtilities.getStatus(matchSection));
 
-		//buildMatchSectionDefaultValues(matchSection);
+		buildMatchSectionDefaultValues(matchSection);
 		 
 		oneMatchSection.put(MatchFeedModel.SECTIONS.MATCH, matchSection);
 		
 		oneMatch.put(Long.toString(matchId), oneMatchSection);
 	}
 	
-//	private void buildMatchSectionDefaultValues(Map<String, Object> matchSection){
-//
-//		matchSection.put(MatchFeedModel.MATCH.STATUS, "new");
-//		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.ARCHIVE_STATUS, MatchArchiveStatusEnum.OPEN.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.COMM_LAST_SENT, null); 
-//		matchSection.put(MatchFeedModel.MATCH.MATCH_COMM_LAST_SENT, null);
-//		matchSection.put(MatchFeedModel.MATCH.READ_MATCH_DETAILS, false);
-//		matchSection.put(MatchFeedModel.MATCH.NEW_MESSAGE_COUNT, 0);
-//		matchSection.put(MatchFeedModel.MATCH.INITIALIZER, MatchInitializerEnum.UNINITIALIZED.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.DISPLAY_TAB, MatchDisplayTabEnum.NEW_TAB.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.CHOOSE_MHCS_DATE, null);
-//		matchSection.put(MatchFeedModel.MATCH.COMM_STARTED_DATE, null);
-//		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_AVAILABLE, 0);
-//		matchSection.put(MatchFeedModel.MATCH.FAST_TRACK_STATUS, 0);
-//		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.LAST_NUDGE_DATE, null);
-//		matchSection.put(MatchFeedModel.MATCH.MATCH_CLOSED_COUNT, null);
-//		matchSection.put(MatchFeedModel.MATCH.MATCH_DISPLAY_TAB, MatchDisplayTabEnum.NEW_TAB.toInt());
-//		matchSection.put(MatchFeedModel.MATCH.NEW_MATCH_MESSAGE_COUNT, 0);
-//		matchSection.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, null);
-//		matchSection.put(MatchFeedModel.MATCH.STAGE, 27);
-//		matchSection.put(MatchFeedModel.MATCH.TURN_OWNER, 0);
-//		matchSection.put(MatchFeedModel.MATCH.CLOSED_DATE, null);
-//
-//	}
+	private void buildMatchSectionDefaultValues(Map<String, Object> matchSection){
+
+		matchSection.put(MatchFeedModel.MATCH.READ_MATCH_DETAILS, false);
+		matchSection.put(MatchFeedModel.MATCH.ICEBREAKER_STATUS, IcebreakerStateEnum.NONE.toInt());
+		matchSection.put(MatchFeedModel.MATCH.READ_DETAILS_DATE, null);
+		matchSection.put(MatchFeedModel.MATCH.STAGE, 27);
+
+	}
  
 	
 	private void buildCommFromMatchSummaries(

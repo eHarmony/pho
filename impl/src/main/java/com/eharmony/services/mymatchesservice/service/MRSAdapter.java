@@ -54,6 +54,11 @@ public class MRSAdapter{
 			.build().toURL().toString();
 	
 	         match =  restClient.get(requestURI.toString(), MRSMatchProto.class);
+	         
+	         // Discard if match is not for this userId
+	         if(match.getUserId() != userId && match.getCandidateId() != userId){
+	        	 return null;
+	         }
 
 	        return mrsMatchProto2MRSDtoWithOrientation(userId, match);
 		}catch(MalformedURLException ex){
