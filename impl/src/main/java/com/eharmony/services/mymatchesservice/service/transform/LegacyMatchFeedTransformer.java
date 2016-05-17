@@ -82,6 +82,11 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
+        if(elem.getPhotos() != 0 ){
+        	
+        	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
+        }
+
         return profile;
     }
 
