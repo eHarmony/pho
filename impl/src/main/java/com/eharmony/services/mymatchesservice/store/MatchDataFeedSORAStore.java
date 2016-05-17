@@ -25,7 +25,7 @@ public class MatchDataFeedSORAStore {
 	@Transactional(readOnly=true)
 	public MatchDo getMatch(long userId, long matchId){
 		
-		List<?> matches = hibernateTemplate.find("from MatchDo where matchId = ? AND (userID = ? OR candidateUserID = ?)", matchId, 
+		List<?> matches = hibernateTemplate.find("from MatchDo where matchId = ? AND (userId = ? OR candidateUserId = ?)", matchId, 
 									userId, userId);
 		
 		logger.debug("searched EHMATCH for matchId {}, found {} matches.", matchId, matches.size());

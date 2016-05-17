@@ -74,7 +74,7 @@ public class MRSAdapter{
         result.setDistance(match.getDistance());
         result.setOneWayStatus(match.getOneWayStatus().getNumber());
     	result.setArchiveStatus(match.getArchiveStatus().getNumber());
-    	result.setClosedStatus(match.getStatus().getNumber());
+    	result.setClosedStatus(match.getDiscardStatus().getNumber());
        
     	return buildMrsDtoFromUserSide(result, match);
    	}
@@ -85,7 +85,7 @@ public class MRSAdapter{
         result.setDistance(match.getDistance());
         result.setOneWayStatus(match.getOneWayStatus().getNumber());
     	result.setArchiveStatus(match.getArchiveStatus().getNumber());
-    	result.setClosedStatus(match.getStatus().getNumber());
+    	result.setClosedStatus(match.getDiscardStatus().getNumber());
      
     	if(userId == match.getUserId()){
     		return buildMrsDtoFromUserSide(result, match);

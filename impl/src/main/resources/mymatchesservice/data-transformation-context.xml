@@ -165,11 +165,6 @@
 	
 	<util:set id="matchFieldsNullList">
 		<value>commLastSent</value>
-		<value>fastTrackStage</value>
-		<value>fastTrackStatus</value>
-		<value>fastTrackAvailable</value>
-		<value>matchClosedCount</value>
-		<value>nudgeStatus</value>
 	</util:set>
 		
 	<bean id="singleMatchTransformerChain"
