@@ -3,14 +3,13 @@ package com.eharmony.services.mymatchesservice.service;
 import java.net.MalformedURLException;
 
 import javax.annotation.Resource;
-import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import com.eharmony.mds.model.MRSMatchProtoProtoBuffs.MRSMatchProto;
 import com.eharmony.protorest.RestClient;
@@ -23,7 +22,7 @@ public class MRSAdapter{
 		
 	private static final Logger logger= LoggerFactory.getLogger(MRSAdapter.class);
 	
-	private final String MRS_URL_TEMPLATE = "{mrsUrl}/mrs/2.0";
+	private final String MRS_URL_TEMPLATE = "http://{mrsUrl}/mrs/2.0";
 
     private static final String GET_MATCH_PATH		  = "/matches/{matchId}/users/{userId}";
     private static final String GET_MATCH_PATH_BACKUP = "/matches/{matchId}";
@@ -37,7 +36,7 @@ public class MRSAdapter{
 		try{
 	        // build final URI
 	        String requestURI =  JerseyUriBuilder.fromPath(MRS_URL_TEMPLATE + GET_MATCH_PATH)
-	        .resolveTemplate("mrsUrl", mrsUrl)
+	        .resolveTemplate("mrsUrl", StringUtils.remove(mrsUrl, "http://"))
 			.resolveTemplate("matchId", matchId)
 			.resolveTemplate("userId", userId).build().toURL().toString();
 	
