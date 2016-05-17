@@ -92,7 +92,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         } catch (Exception exp) {
             log.warn("Error while getting feed for user{} from Redis", userid, exp);
             //re throw exception so the down stream observer can deal with it.
-            throw exp;
+            //throw exp;
         } finally {
             timerContext.close();
             long endTime = System.currentTimeMillis();

@@ -23,7 +23,7 @@ public class MRSAdapter{
 		
 	private static final Logger logger= LoggerFactory.getLogger(MRSAdapter.class);
 	
-	private final String MRS_URL_TEMPLATE = "http://{mrsUrl}/mrs/2.0";
+	private final String MRS_URL_TEMPLATE = "{mrsUrl}/mrs/2.0";
 
     private static final String GET_MATCH_PATH		  = "/matches/{matchId}/users/{userId}";
     private static final String GET_MATCH_PATH_BACKUP = "/matches/{matchId}";

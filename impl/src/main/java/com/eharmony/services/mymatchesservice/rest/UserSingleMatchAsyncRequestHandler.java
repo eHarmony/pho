@@ -115,7 +115,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 		                asyncResponse.resume(builder.build());
 		
 		            }, (throwable2) -> {
-		                logger.error("Exception fetching single match for user {}, matchId {} : {}", userId, matchId, throwable2);
+		                logger.error("Exception fetching fallback single match for user {}, matchId {} : {}", userId, matchId, throwable2);
 		                asyncResponse.resume(throwable2);
 		            }, () -> {
 		                asyncResponse.resume("");

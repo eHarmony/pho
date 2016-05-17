@@ -183,6 +183,7 @@
             		<util:set>
             			<value>birthdate</value>
             			<value>locale</value>
+            			<value>photoCount</value>
             		</util:set>
             	</constructor-arg>
             </bean>
