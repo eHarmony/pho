@@ -3,6 +3,7 @@ package com.eharmony.services.mymatchesservice.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Arrays;
 
 import javax.annotation.Resource;
 
@@ -17,6 +18,9 @@ import rx.Observable;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
+import com.eharmony.datastore.query.criterion.Ordering;
+import com.eharmony.datastore.query.criterion.Ordering.NullOrdering;
+import com.eharmony.datastore.query.criterion.Ordering.Order;
 import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
@@ -49,14 +53,21 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
 
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
+
+    private static final List<Ordering> DEFAULT_ORDERINGS = Arrays.asList(new Ordering(DEFAULT_SORT_BY_FIELD, Order.DESCENDING, NullOrdering.LAST));
+    private static final List<Ordering> SPOTLIT_ORDERINGS = Arrays.asList(new Ordering("spotlightEndDate", Order.ASCENDING, NullOrdering.LAST));
     // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
     private static final String METRICS_HIERARCHY_PREFIX = HBaseStoreFeedServiceImpl.class.getCanonicalName();
     private static final String METRICS_GETBYSTATUS_METHOD = "getUserMatchesByStatusGroup";
+    private static final String METRICS_GETSPOTLITBYSTATUS_METHOD = "getSpotlitUserMatchesByStatusGroup";
     private static final String METRICS_GETCOUNT_METHOD = "getUserMatchesCount";
     private static final String METRICS_GETMATCH_METHOD = "getUserMatch";
 
+
+    @Value("${spotlight.users.to.elevate.maximum:4}")
+    private int maximumSpotlitUsers;
 
     @Override
     public Observable<HBaseStoreFeedResponse> getUserMatchesByStatusGroupSafe(HBaseStoreFeedRequestContext request) {
@@ -124,11 +135,28 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
         return response;
     }
+    
+    @Override
+    public Observable<HBaseStoreFeedResponse> getSpotlitUserMatchesSafe(HBaseStoreFeedRequestContext request) {
+        Observable<HBaseStoreFeedResponse> hbaseStoreFeedResponse = Observable.defer(() -> Observable
+                .just(getSpotlitUserMatches(request)));
+        hbaseStoreFeedResponse.onErrorReturn(ex -> {
+            logger.warn(
+                    "Exception while fetching spotlit matches from hbase for user {} and returning empty feed for safe method",
+                    request.getMatchFeedQueryContext().getUserId(), ex);
+            HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
+            response.setError(ex);
+            return response;
+        });
+        return hbaseStoreFeedResponse;
+    }
 
     private HBaseStoreFeedResponse getUserMatchesByStatusGroup(final HBaseStoreFeedRequestContext request) {
+        
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(request.getMatchStatusGroup());
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
+        
         long startTime = System.currentTimeMillis();
 
         Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX,
@@ -158,6 +186,38 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
         return response;
     }
+    
+    
+    @SuppressWarnings("resource")
+    private HBaseStoreFeedResponse getSpotlitUserMatches(final HBaseStoreFeedRequestContext request) {
+        
+        HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(null);
+        MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
+        
+        Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX,
+                METRICS_GETSPOTLITBYSTATUS_METHOD, null);
+        Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
+                METRICS_GETSPOTLITBYSTATUS_METHOD, null);
+        try {
+            MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
+            populateSpotlitRequestWithQueryParams(request, requestQuery);
+            Set<MatchDataFeedItemDto> matchdataFeed = queryRepository.getSpotlitMatchDataFeed(requestQuery);
+            response.setHbaseStoreFeedItems(matchdataFeed);
+            if (CollectionUtils.isNotEmpty(matchdataFeed)) {
+                response.setDataAvailable(true);
+                metricsHistogram.update(matchdataFeed.size());
+            }
+        } catch (Throwable e) {
+            logger.warn("Exception while fetching the matches from HBase store for user {} and group {}",
+                    queryContext.getUserId(), request.getMatchStatusGroup(), e);
+            response.setError(e);
+        } finally {
+            long totalTimeNS = metricsTimer.stop();
+            logger.info("HBase response time {} ms for user {} for spotlight matches", totalTimeNS/ 1000000, request
+                    .getMatchFeedQueryContext().getUserId());
+        }
+        return response;
+    }
 
     protected void populateRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
             MatchDataFeedQueryRequest requestQuery) {
@@ -172,20 +232,36 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             populateQueryWithLimitParams(request, requestQuery);
 
         }
-        requestQuery.setSortBy(resolveSortBy(request.getMatchStatusGroup()));
+        requestQuery.setOrderings(resolveOrderings(request.getMatchStatusGroup()));
+    }
+    
+    protected void populateSpotlitRequestWithQueryParams(final HBaseStoreFeedRequestContext request,
+            MatchDataFeedQueryRequest requestQuery) {
+        List<Integer> statuses = new ArrayList<Integer>();
+        Set<MatchStatusEnum> matchStatuses = request.getMatchStatuses();
+        if (CollectionUtils.isNotEmpty(matchStatuses)) {
+            for (MatchStatusEnum matchStatus : matchStatuses) {
+                statuses.add(matchStatus.toInt());
+            }
+            requestQuery.setMatchStatusFilters(statuses);
+            requestQuery.setPageSize(maximumSpotlitUsers);
+
+        }
+        requestQuery.setOrderings(SPOTLIT_ORDERINGS);
+        
     }
 
-    private String resolveSortBy(MatchStatusGroupEnum matchStatusGroup) {
+    private List<Ordering> resolveOrderings(MatchStatusGroupEnum matchStatusGroup) {
         if (matchStatusGroup == null) {
-            return DEFAULT_SORT_BY_FIELD;
+            return DEFAULT_ORDERINGS;
         }
         if (matchStatusGroup.equals(MatchStatusGroupEnum.COMMUNICATION)) {
             // return COMM_SORT_BY_FIELD;
             // TODO: fix when moved away from Voldy completely (Voldy does not sort by COMM Date).
-            return DEFAULT_SORT_BY_FIELD;
+            return DEFAULT_ORDERINGS;
         }
 
-        return DEFAULT_SORT_BY_FIELD;
+        return DEFAULT_ORDERINGS;
     }
 
     protected void populateQueryWithLimitParams(final HBaseStoreFeedRequestContext request,
@@ -200,6 +276,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         }
     }
 
+    @SuppressWarnings("resource")
     protected Set<Long> getUserMatchesCountByStatus(MatchCountRequestContext request, boolean isRecentNewMatchesRequest) {
         Long userId = request.getUserId();
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);

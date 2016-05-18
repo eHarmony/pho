@@ -27,8 +27,8 @@ public abstract class AbstractFeedResponseHandler implements FeedResponseHandler
      * 
      * 1. Transforms the content from Store view to API response view (List of Objects to Map of Matches to support
      * legacy application) 2. Invokes the feed merge component to merge different feed views ( ex: HBase and Redis) 3.
-     * Invokes the abstract filter component, which will be overriden by specific implementation like teaser. 4. Invokes
-     * the abstract enricher component, which will be overriden by specific implementation like teaser.
+     * Invokes the abstract filter component, which will be overridden by specific implementation like teaser. 4. Invokes
+     * the abstract enricher component, which will be overridden by specific implementation like teaser.
      * 
      * @param context
      *            MatchFeedRequestContext

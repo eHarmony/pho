@@ -1,7 +1,13 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.eharmony.datastore.query.criterion.Ordering;
+import com.eharmony.datastore.query.criterion.Ordering.NullOrdering;
+import com.eharmony.datastore.query.criterion.Ordering.Order;
 
 public class MatchFeedQueryContextBuilder {
 
@@ -14,7 +20,7 @@ public class MatchFeedQueryContextBuilder {
     private boolean allowedSeePhotos;
     private int teaserResultSize;
     private Map<String, String> requestMetadata;
-    private String sortBy;
+    private List<Ordering> orderings;
     private boolean excludeClosedMatches;
 
     private MatchFeedQueryContextBuilder() {
@@ -23,8 +29,7 @@ public class MatchFeedQueryContextBuilder {
     public MatchFeedQueryContext build() {
 
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-        			allowedSeePhotos, teaserResultSize, requestMetadata, sortBy, excludeClosedMatches);
-
+                allowedSeePhotos, teaserResultSize, requestMetadata, orderings, excludeClosedMatches);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -38,7 +43,7 @@ public class MatchFeedQueryContextBuilder {
         private final boolean allowedSeePhotos;
         private final int teaserResultSize;
         private final Map<String, String> requestMetadata;
-        private final String sortBy;
+        private final List<Ordering> orderings;
         private final boolean excludeClosedMatches;
         
         @Override
@@ -84,7 +89,7 @@ public class MatchFeedQueryContextBuilder {
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
-                final Map<String, String> requestMetadata, final String sortBy, final boolean excludeClosedMatches) {
+                final Map<String, String> requestMetadata, final List<Ordering> orderings, final boolean excludeClosedMatches) {
 
             this.userId = userId;
             this.locale = locale;
@@ -95,7 +100,7 @@ public class MatchFeedQueryContextBuilder {
             this.allowedSeePhotos = allowedSeePhotos;
             this.teaserResultSize = teaserResultSize;
             this.requestMetadata = requestMetadata;
-            this.sortBy = sortBy;
+            this.orderings = orderings;
             this.excludeClosedMatches = excludeClosedMatches;
 
         }
@@ -106,8 +111,8 @@ public class MatchFeedQueryContextBuilder {
         }
 
         @Override
-        public String getSortBy() {
-            return sortBy;
+        public List<Ordering> getOrderings() {
+            return orderings;
         }
 
         @Override
@@ -165,8 +170,24 @@ public class MatchFeedQueryContextBuilder {
         return this;
     }
 
-    public MatchFeedQueryContextBuilder setSortBy(String sortBy) {
-        this.sortBy = sortBy;
+    public MatchFeedQueryContextBuilder setOrderings(List<Ordering> orderings) {
+        this.orderings = orderings;
+        return this;
+    }
+    
+    /**
+     * Add a property name to the list of properties to order the results by.
+     * The results will be in descending order and nulls will be last.
+     * 
+     * @param propertyName the name of the property to order the results by
+     * @return this builder
+     */
+    public MatchFeedQueryContextBuilder addOrderBy(String propertyName) {
+        if(orderings == null){
+            orderings = new ArrayList<Ordering>();
+        }
+        Ordering ordering= new Ordering(propertyName, Order.DESCENDING, NullOrdering.LAST);
+        orderings.add(ordering);
         return this;
     }
     

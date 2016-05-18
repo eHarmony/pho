@@ -61,8 +61,7 @@
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
 				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" />
+                <ref bean="paginationMatchFeedFilter"/>
 			</util:list>
 		</constructor-arg>
 	</bean>
@@ -80,8 +79,7 @@
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchDeliveredFilter" />
 				<bean
 					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.MatchViewableFilter" />
-				<bean
-					class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.PaginationMatchFeedFilter" />
+				<ref bean="paginationMatchFeedFilter"/>
 			</util:list>
 		</constructor-arg>
 	</bean>

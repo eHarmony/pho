@@ -229,6 +229,7 @@ System.err.println("[MatchFeedAsyncResource] - Request disabledSources:" + query
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden, @QueryParam("sortBy") String sortBy,
             @DefaultValue("false") @QueryParam("excludeClosed") boolean excludeClosedMatches,
             @Suspended final AsyncResponse asyncResponse) {
+        
         if (CollectionUtils.isEmpty(statuses)) {
             statuses = ALL;
         } else {
@@ -239,7 +240,7 @@ System.err.println("[MatchFeedAsyncResource] - Request disabledSources:" + query
                 .setLocale(locale).setPageSize(0).setStartPage(0).setStatuses(statuses).setUserId(userId)
                 .setViewHidden(false)
                 .setExcludeClosedMatches(excludeClosedMatches)
-                .setSortBy(sortBy).build();
+                .addOrderBy(sortBy).build();
 
 
         log.info("fetching matched users for user ={}", userId);
