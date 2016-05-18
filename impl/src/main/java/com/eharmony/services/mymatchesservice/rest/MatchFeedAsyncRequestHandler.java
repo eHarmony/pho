@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.Timer;
+import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.event.MatchQueryEventService;
 import com.eharmony.services.mymatchesservice.monitoring.GraphiteReportingConfiguration;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
@@ -302,6 +303,16 @@ public class MatchFeedAsyncRequestHandler {
                     hbaseStoreFeedService.getUserMatchesByStatusGroupSafe(requestContext), populateHBaseMatchesFeed)
                     .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
         }
+        
+        // Add Spotlight Matches
+        Set<MatchStatusEnum> matchStatuses = requestedMatchStatusGroups.values().stream().flatMap(set -> set.stream()).collect(Collectors.toSet());
+        HBaseStoreFeedRequestContext requestContext = new HBaseStoreFeedRequestContext(matchFeedQueryContext);
+        requestContext.setMatchStatuses(matchStatuses);
+        
+        matchQueryRequestObservable = matchQueryRequestObservable.zipWith(
+                hbaseStoreFeedService.getSpotlitUserMatchesSafe(requestContext), populateHBaseMatchesFeedFromNonGroupedResponse)
+                .subscribeOn(Schedulers.from(executorServiceProvider.getTaskExecutor()));
+        
         return matchQueryRequestObservable;
     }
 
@@ -377,6 +388,38 @@ public class MatchFeedAsyncRequestHandler {
         if (CollectionUtils.isNotEmpty(matchesFeedResponse.getHbaseStoreFeedItems())) {
             request.putFeedItemsInMapByStatusGroup(matchesFeedResponse.getMatchStatusGroup(),
                     matchesFeedResponse.getHbaseStoreFeedItems());
+        }
+        return request;
+    };
+    
+    private Func2<MatchFeedRequestContext, HBaseStoreFeedResponse, MatchFeedRequestContext> populateHBaseMatchesFeedFromNonGroupedResponse = (
+            request, matchesFeedResponse) -> {
+        if (CollectionUtils.isNotEmpty(matchesFeedResponse.getHbaseStoreFeedItems())) {
+            Map<MatchStatusGroupEnum, List<MatchDataFeedItemDto>> matchStatusGroupToMatchFeedItems = matchesFeedResponse.getHbaseStoreFeedItems().stream().collect(Collectors.<MatchDataFeedItemDto, MatchStatusGroupEnum>groupingBy(item -> {
+                int status = item.getMatch().getStatus();
+                MatchStatusEnum matchStatus = MatchStatusEnum.fromInt(status);
+                switch (matchStatus) {
+                case NEW:
+                    return MatchStatusGroupEnum.NEW;
+                case ARCHIVED:
+                    return MatchStatusGroupEnum.ARCHIVE;
+                case OPENCOMM:
+                case MYTURN:
+                case THEIRTURN:
+                    return MatchStatusGroupEnum.COMMUNICATION;
+                case CLOSED:
+                    logger.warn("Closed matches are not supported in this system...");
+                    break;
+                default:
+                    logger.error("Unable to assign match status {} to a match status group.", matchStatus);            
+                }
+                return MatchStatusGroupEnum.NEW;
+            }));
+            for(MatchStatusGroupEnum group: matchStatusGroupToMatchFeedItems.keySet()){
+                request.putFeedItemsInMapByStatusGroup(group,
+                        matchesFeedResponse.getHbaseStoreFeedItems());
+            }
+            
         }
         return request;
     };

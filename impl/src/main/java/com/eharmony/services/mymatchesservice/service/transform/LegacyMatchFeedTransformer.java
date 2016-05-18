@@ -81,6 +81,14 @@ public class LegacyMatchFeedTransformer {
         profile.put(MatchFeedModel.PROFILE.BIRTHDATE, getTimeInMillisNullSafe(elem.getBirthdate()));
         profile.put(MatchFeedModel.PROFILE.USERID, item.getMatch().getMatchedUserId());
         profile.put(MatchFeedModel.PROFILE.LOCALE, elem.getLocale());
+        
+        // Only enrich with spotlight info if spotlight is not expired
+        if(elem.getSpotlightEndDate() != null && elem.getSpotlightEndDate().after(new Date())){
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, getTimeInMillisNullSafe(elem.getSpotlightEndDate()));
+        } else {
+            profile.put(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE, null);
+        }
+        
         if(elem.getPhotos() != 0 ){
         	
         	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());

@@ -7,7 +7,7 @@
  * This software is a work of authorship by eharmony.com and protected by
  * the copyright laws of the United States and foreign jurisdictions.
  *
- * Copyright 2000-2012 eharmony.com, Inc. All rights reserved.
+ * Copyright 2000-2016 eharmony.com, Inc. All rights reserved.
  *
  */
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
@@ -16,13 +16,17 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
-
+@Component
 public class StatusDateIdMatchInfoComparator
           implements Comparator<Map.Entry<String, Map<String, Map<String, Object>>>> {
 
-    private Comparator<String> matchStatusComparator = new MatchStatusComparator();
+    @Autowired
+    private Comparator<String> matchStatusComparator;
 
     @Override public int compare(Entry<String, Map<String, Map<String, Object>>> matchInfoEntry1,
                                  Entry<String, Map<String, Map<String, Object>>> matchInfoEntry2) {
@@ -38,8 +42,8 @@ public class StatusDateIdMatchInfoComparator
         int result = matchStatusComparator.compare(matchStatus1, matchStatus2);
 
         if (result == 0) { // same status
-
-            // compare delivered date - can be Integer or Long
+            
+            // Both have the same status, so compare delivered date - can be Integer or Long
             Number date1 =
                 (Number) matchInfo1.get(MatchFeedModel.SECTIONS.MATCH)
                                    .get(MatchFeedModel.MATCH.DELIVERED_DATE);

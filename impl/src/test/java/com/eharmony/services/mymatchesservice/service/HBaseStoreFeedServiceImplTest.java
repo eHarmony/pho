@@ -38,8 +38,6 @@ import com.eharmony.services.mymatchesservice.util.MatchStatusGroupEnum;
  */
 public class HBaseStoreFeedServiceImplTest {
 
-    private static final int FALLBACK_FEED_LIMIT = 10;
-
     private static final int FEED_LIMIT = 5;
 
     @Mock
@@ -146,7 +144,9 @@ public class HBaseStoreFeedServiceImplTest {
         Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
         for (int i = 0; i < FEED_LIMIT; i++) {
-            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+            MatchDataFeedItemDto item = new MatchDataFeedItemDto();
+            item.getMatch().setMatchId(i);
+            matchDataFeedItemSet.add(item);
         }
 
         when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);
@@ -240,7 +240,9 @@ public class HBaseStoreFeedServiceImplTest {
         Set<MatchDataFeedItemDto> matchDataFeedItemSet = new HashSet<MatchDataFeedItemDto>();
 
         for (int i = 0; i < 100; i++) {
-            matchDataFeedItemSet.add(new MatchDataFeedItemDto());
+            MatchDataFeedItemDto item = new MatchDataFeedItemDto();
+            item.getMatch().setMatchId(i);
+            matchDataFeedItemSet.add(item);
         }
 
         when(queryRepository.getMatchDataFeed(any())).thenReturn(matchDataFeedItemSet);

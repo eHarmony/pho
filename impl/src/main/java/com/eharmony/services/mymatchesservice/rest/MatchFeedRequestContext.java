@@ -53,7 +53,10 @@ public class MatchFeedRequestContext {
     public void putFeedItemsInMapByStatusGroup(MatchStatusGroupEnum statusGroup, Set<MatchDataFeedItemDto> feedItems) {
 
         if (CollectionUtils.isNotEmpty(feedItems)) {
-            hbaseFeedItemsByStatusGroup.put(statusGroup, feedItems);
+            hbaseFeedItemsByStatusGroup.merge(statusGroup, feedItems, (existingFeedItems, newFeedItems) -> {
+                existingFeedItems.addAll(newFeedItems);
+                return existingFeedItems;
+            });
         }
     }
     

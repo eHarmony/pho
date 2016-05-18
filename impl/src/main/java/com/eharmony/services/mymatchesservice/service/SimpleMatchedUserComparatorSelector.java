@@ -2,15 +2,21 @@ package com.eharmony.services.mymatchesservice.service;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import com.eharmony.datastore.query.criterion.Ordering;
+import com.eharmony.datastore.query.criterion.Ordering.NullOrdering;
+import com.eharmony.datastore.query.criterion.Ordering.Order;
 
 @Component
 public class SimpleMatchedUserComparatorSelector {
@@ -41,5 +47,40 @@ public class SimpleMatchedUserComparatorSelector {
         }
         Function<? super SimpleMatchedUserDto, ? extends Comparable> keyExtractor =  keyExtractorMap.get(sortBy);
         return Comparator.comparing(keyExtractor).reversed();
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public  Comparator<SimpleMatchedUserDto> selectComparator(List<Ordering> orderings) {
+        
+        if(CollectionUtils.isEmpty(orderings)){
+            return null;
+        }
+        
+        Comparator<SimpleMatchedUserDto> comparator = null;
+        for (Ordering ordering: orderings) {
+            Function<? super SimpleMatchedUserDto, ? extends Comparable> keyExtractor = keyExtractorMap
+                    .get(ordering.getPropertyName());
+            if (keyExtractor == null) {
+                log.warn("unkown sortBy criteria {}", ordering.getPropertyName());
+                return null;
+            }
+            Comparator<SimpleMatchedUserDto> orderingComparator = Comparator
+                    .comparing(keyExtractor);
+            if (ordering.getOrder().equals(Order.DESCENDING)) {
+                orderingComparator = orderingComparator.reversed();
+            }
+            if (ordering.getNullOrdering().equals(NullOrdering.FIRST)) {
+                orderingComparator = Comparator.nullsFirst(orderingComparator);
+            } else {
+                orderingComparator = Comparator.nullsLast(orderingComparator);
+            }
+            
+            if(comparator == null){
+                comparator = orderingComparator;
+            } else {
+                comparator = comparator.thenComparing(orderingComparator);
+            }
+        }
+        return comparator;
     }
 }

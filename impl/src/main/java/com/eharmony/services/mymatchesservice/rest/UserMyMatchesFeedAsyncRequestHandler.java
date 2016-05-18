@@ -15,6 +15,7 @@ public class UserMyMatchesFeedAsyncRequestHandler extends AbstractMatchesFeedAsy
     
     @Override
     public void handleFeedResponse(MatchFeedRequestContext context) {
+        
         userMyMatchesFeedResponseHandler.processMatchFeedResponse(context);
         
     }

@@ -1,26 +1,38 @@
 package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.IMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 
+@Component("paginationMatchFeedFilter")
 public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(PaginationMatchFeedFilter.class);
-      
-    private StatusDateIdMatchInfoComparator comparator = new StatusDateIdMatchInfoComparator();
+    
+    @Autowired
+    private StatusDateIdMatchInfoComparator statusDateIdMatchInfoComparator;
+    
+    @Autowired
+    private SpotlightComparator spotlightComparator;
+
+    @Value("${spotlight.users.to.elevate.maximum:4}")
+    private int maximumSpotlitUsers;
 
 	@Override
 	public MatchFeedRequestContext processMatchFeed(MatchFeedRequestContext context) {
@@ -51,58 +63,68 @@ public class PaginationMatchFeedFilter implements IMatchFeedTransformer {
         feed.setTotalMatches(matches.size());
         
         int pageNum = context.getMatchFeedQueryContext().getStartPage();
+        int pageSize = context.getMatchFeedQueryContext().getPageSize();
+        
+        // If pagination is disabled, consider us to be on page 1 where the page size equals the results size
         if (pageNum < 1) {
 
-            log.debug("Match feed context doesn't request pagination (pageNum={}), returning without processing. Context={}",
-                      pageNum, context);
-            feed.setTotalMatches(feed.getMatches().size());
-            return context;
+            pageNum = 1;
+            pageSize = matches.size();
 
         }
 
-        int pageSize = context.getMatchFeedQueryContext().getPageSize();
-        pageSize =
-            (pageSize < 1) ? matches.size()
-                           : pageSize; // fall back to default
+        pageSize =  (pageSize < 1) ? matches.size() : pageSize;
 
-        // 1. order the matches based on buckets, deliveredDate and matchId
+        // 1. Place all the matches into a list, so that they can be sorted
         List<Map.Entry<String, Map<String, Map<String, Object>>>> entries =
-            new LinkedList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
-        Collections.sort(entries, comparator);
-
-        // 2. advance to required window
-        Iterator<Entry<String, Map<String, Map<String, Object>>>> it = entries.iterator();
-        int currentRecord = 1;
-        int starting = ((pageNum - 1) * pageSize) + 1;
-        while ((currentRecord < starting) && it.hasNext()) {
-
-            Entry<String, Map<String, Map<String, Object>>> entry = it.next();
-
-            log.debug("skipped record#={} for matchId={} matchInfo={}",
-            				currentRecord, entry.getKey(), entry.getValue());
-
-            currentRecord++;
-
+            new ArrayList<Map.Entry<String, Map<String, Map<String, Object>>>>(matches.entrySet());
+        
+        // 2. Sort spotlight users first (up to limit) followed by the rest sorted by delivery date
+        List<Entry<String, Map<String, Map<String, Object>>>> spotlightPortion = entries
+                .stream().filter(entry -> {
+                    if (entry == null) {
+                        return false;
+                    }
+                    Map<String, Map<String, Object>> value = entry.getValue();
+                    if (value == null) {
+                        return false;
+                    }
+                    Map<String, Object> profile = value
+                            .get(MatchFeedModel.SECTIONS.PROFILE);
+                    if (profile == null) {
+                        return false;
+                    }
+                    Object spotlightEndDate = profile
+                            .get(MatchFeedModel.PROFILE.SPOTLIGHT_END_DATE);
+                    return spotlightEndDate != null;
+                })
+                .sorted(spotlightComparator)
+                .limit(maximumSpotlitUsers)
+                .collect(Collectors.toList());
+        entries.removeAll(spotlightPortion);
+        Collections.sort(entries, statusDateIdMatchInfoComparator);
+        entries.addAll(0, spotlightPortion);
+        
+        // 3. Select the sub-list to be returned on this page
+        int fromIndex = (pageNum - 1) * pageSize;
+        int toIndex = pageNum * pageSize;
+        int size = entries.size();
+        if(toIndex > size){
+            toIndex = size;
         }
-
-        // 3. pick N elements, store them in the ordered map
-        Map<String, Map<String, Map<String, Object>>> result =
-            new LinkedHashMap<String, Map<String, Map<String, Object>>>(); // must be linked map to preserve the order !!
-        int picked = 0;
-        while ((picked < pageSize) && it.hasNext()) {
-
-            Entry<String, Map<String, Map<String, Object>>> entry = it.next();
-            result.put(entry.getKey(), entry.getValue());
-            picked++;
-
-            log.debug("added record#={} as #={} for matchId={} matchInfo={}",
-                          new Object[] { starting + picked - 1, picked, entry.getKey(), entry.getValue() });
-
+        if(fromIndex > toIndex){
+            entries =  Collections.emptyList();
+        } else {
+            entries = entries.subList(fromIndex, toIndex);
         }
-
-        // 4. re-wire ordered map into the context
-        context.getLegacyMatchDataFeedDto().setMatches(result);
-
+        
+        // 4. Put the entries back into map form, but use a LinkedHashMap to maintain the ordering
+        Map<String, Map<String, Map<String, Object>>> entryMap = entries.stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),(k,v) ->{ throw new RuntimeException(String.format("Duplicate key %s", k));},
+                LinkedHashMap::new));
+        
+        // 5. Set the new ordered map on the response
+        context.getLegacyMatchDataFeedDto().setMatches(entryMap);
+        
         return context;
 
     }

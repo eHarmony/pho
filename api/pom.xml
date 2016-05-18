@@ -5,7 +5,7 @@
 		<artifactId>match-query-service</artifactId>
 		<version>1.0.32-SNAPSHOT</version>
 	</parent>
-	<name>match query service API</name>
+	<name>Match Query Service API</name>
 	<artifactId>match-query-service-api</artifactId>
 	<description>manages user match feed</description>
 	<packaging>jar</packaging>
