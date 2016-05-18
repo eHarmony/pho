@@ -4,9 +4,9 @@ import java.util.Map;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
-import com.eharmony.services.mymatchesservice.service.UserInfoDto;
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
+import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 
 /**
  * Manages data from all the required sources during a getMatch request.
@@ -29,7 +29,7 @@ public class SingleMatchRequestContext {
     private MatchDo matchDo;
     private MatchSummaryDo matchSummaryDo;
     private MRSDto mrsDto;
-    private UserInfoDto userInfoDto;
+    private BasicPublicProfileDto publicProfileDto;
 
 	// Query parameters
     private SingleMatchQueryContext queryContext;
@@ -93,14 +93,13 @@ public class SingleMatchRequestContext {
 	public void setSingleMatch(Map<String, Map<String, Object>> singleMatch) {
 		this.singleMatch = singleMatch;
 	}
-	
-    
-    public UserInfoDto getUserInfoDto() {
-		return userInfoDto;
+
+	public BasicPublicProfileDto getPublicProfileDto() {
+		return publicProfileDto;
 	}
 
-	public void setUserInfoDto(UserInfoDto userInfoDto) {
-		this.userInfoDto = userInfoDto;
+	public void setPublicProfileDto(BasicPublicProfileDto publicProfileDto) {
+		this.publicProfileDto = publicProfileDto;
 	}
 
 }

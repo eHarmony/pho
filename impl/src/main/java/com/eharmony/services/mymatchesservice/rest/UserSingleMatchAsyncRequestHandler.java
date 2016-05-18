@@ -27,14 +27,14 @@ import com.eharmony.services.mymatchesservice.service.HBaseStoreSingleMatchRespo
 import com.eharmony.services.mymatchesservice.service.MRSAdapter;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
-import com.eharmony.services.mymatchesservice.service.UserInfoDto;
-import com.eharmony.services.mymatchesservice.service.UserInfoServiceAdapter;
 import com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedSORAStore;
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
+import com.eharmony.services.profile.client.ProfileServiceClient;
+import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 	
 	@Component("userSingleMatchAsyncRequestHandler")
 	public class UserSingleMatchAsyncRequestHandler{
@@ -52,9 +52,9 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	    
 	    @Resource(name="mrsAdapter")
 	    private MRSAdapter mrsAdapter;
-
-	    @Resource(name="userInfoServiceAdapter")
-	    private UserInfoServiceAdapter userInfoAdapter;
+	    
+	    @Resource 
+	    private ProfileServiceClient profileService;
 	    
 	    @Resource(name="soraStore")
 	    private MatchDataFeedSORAStore soraStore;
@@ -179,14 +179,14 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 			Observable<MatchDo> match = Observable.just(soraStore.getMatch(userId, matchId));
 			Observable<MatchSummaryDo> matchSummary = Observable.just(soraStore.getMatchSummary(userId, matchId));
 			Observable<MRSDto> mrsDto = Observable.just(mrsAdapter.getMatch(userId, matchId));
-			Observable<UserInfoDto> userDto = Observable.just(userInfoAdapter.getUserInfo(userId));
+			Observable<BasicPublicProfileDto> userDto = Observable.just(profileService.findBasicPublicProfileForUser((int)userId));
 			
 			return Observable.zip(match, matchSummary, mrsDto, userDto, (m, s, mrs, u) -> {
 				
 				request.setMatchDo(m);
 				request.setMatchSummaryDo(s);
 				request.setMrsDto(mrs);
-				request.setUserInfoDto(u);
+				request.setPublicProfileDto(u);
 				
 				return request;
 			});

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
-import com.eharmony.services.mymatchesservice.service.UserInfoDto;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
@@ -16,6 +15,7 @@ import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchDoToMatchDataFeedItemDtoMapper;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 import com.eharmony.singles.common.enumeration.IcebreakerStateEnum;
+import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
 public class MRSAndSORAMatchMerger {
@@ -35,7 +35,7 @@ public class MRSAndSORAMatchMerger {
 		MatchDo matchDo = request.getMatchDo();
 		MRSDto mrsDto = request.getMrsDto();
 		MatchSummaryDo matchSummaryDo = request.getMatchSummaryDo();
-		UserInfoDto userInfo = request.getUserInfoDto();
+		BasicPublicProfileDto userInfo = request.getPublicProfileDto();
 
 		// If we have EHMATCHES record, use that only
 		if(matchDo != null && request.getQueryContext().isSORAEnabled()){
