@@ -27,6 +27,8 @@ import com.eharmony.services.mymatchesservice.service.HBaseStoreSingleMatchRespo
 import com.eharmony.services.mymatchesservice.service.MRSAdapter;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
+import com.eharmony.services.mymatchesservice.service.UserInfoDto;
+import com.eharmony.services.mymatchesservice.service.UserInfoServiceAdapter;
 import com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
@@ -50,6 +52,9 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 	    
 	    @Resource(name="mrsAdapter")
 	    private MRSAdapter mrsAdapter;
+
+	    @Resource(name="userInfoServiceAdapter")
+	    private UserInfoServiceAdapter userInfoAdapter;
 	    
 	    @Resource(name="soraStore")
 	    private MatchDataFeedSORAStore soraStore;
@@ -174,12 +179,14 @@ import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 			Observable<MatchDo> match = Observable.just(soraStore.getMatch(userId, matchId));
 			Observable<MatchSummaryDo> matchSummary = Observable.just(soraStore.getMatchSummary(userId, matchId));
 			Observable<MRSDto> mrsDto = Observable.just(mrsAdapter.getMatch(userId, matchId));
+			Observable<UserInfoDto> userDto = Observable.just(userInfoAdapter.getUserInfo(userId));
 			
-			return Observable.zip(match, matchSummary, mrsDto, (m, s, mrs) -> {
+			return Observable.zip(match, matchSummary, mrsDto, userDto, (m, s, mrs, u) -> {
 				
 				request.setMatchDo(m);
 				request.setMatchSummaryDo(s);
 				request.setMrsDto(mrs);
+				request.setUserInfoDto(u);
 				
 				return request;
 			});

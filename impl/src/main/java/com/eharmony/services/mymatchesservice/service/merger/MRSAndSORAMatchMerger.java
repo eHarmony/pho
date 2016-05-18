@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
+import com.eharmony.services.mymatchesservice.service.UserInfoDto;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
@@ -22,6 +23,8 @@ public class MRSAndSORAMatchMerger {
 	private MatchDoToMatchDataFeedItemDtoMapper mapper = new MatchDoToMatchDataFeedItemDtoMapper();
 	
 	private static final Logger log = LoggerFactory.getLogger(MRSAndSORAMatchMerger.class);
+	
+	private static final int GENDER_FEMALE = 2;
 
 	public void mergeMatch(SingleMatchRequestContext request){
 		
@@ -32,6 +35,7 @@ public class MRSAndSORAMatchMerger {
 		MatchDo matchDo = request.getMatchDo();
 		MRSDto mrsDto = request.getMrsDto();
 		MatchSummaryDo matchSummaryDo = request.getMatchSummaryDo();
+		UserInfoDto userInfo = request.getUserInfoDto();
 
 		// If we have EHMATCHES record, use that only
 		if(matchDo != null && request.getQueryContext().isSORAEnabled()){
@@ -39,25 +43,27 @@ public class MRSAndSORAMatchMerger {
 			LegacyMatchDataFeedDtoWrapper match = buildMatchFromEHMatches(userId, matchId, matchDo);
 			request.setSingleMatch(match.getLegacyMatchDataFeedDto().getMatches().get(matchIdAsStr));
 			
-		}else{
-		
-			// If we have MATCH_SUMMARIES record, merge with MRS
-			if(mrsDto != null && matchSummaryDo != null){
-				
-				log.info("Building match from merging matchSummaries + MRS for userId {} matchId {}", userId, matchId);
-				
-				Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
-				buildMatch(oneMatch, matchSummaryDo, matchId, mrsDto);
-				
-				// Create empty Profile section, to be enriched later
-				Map<String, Object> profileSection = new HashMap<String, Object>();
-				profileSection.put(MatchFeedModel.PROFILE.USERID, matchSummaryDo.getCandidateUserId());
-				oneMatch.get(matchIdAsStr).put(MatchFeedModel.SECTIONS.PROFILE, profileSection);		
-	
-				buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
-
-				request.setSingleMatch(oneMatch.get(matchIdAsStr));
+		}else if(mrsDto != null){
+							
+			log.info("Building match from merging matchSummaries + MRS for userId {} matchId {}", userId, matchId);
+			
+			if(matchSummaryDo == null){
+				matchSummaryDo = new MatchSummaryDo();
+				matchSummaryDo.setCandidateUserId(mrsDto.getMatchedUserId());
+				matchSummaryDo.setOwnerIsUser(userInfo.getGender() == GENDER_FEMALE);
 			}
+			
+			Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
+			buildMatch(oneMatch, matchSummaryDo, matchId, mrsDto);
+			
+			// Create empty Profile section, to be enriched later
+			Map<String, Object> profileSection = new HashMap<String, Object>();
+			profileSection.put(MatchFeedModel.PROFILE.USERID, matchSummaryDo.getCandidateUserId());
+			oneMatch.get(matchIdAsStr).put(MatchFeedModel.SECTIONS.PROFILE, profileSection);		
+
+			buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
+
+			request.setSingleMatch(oneMatch.get(matchIdAsStr));
 		}
 	}
 	

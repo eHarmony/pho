@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
+import com.eharmony.services.mymatchesservice.service.UserInfoDto;
 import com.eharmony.services.mymatchesservice.store.data.MatchDo;
 import com.eharmony.services.mymatchesservice.store.data.MatchSummaryDo;
 
@@ -28,8 +29,9 @@ public class SingleMatchRequestContext {
     private MatchDo matchDo;
     private MatchSummaryDo matchSummaryDo;
     private MRSDto mrsDto;
-    
-    // Query parameters
+    private UserInfoDto userInfoDto;
+
+	// Query parameters
     private SingleMatchQueryContext queryContext;
     
     public SingleMatchRequestContext(SingleMatchQueryContext queryCtx){
@@ -91,4 +93,14 @@ public class SingleMatchRequestContext {
 	public void setSingleMatch(Map<String, Map<String, Object>> singleMatch) {
 		this.singleMatch = singleMatch;
 	}
+	
+    
+    public UserInfoDto getUserInfoDto() {
+		return userInfoDto;
+	}
+
+	public void setUserInfoDto(UserInfoDto userInfoDto) {
+		this.userInfoDto = userInfoDto;
+	}
+
 }
