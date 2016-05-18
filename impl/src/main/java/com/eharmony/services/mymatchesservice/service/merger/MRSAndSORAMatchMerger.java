@@ -25,6 +25,7 @@ public class MRSAndSORAMatchMerger {
 	private static final Logger log = LoggerFactory.getLogger(MRSAndSORAMatchMerger.class);
 	
 	private static final int GENDER_FEMALE = 2;
+	private static final String LOCALE_CP = "en_US_10";
 
 	public void mergeMatch(SingleMatchRequestContext request){
 		
@@ -50,7 +51,7 @@ public class MRSAndSORAMatchMerger {
 			if(matchSummaryDo == null){
 				matchSummaryDo = new MatchSummaryDo();
 				matchSummaryDo.setCandidateUserId(mrsDto.getMatchedUserId());
-				matchSummaryDo.setOwnerIsUser(userInfo.getGender() == GENDER_FEMALE);
+				matchSummaryDo.setOwnerIsUser(ownerIsUser(userInfo, mrsDto.getMatchedUserId()));
 			}
 			
 			Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
@@ -64,6 +65,18 @@ public class MRSAndSORAMatchMerger {
 			buildCommFromMatchSummaries(oneMatch, matchId, matchSummaryDo);
 
 			request.setSingleMatch(oneMatch.get(matchIdAsStr));
+		}
+	}
+	
+	private boolean ownerIsUser(BasicPublicProfileDto profileInfo, long matchedUserId){
+		
+		if(LOCALE_CP.equals(profileInfo.getLocale())){
+			
+			// for CP, lower digit is owner.
+			return(profileInfo.getUserId() < matchedUserId);
+			
+		}else{
+			return profileInfo.getGender() == GENDER_FEMALE;
 		}
 	}
 	
