@@ -85,9 +85,7 @@ public class MatchFeedAsyncResource {
     	
     	SingleMatchQueryContext queryContext = new SingleMatchQueryContext();
     	queryContext.setMatchId(matchId)
-    				.setUserId(userId)
-    				.setDisabledSources(sources);
-System.err.println("[MatchFeedAsyncResource] - Request disabledSources:" + queryContext.getDisabledSources());
+    				.setUserId(userId);
         log.info("fetching single match for userId {} matchId {}", userId, matchId);
         userSingleMatchAsyncRequestHandler.getSingleMatch(queryContext, asyncResponse);  	 
     }
@@ -134,6 +132,8 @@ System.err.println("[MatchFeedAsyncResource] - Request disabledSources:" + query
      * @param statuses  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
      * @param resultSize  number of matches to be returned
      * @param asyncResponse Asynchronous response stream
+     * @param userAgent user-agent header data
+     * @param platform OS platform request originates from
      */
     @GET
     @Path("/users/{userId}/teasermatches")

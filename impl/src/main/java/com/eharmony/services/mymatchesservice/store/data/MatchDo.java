@@ -79,9 +79,9 @@ public class MatchDo
     /**
      * Parameterized constructor for testing
      *
-     * @param  id
-     * @param  userId
-     * @param  candidateUserId
+     * @param  id				the match id
+     * @param  userId			match user Id
+     * @param  candidateUserId 	match candidate id
      */
     public MatchDo(Long id,
                        Long userId,

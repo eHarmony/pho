@@ -93,7 +93,7 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 	        	            
 	        	singleMatchResponseHandler.processMatchFromHBaseAndRedis(response);
 	        	
-	        	if(response.matchIsAvailable() && singleMatchQueryContext.isHBaseRedisEnabled()){
+	        	if(response.matchIsAvailable()){
 	        		
 	        		singleMatchTransformerChain.execute(response);
 	        		singleMatchFilterChain.execute(response);

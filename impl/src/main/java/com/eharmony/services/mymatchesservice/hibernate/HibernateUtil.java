@@ -32,7 +32,7 @@ public class HibernateUtil {
 	 * OpenMRS 1.9). See https://hibernate.onjira.com/browse/HHH-5138.
 	 * For example Hibernate.STRING is now StandardBasicTypes.STRING.
 	 * 
-	 * @param typeName
+	 * @param typeName name of type to convert to modern type.
 	 * @return the org.hibernate.type.Type, fetched as a static constant from either the Hibernate class or
 	 * the StandardBasicTypes class, depending on which is available.
 	 */
@@ -60,7 +60,8 @@ public class HibernateUtil {
 	 * TypeFactory.basic no longer exists.
 	 * (I don't know if we need both this method and {@link #standardType(String)}, but I'm hackily
 	 * replacing bits of code that I don't understand deeply, and they do two things.)
-	 * @param name
+	 * @param name  the name of the type to create
+	 * @param parameters hints for heuristic type creator
      * @return Given the name of a Hibernate basic type, return an instance of org.hibernate.type.Type
      */
     public static Type getBasicType(String name, Properties parameters) {
@@ -87,7 +88,7 @@ public class HibernateUtil {
      * There are a few places where in 3.2.5 we'd have a NullableType, but in 3.6 we'll have something
      * like a AbstractSingleColumnStandardBasicType, but either way there's a sqlType() method
      * 
-     * @param type
+     * @param type the Hibernate type
      * @return The JDBC type associated with the given Hibernate type
      */
     public static Integer sqlType(Type type) {

@@ -32,9 +32,9 @@ public enum GenderEnum {UNKNOWN(0, "Unknown"),
     /**
      * Returns the GenderEnum instance corresponding to the given code.
      *
-     * @param   code
+     * @param   code number equivalent to a GenderEnum enum.
      *
-     * @return
+     * @return matching GenderEnum, or UNKNOWN otherwise.
      */
     public static GenderEnum fromInt(int code) {
         switch (code) {

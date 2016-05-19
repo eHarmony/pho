@@ -39,7 +39,7 @@ public class MRSAndSORAMatchMerger {
 		BasicPublicProfileDto userInfo = request.getPublicProfileDto();
 
 		// If we have EHMATCHES record, use that only
-		if(matchDo != null && request.getQueryContext().isSORAEnabled()){
+		if(matchDo != null){
 
 			log.debug("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
 
