@@ -40,18 +40,24 @@ public class MRSAndSORAMatchMerger {
 
 		// If we have EHMATCHES record, use that only
 		if(matchDo != null && request.getQueryContext().isSORAEnabled()){
-					
+
+			log.debug("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
+
 			LegacyMatchDataFeedDtoWrapper match = buildMatchFromEHMatches(userId, matchId, matchDo);
 			request.setSingleMatch(match.getLegacyMatchDataFeedDto().getMatches().get(matchIdAsStr));
 			
 		}else if(mrsDto != null){
 							
-			log.info("Building match from merging matchSummaries + MRS for userId {} matchId {}", userId, matchId);
+			log.debug("Building match from merging matchSummaries + MRS for userId {} matchId {}", userId, matchId);
 			
 			if(matchSummaryDo == null){
 				matchSummaryDo = new MatchSummaryDo();
-				matchSummaryDo.setCandidateUserId(mrsDto.getMatchedUserId());
 				matchSummaryDo.setOwnerIsUser(ownerIsUser(userInfo, mrsDto.getMatchedUserId()));
+				if(matchSummaryDo.getOwnerIsUser()){
+					matchSummaryDo.setCandidateUserId(mrsDto.getMatchedUserId());
+				}else{
+					matchSummaryDo.setCandidateUserId(mrsDto.getUserId());
+				}
 			}
 			
 			Map<String, Map<String, Map<String, Object>>> oneMatch = new HashMap<>();
@@ -82,7 +88,7 @@ public class MRSAndSORAMatchMerger {
 	
 	private LegacyMatchDataFeedDtoWrapper buildMatchFromEHMatches(long userId, long matchId, MatchDo matchDo){
 		
-		log.info("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
+		log.debug("Building match from EHMATCHES for userId {} matchId {}", userId, matchId);
 		
 		Map<String,Map<String, Object>> oneMatchContent = mapper.transform(userId, matchDo);
 		

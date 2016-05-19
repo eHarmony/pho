@@ -1,4 +1,4 @@
-package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -10,17 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
-import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
-import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
-public class FieldNullifierFilter implements IMatchTransformer{
+public class FieldNullifierTransformer implements IMatchTransformer{
 
     private List<String> list;
     private String sectionName;
 
-	private static final Logger logger = LoggerFactory.getLogger(FieldNullifierFilter.class);
+	private static final Logger logger = LoggerFactory.getLogger(FieldNullifierTransformer.class);
 
-    public FieldNullifierFilter(String sectionName, List<String> fields){
+    public FieldNullifierTransformer(String sectionName, List<String> fields){
         Assert.hasText(sectionName, "sectionName parameter cannot be blank");
         Assert.notEmpty(fields, "list parameter cannot be empty");
 

@@ -1,17 +1,15 @@
-package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
+package com.eharmony.services.mymatchesservice.service.transform;
 
 import java.util.Map;
 import java.util.Set;
 
 import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
-import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
-import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 
-public class SingleMatchProfileFilter implements IMatchTransformer{
+public class SingleMatchProfileTransformer implements IMatchTransformer{
 
 	Set<String> fieldsToFilter;
 	
-	public SingleMatchProfileFilter(Set<String> fields){
+	public SingleMatchProfileTransformer(Set<String> fields){
 		this.fieldsToFilter = fields;
 	}
 	

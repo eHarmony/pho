@@ -50,7 +50,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
         this.matchDataFeedSerializer = matchDataFeedSerializer;
     }
 
-    protected LegacyMatchDataFeedDtoWrapper getUserMatchesSafeFromRedis(long userIdLong) {
+    protected LegacyMatchDataFeedDtoWrapper getUserMatches(long userIdLong) {
         
         String userid = String.valueOf(userIdLong);
         LegacyMatchDataFeedDtoWrapper response = new LegacyMatchDataFeedDtoWrapper(userIdLong);
@@ -91,8 +91,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
             }
         } catch (Exception exp) {
             log.warn("Error while getting feed for user{} from Redis", userid, exp);
-            //re throw exception so the down stream observer can deal with it.
-            //throw exp;
+            
         } finally {
             timerContext.close();
             long endTime = System.currentTimeMillis();
@@ -105,7 +104,7 @@ public class MatchFeedRedisStore implements RedisStoreFeedService{
 
     @Override
     public Observable<LegacyMatchDataFeedDtoWrapper> getUserMatchesSafe(final long userId) {
-        Observable<LegacyMatchDataFeedDtoWrapper> redisDeltaFeed =  Observable.defer(() -> Observable.just(getUserMatchesSafeFromRedis(userId)));
+        Observable<LegacyMatchDataFeedDtoWrapper> redisDeltaFeed =  Observable.defer(() -> Observable.just(getUserMatches(userId)));
         redisDeltaFeed
         .onErrorReturn(ex -> {
             log.warn(

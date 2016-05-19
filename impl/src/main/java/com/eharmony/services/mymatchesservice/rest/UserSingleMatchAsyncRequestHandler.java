@@ -28,6 +28,7 @@ import com.eharmony.services.mymatchesservice.service.MRSAdapter;
 import com.eharmony.services.mymatchesservice.service.MRSDto;
 import com.eharmony.services.mymatchesservice.service.RedisStoreFeedService;
 import com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain;
+import com.eharmony.services.mymatchesservice.service.transform.filter.SingleMatchFilterChain;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 import com.eharmony.services.mymatchesservice.store.MatchDataFeedSORAStore;
@@ -67,7 +68,9 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 	    	    
 	    @Resource(name="singleMatchTransformerChain")
 	    private SingleMatchTransformerChain singleMatchTransformerChain;	    
-	    
+
+	    @Resource(name="singleMatchFilterChain")
+	    private SingleMatchFilterChain singleMatchFilterChain;
 	    
 	    private static final String METRICS_HIERARCHY_PREFIX = "com.eharmony.services.mymatchesservice.rest.MatchFeedAsyncRequestHandler";
 	    private static final String METRICS_GETSINGLEMATCH_ASYNC = "getSingleMatch";
@@ -93,6 +96,7 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 	        	if(response.matchIsAvailable() && singleMatchQueryContext.isHBaseRedisEnabled()){
 	        		
 	        		singleMatchTransformerChain.execute(response);
+	        		singleMatchFilterChain.execute(response);
 	        		
 	                long duration = t.stop();
 	                logger.debug("Single match created for user {}, duration {}", userId, duration);
@@ -101,7 +105,7 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 	       		
 	        	}else{
 	            	
-		        	logger.info("Match {} not found for user {}, searching SORA + MRS.", matchId, userId);
+		        	logger.debug("Match {} not found for user {}, searching SORA + MRS.", matchId, userId);
 		        	
 		        	Observable<SingleMatchRequestContext> fallbackObservable = 
 		        							makeSingleMatchFallbackRequestObservable(singleMatchQueryContext);
@@ -112,6 +116,7 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 		
 		        			logger.debug("Single match found for user {}, matchId {}", userId, matchId);
 			        		singleMatchTransformerChain.execute(response2);
+			        		singleMatchFilterChain.execute(response2);
 		        		}
 		        		
 		                long duration = t.stop();
@@ -179,14 +184,14 @@ import com.eharmony.singles.common.profile.BasicPublicProfileDto;
 			Observable<MatchDo> match = Observable.just(soraStore.getMatch(userId, matchId));
 			Observable<MatchSummaryDo> matchSummary = Observable.just(soraStore.getMatchSummary(userId, matchId));
 			Observable<MRSDto> mrsDto = Observable.just(mrsAdapter.getMatch(userId, matchId));
-			Observable<BasicPublicProfileDto> userDto = Observable.just(profileService.findBasicPublicProfileForUser((int)userId));
+			Observable<BasicPublicProfileDto> profileDto = Observable.just(profileService.findBasicPublicProfileForUser((int)userId));
 			
-			return Observable.zip(match, matchSummary, mrsDto, userDto, (m, s, mrs, u) -> {
+			return Observable.zip(match, matchSummary, mrsDto, profileDto, (m, s, mrs, p) -> {
 				
 				request.setMatchDo(m);
 				request.setMatchSummaryDo(s);
 				request.setMrsDto(mrs);
-				request.setPublicProfileDto(u);
+				request.setPublicProfileDto(p);
 				
 				return request;
 			});
