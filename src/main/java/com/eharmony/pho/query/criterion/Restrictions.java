@@ -264,7 +264,7 @@ public class Restrictions {
     }
 
     /**
-     * Return the conjuction of two expressions
+     * Return the conjunction of two expressions
      *
      * @param criteria
      *            Criterion
@@ -275,7 +275,7 @@ public class Restrictions {
     }
 
     /**
-     * Return the disjuction of two expressions
+     * Return the disjunction of two expressions
      *
      * @param criteria
      *            Criterion

@@ -25,6 +25,7 @@ public class QueryUpdateImpl<T> implements QueryUpdate<T> {
         this.queryOperationType = queryOperationType;
     }
 
+    @Override
     public QueryOperationType getQueryOperationType() {
         return queryOperationType;
     }

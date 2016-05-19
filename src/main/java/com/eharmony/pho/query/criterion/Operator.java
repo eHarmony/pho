@@ -26,6 +26,7 @@ public enum Operator implements Symbolic {
         this.symbol = symbol;
     }
 
+    @Override
     public String symbol() {
         return symbol;
     }

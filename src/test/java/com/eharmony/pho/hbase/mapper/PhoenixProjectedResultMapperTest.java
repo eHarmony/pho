@@ -21,7 +21,8 @@ public class PhoenixProjectedResultMapperTest {
 	public void testMapResultsResultSetClassOfR_Long() throws Exception {
 		
 		PhoenixProjectedResultMapper mapper = new PhoenixProjectedResultMapper(null);
-		PhoenixResultSet rs = mock(PhoenixResultSet.class);
+		@SuppressWarnings("resource")
+        PhoenixResultSet rs = mock(PhoenixResultSet.class);
 		ResultSetMetaData rsMeta = mock(ResultSetMetaData.class);
 		
 		when(rs.getMetaData()).thenReturn(rsMeta);
@@ -49,7 +50,8 @@ public class PhoenixProjectedResultMapperTest {
 	public void testMapResultsResultSetClassOfR_Int() throws Exception {
 		
 		PhoenixProjectedResultMapper mapper = new PhoenixProjectedResultMapper(null);
-		PhoenixResultSet rs = mock(PhoenixResultSet.class);
+		@SuppressWarnings("resource")
+        PhoenixResultSet rs = mock(PhoenixResultSet.class);
 		ResultSetMetaData rsMeta = mock(ResultSetMetaData.class);
 		
 		when(rs.getMetaData()).thenReturn(rsMeta);

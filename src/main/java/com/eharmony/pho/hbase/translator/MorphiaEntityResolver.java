@@ -10,6 +10,7 @@ import com.google.code.morphia.annotations.Entity;
  */
 public class MorphiaEntityResolver implements EntityResolver {
 
+    @Override
     public String resolve(Class<?> entityClass) {
         Entity entity = entityClass.getAnnotation(Entity.class);
         String mappedName = entityClass.getSimpleName();

@@ -85,6 +85,7 @@ public class PhoenixHBaseQueryExecutor {
         return null;
     }
 
+    @SuppressWarnings("resource")
     public <T> T save(QueryUpdate<T> query, Connection conn) {
         PreparedStatement ps = null;
         try {
@@ -105,6 +106,7 @@ public class PhoenixHBaseQueryExecutor {
         }
     }
 
+    @SuppressWarnings("resource")
     public <T> T save(T entity, Connection conn) {
         PreparedStatement ps = null;
         try {
@@ -138,6 +140,7 @@ public class PhoenixHBaseQueryExecutor {
         }
     }
 
+    @SuppressWarnings("resource")
     public <T> int[] saveBatch(Iterable<T> entities, Connection conn) {
         PreparedStatement ps = null;
         try {

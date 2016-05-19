@@ -18,6 +18,7 @@ import com.eharmony.pho.mapper.EntityPropertiesResolver;
 import com.eharmony.pho.mapper.EntityPropertyBinding;
 import com.eharmony.pho.mapper.ProjectedResultMapper;
 import com.eharmony.pho.query.QuerySelect;
+
 /**
  * Maps the results from hbase to entity object based on entity annotations.
  * 
@@ -66,6 +67,7 @@ public class PhoenixProjectedResultMapper {
         return mapResults(resultSet, query.getReturnType());
     }
 
+    @SuppressWarnings("unchecked")
     public <R> Iterable<R> mapResults(ResultSet resultSet, final Class<R> clz) throws SQLException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
         Set<String> metadataColumns = extractColumnNames(resultSet);

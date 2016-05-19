@@ -18,10 +18,12 @@ public abstract class Expression implements Criterion, WithOperator, WithPropert
         this.propertyName = propertyName;
     }
 
+    @Override
     public Operator getOperator() {
         return operator;
     }
 
+    @Override
     public String getPropertyName() {
         return propertyName;
     }

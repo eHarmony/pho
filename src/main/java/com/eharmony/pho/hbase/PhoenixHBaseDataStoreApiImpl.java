@@ -29,6 +29,7 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         this.connectionUrl = connectionUrl;
         this.queryExecutor = Preconditions.checkNotNull(queryExecutor);
         // Below code will ensure that connection is string is valid, if not will stop the context loading
+        @SuppressWarnings("resource")
         Connection conn = PhoenixConnectionManager.getConnection(connectionUrl);
         if (conn == null) {
             throw new IllegalStateException("unable to create phoenix connection with given url :" + connectionUrl);
@@ -37,6 +38,8 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         }
     }
 
+    @Override
+    @SuppressWarnings("resource")
     public <T> T save(T entity) {
         Connection conn = null;
         try {
@@ -61,6 +64,8 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         }
     }
 
+    @Override
+    @SuppressWarnings("resource")
     public <T> Iterable<T> save(Iterable<T> entities) {
         Connection conn = null;
         try {
@@ -76,6 +81,7 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
     }
 
     @Override
+    @SuppressWarnings("resource")
     public <T> int[] saveBatch(Iterable<T> entities) {
         Connection conn = null;
         try {
@@ -90,6 +96,8 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         }
     }
 
+    @Override
+    @SuppressWarnings("resource")
     public <T, R> Iterable<R> findAll(QuerySelect<T, R> query) {
         Connection conn = null;
         try {
@@ -102,6 +110,8 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         }
     }
 
+    @Override
+    @SuppressWarnings("resource")
     public <T, R> R findOne(QuerySelect<T, R> query) {
         Connection conn = null;
         try {
@@ -114,6 +124,7 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
         }
     }
 
+    @SuppressWarnings("resource")
     public <T> Iterable<T> findAllEntities(String key, Class<T> clz, String[] projection) throws Exception {
         Connection conn = null;
         try {
