@@ -3,6 +3,7 @@ package com.eharmony.services.mymatchesservice.service.transform.filter.impl;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import com.eharmony.services.mymatchesservice.MatchTestUtils;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedQueryContext;
@@ -30,7 +31,10 @@ public class PaginationMatchFeedFilterTest {
 		legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
 		ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		PaginationMatchFeedFilter filter = new PaginationMatchFeedFilter();
-		
+		Whitebox.setInternalState(filter, SpotlightComparator.class, new SpotlightComparator());
+		StatusDateIdMatchInfoComparator statusDateIdMatchInfoComparator = new StatusDateIdMatchInfoComparator();
+	    Whitebox.setInternalState(filter, StatusDateIdMatchInfoComparator.class, statusDateIdMatchInfoComparator);
+	    Whitebox.setInternalState(statusDateIdMatchInfoComparator, "matchStatusComparator", new MatchStatusComparator());
 		
 		return filter.processMatchFeed(ctx);
 	}
@@ -89,7 +93,12 @@ public class PaginationMatchFeedFilterTest {
         legacyMatchDataFeedDtoWrapper.setLegacyMatchDataFeedDto(feed);
         ctx.setLegacyMatchDataFeedDtoWrapper(legacyMatchDataFeedDtoWrapper);
 		
-		PaginationMatchFeedFilter filter = new PaginationMatchFeedFilter();		
+		PaginationMatchFeedFilter filter = new PaginationMatchFeedFilter();
+		Whitebox.setInternalState(filter, SpotlightComparator.class, new SpotlightComparator());
+        StatusDateIdMatchInfoComparator statusDateIdMatchInfoComparator = new StatusDateIdMatchInfoComparator();
+        Whitebox.setInternalState(filter, StatusDateIdMatchInfoComparator.class, statusDateIdMatchInfoComparator);
+        Whitebox.setInternalState(statusDateIdMatchInfoComparator, "matchStatusComparator", new MatchStatusComparator());
+
 		
 		ctx = filter.processMatchFeed(ctx);
 		assertEquals(40, ctx.getLegacyMatchDataFeedDto().getMatches().size());

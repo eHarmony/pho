@@ -16,7 +16,8 @@ public class SimpleMatchedUserComparatorSelectorTest {
 	@Test
 	public void testSelectComparatorNegtive() {
 		Comparator<SimpleMatchedUserDto> c = compSelector.selectComparator("nosuchfield");
-		assertNull(c);
+		// default comparator is applied.
+		assertNotNull(c);
 	}
 	@Before
 	public void setup() {

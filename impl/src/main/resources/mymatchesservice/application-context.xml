@@ -16,9 +16,11 @@
 
 	<import resource="data-mapping-context.xml"/>
 	<import resource="match-store-redis.xml"/>
+	<import resource="hibernate/hibernate-context.xml"/>
 	<context:annotation-config />
 	<context:component-scan base-package="com.eharmony.services.mymatchesservice" />
 	<context:component-scan base-package="com.eharmony.services.profile.client" />
+	<context:component-scan base-package="com.eharmony.services.mymatchesservice.store.dao" />
 
 	<bean
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -28,6 +30,8 @@
 		<property name="locations">
 			<list>
 				<value>classpath:mymatchesservice/mymatchesservice.global.properties</value>
+				<value>classpath:mymatchesservice/hibernate/hibernate.properties</value>
+				<value>classpath:mymatchesservice/hibernate/jdbc.properties</value>
 				<value>file:${config.overrides.location}</value>
 				<!-- <value>file:${config.secure.location}</value> -->
 			</list>
@@ -83,4 +87,11 @@
       <constructor-arg index="3" value="${score.service.onlyUseJson}"/>
    </bean>
 
+	<!--  Communication Service -->
+   <bean id="commServiceRestClient" class="com.eharmony.protorest.RestClientImpl">
+      <constructor-arg index="0" value="${score.service.maxConnections}"/>
+      <constructor-arg index="1" value="${score.service.connectTimeout}"/>
+      <constructor-arg index="2" value="${score.service.readTimeout}"/>
+      <constructor-arg index="3" value="${score.service.onlyUseJson}"/>
+   </bean>
 </beans>

@@ -91,74 +91,6 @@ public class MatchFeedAsyncRequestHandlerIT {
     }
 
     @Test
-    public void testGetTeaserMatches_NoVoldy() throws Exception {
-        int userId = 12345;
-
-        Set<String> statusSet = new HashSet<String>();
-        statusSet.add(MatchStatus.NEW.name());
-
-        MatchFeedQueryContext queryCtx = MatchFeedQueryContextBuilder.newInstance()
-                                                                     .setAllowedSeePhotos(true)
-                                                                     .setPageSize(100) // For phase 1 setting 100 as the default number of records to fetch from HBASE. In V2, there will be DAO service for this.
-            .setStartPage(1) //There will be no pagination. There will be only one page and the resultSize param will decide how many items it consists of.
-            .setStatuses(statusSet).setUserId(userId).setTeaserResultSize(100) // This is the number of results to be returned back to the client/user.              
-            .build();
-
-        MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
-
-        Map<String, String> eventContextInfo = new HashMap<String, String>();
-
-        eventContextInfo.put(EventConstant.USER_AGENT, "someUserAgent");
-        eventContextInfo.put(EventConstant.PLATFORM, "somePlatform");
-
-        Date lastModifiedHBaseDate = new Date();
-        lastModifiedHBaseDate.setTime(System.currentTimeMillis() -
-            (60 * 60 * 1000));
-
-        Date lastModifiedRedisDate = new Date();
-
-        RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
-        when(redisStore.getUserMatchesSafe(any()))
-            .thenReturn(Observable.just(getLegacyMatchDataFeedDtoWrapper(userId,
-                lastModifiedRedisDate)));
-
-        HBaseStoreFeedService hbaseStore = mock(HBaseStoreFeedService.class);
-        when(hbaseStore.getUserMatchesByStatusGroupSafe(any()))
-            .thenReturn(Observable.just(getHBaseStoreResponseWithMatch(userId,
-                lastModifiedHBaseDate)));
-
-        ProfileServiceClient profileSvcClient = mock(ProfileServiceClient.class);
-
-        BasicPublicProfileDto publicProfile = new BasicPublicProfileDto();
-        publicProfile.setUserId(userId);
-        publicProfile.setGender(1);
-        when(profileSvcClient.findBasicPublicProfileForUser(any()))
-            .thenReturn(publicProfile);
-
-		ExecutorServiceProvider executorSP = new ExecutorServiceProvider(1);
-
-		HBaseRedisFeedMerger merger = new HBaseRedisFeedMerger();
-		
-		Whitebox.setInternalState(handler, "hbaseRedisStrategyMerger", merger);
-        Whitebox.setInternalState(handler, "hbaseStoreFeedService", hbaseStore);
-        Whitebox.setInternalState(handler, "redisStoreFeedService", redisStore);
-        Whitebox.setInternalState(handler, "profileService", profileSvcClient);
-        Whitebox.setInternalState(handler, "executorServiceProvider",
-            executorSP);
-        Whitebox.setInternalState(handler, "hbaseToLegacyFeedTransformer",
-            new HBASEToLegacyFeedTransformer());
-        Whitebox.setInternalState(handler, "matchStatusGroupResolver",
-            new MatchStatusGroupResolver());
-
-        MockAsyncResponse response = new MockAsyncResponse();
-        handler.getTeaserMatchesFeed(queryCtx, response, eventContextInfo);
-                
-		verify(redisStore).getUserMatchesSafe(any());		
-		verify(hbaseStore).getUserMatchesByStatusGroupSafe(any());
-
-    }
-
-    @Test
     public void testGetTeaserMatches_RedisIsNewest() throws Exception {
         int userId = 12345;
 
@@ -193,7 +125,7 @@ public class MatchFeedAsyncRequestHandlerIT {
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
 		
-        MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		UserTeaserMatchesFeedAsyncRequestHandler handler = new UserTeaserMatchesFeedAsyncRequestHandler();
 
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
         when(redisStore.getUserMatchesSafe(any()))
@@ -276,7 +208,7 @@ public class MatchFeedAsyncRequestHandlerIT {
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
 		
-        MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+		UserTeaserMatchesFeedAsyncRequestHandler handler = new UserTeaserMatchesFeedAsyncRequestHandler();
 
 		// redis returns empty data
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
@@ -365,7 +297,7 @@ public class MatchFeedAsyncRequestHandlerIT {
 
 		ctx.setLegacyMatchDataFeedDtoWrapper(getLegacyMatchDataFeedDtoWrapper(userId, lastModifiedHBaseDate));
 		
-        MatchFeedAsyncRequestHandler handler = new MatchFeedAsyncRequestHandler();
+        UserMyMatchesFeedAsyncRequestHandler handler = new UserMyMatchesFeedAsyncRequestHandler();
 
         RedisStoreFeedService redisStore = mock(RedisStoreFeedService.class);
         when(redisStore.getUserMatchesSafe(any()))

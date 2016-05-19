@@ -18,6 +18,9 @@ import com.google.common.collect.Sets;
 public class HBaseRedisFeedMerger {
 	
     public static final String TIMESTAMP_NAME = "lastModifiedDate";
+    
+    // match id is not set if it is this value.
+    public static final long NULL_MATCH_ID = 0;  
 
 
     private static final Logger log = LoggerFactory.getLogger(HBaseRedisFeedMerger.class);
@@ -46,7 +49,7 @@ public class HBaseRedisFeedMerger {
                 handleHBaseHasMatchesRedisIsEmpty(userId);
             } else {
                 //apply delta in Redis to Hbase
-                handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed);
+                handleHBaseHasMatchesRedisHasMatches(hbaseFeed, redisFeed, request);
             }
         }
         
@@ -80,14 +83,14 @@ public class HBaseRedisFeedMerger {
         log.warn("HBase has no data for userId {}. Using Redis feed.", userId);
 
         LegacyMatchDataFeedDtoWrapper wrapper = request.getLegacyMatchDataFeedDtoWrapper();
+        
         wrapper.setLegacyMatchDataFeedDto(redisFeed);
         wrapper.setFeedAvailable(true);
-
-    }
+     }
 
     //actual merge, check time stamp on both sides and take the latest.
     private void handleHBaseHasMatchesRedisHasMatches(LegacyMatchDataFeedDto hbaseFeed,
-            LegacyMatchDataFeedDto redisFeed) {
+            LegacyMatchDataFeedDto redisFeed, MatchFeedRequestContext context) {
 
         Map<String, Map<String, Map<String, Object>>> hbaseMatches = hbaseFeed.getMatches();
         final Map<String, Map<String, Map<String, Object>>> redisMatches = redisFeed.getMatches();
@@ -104,34 +107,16 @@ public class HBaseRedisFeedMerger {
 
             if (redisMatch != null) {
                 Map<String, Map<String, Object>> hbaseMatch = hbaseMatches.get(matchId);
-                mergeMatchByTimestamp(matchId, hbaseMatch, redisMatch);
+                hbaseMatch = MergeUtils.mergeMatchByTimestamp(hbaseMatch, redisMatch);
                 
             }
         });
-        
+                
         suplementryIdSet.stream().forEach((matchId) -> {
             Map<String, Map<String, Object>> redisMatch = redisMatches.get(matchId);
             hbaseFeed.getMatches().put(matchId, redisMatch);
             int totalMatches = hbaseFeed.getTotalMatches();
 			hbaseFeed.setTotalMatches(totalMatches + 1);
         });
-
-    }
-    
-    protected void mergeMatchByTimestamp(String matchId, Map<String, Map<String, Object>> targetMatch, 
-            Map<String, Map<String, Object>> deltaMatch) {
-
-        Map<String, Object> targetMatchSection = targetMatch.get(MatchFeedModel.SECTIONS.MATCH);
-        Map<String, Object> deltaMatchSection = deltaMatch.get(MatchFeedModel.SECTIONS.MATCH);
-
-        Date targetTs = new Date((Long) targetMatchSection.get(TIMESTAMP_NAME));
-        Date deltaTs = new Date((Long) deltaMatchSection.get(TIMESTAMP_NAME));
-
-        if (deltaTs.after(targetTs)) {
-            targetMatch.put(MatchFeedModel.SECTIONS.MATCH, deltaMatch.get(MatchFeedModel.SECTIONS.MATCH));
-            targetMatch.put(MatchFeedModel.SECTIONS.COMMUNICATION,
-                    deltaMatch.get(MatchFeedModel.SECTIONS.COMMUNICATION));
-            log.debug("match {} updated by delta.", matchId);
-        }
     }
 }

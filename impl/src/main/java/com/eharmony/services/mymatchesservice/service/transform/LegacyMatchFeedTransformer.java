@@ -15,6 +15,7 @@ import com.eharmony.datastore.model.MatchDataFeedItemDto;
 import com.eharmony.datastore.model.MatchElement;
 import com.eharmony.datastore.model.MatchProfileElement;
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel.MATCH;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.util.MatchStatusEnum;
 
@@ -54,7 +55,7 @@ public class LegacyMatchFeedTransformer {
         return feedDto;
     }
 
-    private Map<String, Map<String, Object>> buildLegacyFeedItem(MatchDataFeedItemDto matchDataFeedItemDto) {
+    protected Map<String, Map<String, Object>> buildLegacyFeedItem(MatchDataFeedItemDto matchDataFeedItemDto) {
         Map<String, Map<String, Object>> feedItemMap = new HashMap<String, Map<String, Object>>();
 
         feedItemMap.put(MatchFeedModel.SECTIONS.MATCH, createMatchFeedMatch(matchDataFeedItemDto));
@@ -93,6 +94,7 @@ public class LegacyMatchFeedTransformer {
         	
         	profile.put(MatchFeedModel.PROFILE.PHOTO_COUNT, elem.getPhotos());
         }
+
         return profile;
     }
 
@@ -144,6 +146,11 @@ public class LegacyMatchFeedTransformer {
 
         // pulled from profileElement
         match.put(MatchFeedModel.MATCH.MATCH_FIRST_NAME, profileElem.getFirstName());
+        
+        // default values
+        match.put(MatchFeedModel.MATCH.MATCH_CLOSED_COUNT, 0);
+        match.put(MatchFeedModel.MATCH.NEW_MATCH_MESSAGE_COUNT, 0);
+        match.put(MatchFeedModel.MATCH.NEW_MESSAGE_COUNT, 0);
 
         return match;
     }

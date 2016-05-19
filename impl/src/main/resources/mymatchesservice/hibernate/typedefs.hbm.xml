@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+   "-//Hibernate/Hibernate Mapping DTD//EN"
+   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.eharmony.singles.common.hibernate.usertypes">
+
+    <typedef name="FastTrackStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.FastTrackStatusEnum</param>
+    </typedef>
+    <typedef name="FastTrackAvailableEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.FastTrackAvailableEnum</param>
+    </typedef>    
+	<typedef name="IcebreakerStateEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+		<param name="enumClass">com.eharmony.singles.common.enumeration.IcebreakerStateEnum</param>
+	</typedef>
+	<typedef name="MatchArchiveStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.MatchArchiveStatusEnum</param>
+    </typedef>
+    <typedef name="MatchInitializerEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.MatchInitializerEnum</param>
+    </typedef>
+    <typedef name="MatchClosedStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.MatchClosedStatusEnum</param>
+    </typedef>
+    <typedef name="MatchDisplayTabEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.MatchDisplayTabEnum</param>
+    </typedef>  
+    <typedef name="NudgeStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.NudgeStatusEnum</param>
+    </typedef>
+    <typedef name="OneWayStatusEnum" class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+        <param name="enumClass">com.eharmony.singles.common.enumeration.OneWayStatusEnum</param>
+    </typedef>
+    <typedef name="MatchDistanceEnum"	class="com.eharmony.services.mymatchesservice.hibernate.GenericEnumUserType">
+		<param name="enumClass">com.eharmony.singles.common.settings.enumeration.MatchDistanceEnum</param>
+	</typedef>
+    
+</hibernate-mapping>

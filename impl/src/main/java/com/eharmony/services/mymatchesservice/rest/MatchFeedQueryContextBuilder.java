@@ -23,13 +23,11 @@ public class MatchFeedQueryContextBuilder {
     private List<Ordering> orderings;
     private boolean excludeClosedMatches;
 
-
-
     private MatchFeedQueryContextBuilder() {
-
     }
 
     public MatchFeedQueryContext build() {
+
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
                 allowedSeePhotos, teaserResultSize, requestMetadata, orderings, excludeClosedMatches);
     }
@@ -47,7 +45,7 @@ public class MatchFeedQueryContextBuilder {
         private final Map<String, String> requestMetadata;
         private final List<Ordering> orderings;
         private final boolean excludeClosedMatches;
-
+        
         @Override
         public long getUserId() {
             return userId;
@@ -88,8 +86,6 @@ public class MatchFeedQueryContextBuilder {
             return teaserResultSize;
         }
         
-        
-
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
@@ -133,7 +129,7 @@ public class MatchFeedQueryContextBuilder {
         this.userId = userId;
         return this;
     }
-
+    
     public MatchFeedQueryContextBuilder setLocale(String locale) {
         this.locale = locale;
         return this;

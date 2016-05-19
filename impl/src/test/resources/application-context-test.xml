@@ -15,10 +15,8 @@
     ">
     
      <context:property-placeholder location="classpath:mymatchesservice-override.global.properties" />
-    
-	<bean id="refreshEventSender" class="com.eharmony.services.mymatchesservice.event.RefreshEventSender">
-	</bean>
 	
+	<!-- 
 	<bean id="eventSender" class="com.eharmony.services.mymatchesservice.event.RefreshEventSenderTest.MockEventSender"/>
-
+	-->
 </beans>

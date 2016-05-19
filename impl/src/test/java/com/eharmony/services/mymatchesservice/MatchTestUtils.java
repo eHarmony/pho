@@ -1,11 +1,10 @@
 package com.eharmony.services.mymatchesservice;
 
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.ClassPathResource;
+
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.util.CustomObjectMapper;
-
-import org.apache.commons.io.IOUtils;
-
-import org.springframework.core.io.ClassPathResource;
 
 
 public class MatchTestUtils {

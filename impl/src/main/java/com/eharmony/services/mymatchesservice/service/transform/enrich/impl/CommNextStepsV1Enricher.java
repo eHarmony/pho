@@ -9,27 +9,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.singles.common.communication.CommDisplayMessageDto;
 import com.eharmony.singles.common.communication.CommDisplayMessageService;
 import com.eharmony.singles.common.communication.CommDisplayMessageTypeEnum;
 
-public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer{
+public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer  implements IMatchTransformer{
 
 	private static final Logger logger = LoggerFactory.getLogger(CommNextStepsV1Enricher.class);
 
 
     @Resource private CommDisplayMessageService commDisplayMessageService;
 
-	@SuppressWarnings("unchecked")
     @Override
 	protected boolean processMatch(Map<String, Map<String, Object>> match,
 			MatchFeedRequestContext context) {
 
+		long userId = context.getUserId();
+		return processMatch(match, userId);
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean processMatch(Map<String, Map<String, Object>> match, long userId){
+
 		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
 		
-		long userId = context.getUserId();
 		
 		// Only add if it does not already exist, or if it does not contain the message field meaning that it has not gone through this enricher yet
 		if(commSection.get(MatchFeedModel.COMMUNICATION.NEXT_STEP) == null
@@ -88,5 +95,17 @@ public class CommNextStepsV1Enricher extends AbstractMatchFeedTransformer{
 		}
 		
 		return true;
+	}
+
+	@Override
+	public SingleMatchRequestContext processSingleMatch(
+			SingleMatchRequestContext context) {
+
+		if(context.matchIsAvailable()){
+			
+			long userId = context.getQueryContext().getUserId();
+			processMatch(context.getSingleMatch(), userId);
+		}
+		return context;
 	}
 }

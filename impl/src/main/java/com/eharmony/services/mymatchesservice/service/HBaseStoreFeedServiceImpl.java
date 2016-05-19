@@ -22,6 +22,7 @@ import com.eharmony.datastore.query.criterion.Ordering;
 import com.eharmony.datastore.query.criterion.Ordering.NullOrdering;
 import com.eharmony.datastore.query.criterion.Ordering.Order;
 import com.eharmony.datastore.repository.MatchDataFeedItemCountQueryRequest;
+import com.eharmony.datastore.repository.MatchDataFeedItemQueryRequest;
 import com.eharmony.datastore.repository.MatchDataFeedQueryRequest;
 import com.eharmony.datastore.repository.MatchStoreQueryRepository;
 import com.eharmony.services.mymatchesservice.monitoring.MatchQueryMetricsFactroy;
@@ -45,15 +46,16 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private MatchFeedLimitsByStatusConfiguration matchFeedLimitsByStatusConfiguration;
 
     @Resource
-    private MatchQueryMetricsFactroy matchQueryMetricsFactroy;
+    private MatchQueryMetricsFactroy matchQueryMetricsFactory;
     @Value("${mqs.newmatch.threshold.days}")
     private int newMatchThresholdDays;
+
+
 
     private static final String DEFAULT_SORT_BY_FIELD = "deliveredDate";
 
     private static final List<Ordering> DEFAULT_ORDERINGS = Arrays.asList(new Ordering(DEFAULT_SORT_BY_FIELD, Order.DESCENDING, NullOrdering.LAST));
     private static final List<Ordering> SPOTLIT_ORDERINGS = Arrays.asList(new Ordering("spotlightEndDate", Order.ASCENDING, NullOrdering.LAST));
-    // private static final String COMM_SORT_BY_FIELD = "lastCommDate";
     // HBase has only limit clause, there is no rownum based browsing
     private static final int START_PAGE = 1;
 
@@ -61,6 +63,8 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
     private static final String METRICS_GETBYSTATUS_METHOD = "getUserMatchesByStatusGroup";
     private static final String METRICS_GETSPOTLITBYSTATUS_METHOD = "getSpotlitUserMatchesByStatusGroup";
     private static final String METRICS_GETCOUNT_METHOD = "getUserMatchesCount";
+    private static final String METRICS_GETMATCH_METHOD = "getUserMatch";
+
 
     @Value("${spotlight.users.to.elevate.maximum:4}")
     private int maximumSpotlitUsers;
@@ -78,6 +82,58 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
             return response;
         });
         return hbaseStoreFeedResponse;
+    }
+    
+	@Override
+	public Observable<HBaseStoreSingleMatchResponse> getUserMatchSafe(
+			HBaseStoreSingleMatchRequestContext request) {
+		
+        Observable<HBaseStoreSingleMatchResponse> hbaseStoreSingleMatchResponse = Observable.just(getUserMatch(request));
+        
+        hbaseStoreSingleMatchResponse.onErrorReturn(ex -> {
+            logger.warn(
+                    "Exception while fetching data from hbase for userId {} matchId {}, returning empty result for safe method",
+                    request.getUserId(), request.getMatchId(), ex);
+            HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
+            response.setError(ex);
+            return response;
+        });
+        return hbaseStoreSingleMatchResponse;
+	}
+	
+    private HBaseStoreSingleMatchResponse getUserMatch(final HBaseStoreSingleMatchRequestContext request) {
+    	HBaseStoreSingleMatchResponse response = new HBaseStoreSingleMatchResponse();
+        
+        long startTime = System.currentTimeMillis();
+        Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX, 
+        																		METRICS_GETMATCH_METHOD);
+        Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
+        																		METRICS_GETMATCH_METHOD);
+        
+        long userId = request.getUserId();
+        long matchId = request.getMatchId();
+        
+        try {
+        	MatchDataFeedItemQueryRequest requestQuery = new MatchDataFeedItemQueryRequest(userId);       
+        	requestQuery.setMatchId(matchId);
+        	
+            MatchDataFeedItemDto oneMatch = queryRepository.getMatchDataFeedItemDto(requestQuery);
+            
+            response.setHbaseStoreFeedItem(oneMatch);
+            if (oneMatch != null) {
+                response.setDataAvailable(true);
+                metricsHistogram.update(1);
+            }
+        } catch (Throwable e) {
+            logger.warn("Exception while fetching single match from HBase store for user {} and matchId {}",
+                    userId, matchId, e);
+            response.setError(e);
+        } finally {
+            metricsTimer.stop();
+            long endTime = System.currentTimeMillis();
+            logger.info("HBase response time {} for user {} and matchId {}", (endTime - startTime), userId, matchId);
+        }
+        return response;
     }
     
     @Override
@@ -102,10 +158,12 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         MatchStatusGroupEnum matchStatusGroup = request.getMatchStatusGroup();
         
         long startTime = System.currentTimeMillis();
-        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+
+        Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETBYSTATUS_METHOD, matchStatusGroup);
-        Histogram metricsHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX,
+        Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETBYSTATUS_METHOD, matchStatusGroup);
+
         try {
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
             populateRequestWithQueryParams(request, requestQuery);
@@ -136,9 +194,9 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         HBaseStoreFeedResponse response = new HBaseStoreFeedResponse(null);
         MatchFeedQueryContext queryContext = request.getMatchFeedQueryContext();
         
-        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+        Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETSPOTLITBYSTATUS_METHOD, null);
-        Histogram metricsHistogram = matchQueryMetricsFactroy.getHistogram(METRICS_HIERARCHY_PREFIX,
+        Histogram metricsHistogram = matchQueryMetricsFactory.getHistogram(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETSPOTLITBYSTATUS_METHOD, null);
         try {
             MatchDataFeedQueryRequest requestQuery = new MatchDataFeedQueryRequest(queryContext.getUserId());
@@ -224,7 +282,7 @@ public class HBaseStoreFeedServiceImpl implements HBaseStoreFeedService {
         MatchDataFeedItemCountQueryRequest queryRequest = new MatchDataFeedItemCountQueryRequest(userId);
         queryRequest.setNewMatchThresholdDays(newMatchThresholdDays);
 
-        Timer.Context metricsTimer = matchQueryMetricsFactroy.getTimerContext(METRICS_HIERARCHY_PREFIX,
+        Timer.Context metricsTimer = matchQueryMetricsFactory.getTimerContext(METRICS_HIERARCHY_PREFIX,
                 METRICS_GETCOUNT_METHOD);
         queryRequest.setMatchStatus(request.getStatus());
         Set<Long> matchIdSet = null;

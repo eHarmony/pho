@@ -1,4 +1,4 @@
-<!--  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.eharmony.services.match-query-service</groupId>
@@ -29,10 +29,34 @@
 		<jersey.client.version>1.19</jersey.client.version>
 		<apache.httpclient.version>4.5.1</apache.httpclient.version>
         <communication.flow.library.version>0.0.2</communication.flow.library.version>
+        <communication.service.version>40-SNAPSHOT</communication.service.version>
 	</properties>
 
 	<dependencies>
-
+        <dependency>
+            <groupId>com.eharmony.services.communication</groupId>
+            <artifactId>communication-service-api</artifactId>
+            <version>${communication.service.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.slf4j</groupId>
+            		<artifactId>slf4j-simple</artifactId>
+    			</exclusion>
+    			<exclusion>
+            		<groupId>ch.qos.logback</groupId>
+            		<artifactId>logback-classic</artifactId>
+    			</exclusion>
+     			<exclusion>
+            		<groupId>com.eharmony.singles</groupId>
+            		<artifactId>singles-business</artifactId>
+    			</exclusion>
+    			<exclusion>
+            		<groupId>com.eharmony.event</groupId>
+            		<artifactId>event-specifications</artifactId>
+    			</exclusion>
+            </exclusions>
+        </dependency>
+        
         <dependency>
             <groupId>com.eharmony</groupId>
             <artifactId>communication-flow-library</artifactId>
@@ -51,7 +75,96 @@
 			</exclusions>
 		</dependency>
 
-	
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6_g</artifactId>
+			<version>${oracle.jdbc.version}</version>
+		</dependency>
+		
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>${c3p0.version}</version>
+         </dependency>
+         
+         <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>${asm.version}</version><!--$NO-MVN-MAN-VER$-->
+         </dependency>
+           	 
+      	 <!-- ############# Hibernate Dependencies ############## -->
+      	
+      	<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate.common</groupId>
+					<artifactId>hibernate-commons-annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+  	    <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.hibernate</groupId>
+            		<artifactId>hibernate</artifactId>
+            	</exclusion>
+            	
+            	<exclusion>
+            		<groupId>xml-apis</groupId>
+            		<artifactId>xml-apis</artifactId>
+            	</exclusion>
+            	
+            	
+            </exclusions>          
+        </dependency>	
+       
+       		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate.common</groupId>
+					<artifactId>hibernate-commons-annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+  
+			<dependency>
+				 <groupId>org.hibernate</groupId>
+				 <artifactId>hibernate-ehcache</artifactId>
+				 <version>4.3.11.Final</version>
+			</dependency>
+       
 		<dependency>
 			<groupId>com.eharmony.event</groupId>
 			<artifactId>event-library</artifactId>
@@ -250,7 +363,15 @@
 			<exclusion>
 				<groupId>com.eharmony.event</groupId>
 				<artifactId>commons</artifactId>
-			</exclusion>	
+			</exclusion>
+			<exclusion>
+				<artifactId>hibernate-annotations</artifactId>
+				<groupId>org.hibernate</groupId>
+			</exclusion>
+			<exclusion>
+					<artifactId>hibernate</artifactId>
+					<groupId>org.hibernate</groupId>
+			</exclusion>
 		  </exclusions>
 	  	</dependency>
 

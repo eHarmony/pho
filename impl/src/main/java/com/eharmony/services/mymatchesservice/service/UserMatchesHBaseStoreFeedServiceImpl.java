@@ -96,7 +96,7 @@ public class UserMatchesHBaseStoreFeedServiceImpl implements UserMatchesHBaseSto
                 return matchDataFeeditem;
             }
         } catch (Exception ex) {
-            logger.warn("exception while fetching matches", ex);
+            logger.warn("exception while fetching match", ex);
             throw new RuntimeException(ex);
         }
         return null;

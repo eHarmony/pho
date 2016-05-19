@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.eharmony.services.mymatchesservice.store.data">
+   <class name="MatchDo" table="EHMATCHES" mutable="false">
+      <id name="id" type="long" unsaved-value="0" column="MATCHID" access="field">
+         <generator class="native">
+            <param name="sequence">SEQ_EHMATCHES</param>
+         </generator>
+      </id>
+
+      <property name="id" column="MATCHID" not-null="true" insert="false" update="false" access="field"/>
+      <property name="archiveStatus" column="MATCHCLOSED" type="MatchArchiveStatusEnum" not-null="false"/>
+      <property name="candidateClosedDate" column="CANDIDATECLOSEDDATE" type="timestamp" not-null="false"/>
+      <property name="candidateDeliveredDate" column="CANDIDATE_DELIVERY_DATE" type="timestamp" not-null="false"/>
+      <property name="candidateFirstName" column="CANDIDATEFIRSTNAME" not-null="false"/>
+      <property name="candidateNewMessageCount" column="NEWCANDIDATEUSERMESSAGECOUNT" not-null="false"/>
+      <property name="candidateUserId" column="CANDIDATEUSERID" not-null="true" access="field"/>
+      <property name="candidateReadDetails" column="CANDIDATEREADMATCHDETAIL" not-null="false"/>
+      <property name="candidateReadDetailsDate" column="CANDREADDETAILSDATE" type="timestamp" not-null="false"/>
+      <property name="candidateRelaxed" column="MALE_RELAXED" not-null="false" access="field"/>
+      <property name="candidateDisplayTab" column="CandidateDisplayTab" type="MatchDisplayTabEnum" not-null="false"/>
+      <property name="closedStatus" column="MATCHDISCARD" type="MatchClosedStatusEnum" not-null="false"/>
+      <property name="distance" column="DISTANCE" not-null="false" access="field"/>
+      <property name="initializer" column="MATCHINITIALIZER" type="MatchInitializerEnum" not-null="false"/>
+      <property name="icebreakerStatus" column="ICEBREAKER_STATE" type="IcebreakerStateEnum" not-null="false"/>
+      <property name="lastNudgeDate" column="LASTNUDGEDATE" type="timestamp" not-null="false"/>
+      <property name="matchClosedCount" column="MATCHCLOSEDCOUNT" not-null="false"/>
+      <property name="nudgeStatus" column="NUDGESTATUS" type="NudgeStatusEnum" not-null="false"/>
+      <property name="oneWayStatus" column="ONE_WAY" type="OneWayStatusEnum" not-null="false"/>
+      <property name="stage" column="SEQUENCEID" not-null="false"/>
+      <property name="turnOwner" column="TURNUSERID" not-null="false"/>
+      <property name="userClosedDate" column="USERCLOSEDDATE" type="timestamp" not-null="false"/>
+      <property name="userDeliveredDate" column="USER_DELIVERY_DATE" type="timestamp" not-null="false"/>
+      <property name="userFirstName" column="USERFIRSTNAME" not-null="false"/>
+      <property name="userNewMessageCount" column="NEWUSERMESSAGECOUNT" not-null="false"/>
+      <property name="userReadDetails" column="USERREADMATCHDETAIL" not-null="false"/>
+      <property name="userReadDetailsDate" column="USERREADDETAILSDATE" type="timestamp" not-null="false"/>
+      <property name="userRelaxed" column="FEMALE_RELAXED" not-null="false" access="field"/>
+      <property name="userId" column="USERID" not-null="true" insert="false" update="false" access="field"/>
+      <property name="userDisplayTab" column="UserDisplayTab" type="MatchDisplayTabEnum" not-null="false"/>
+     
+   </class>
+</hibernate-mapping>

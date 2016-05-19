@@ -39,7 +39,7 @@
 		<value>status</value>
 		<value>stage</value>
 	</util:set>
-	
+
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
     	<property name="basename">
 			<value>messages</value>
@@ -160,5 +160,44 @@
 		<value>matchedUserId</value>
 	</util:set>
 
+	
+	<util:set id="matchFieldsNullList">
+		<value>commLastSent</value>
+	</util:set>
 
+	<bean id="singleMatchFilterChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.filter.SingleMatchFilterChain">
+		<constructor-arg>
+		   <util:list>
+			 <bean class="com.eharmony.services.mymatchesservice.service.transform.filter.impl.ClosedMatchFilter"/>
+		   </util:list>	
+		</constructor-arg>
+	</bean>
+			
+	<bean id="singleMatchTransformerChain"
+		class="com.eharmony.services.mymatchesservice.service.transform.SingleMatchTransformerChain">
+		<constructor-arg>
+		   <util:list>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleMatchProfileEnricher"/>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.AgeCalculatorEnricher" />		
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV1Enricher"/>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommNextStepsV2Enricher"/>
+            <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.CommStageEnricher"/>
+            <bean class="com.eharmony.services.mymatchesservice.service.transform.enrich.impl.SingleMatchCommStateEnricher"/>
+            <bean class="com.eharmony.services.mymatchesservice.service.transform.SingleMatchProfileTransformer">
+            	<constructor-arg>
+            		<util:set>
+            			<value>birthdate</value>
+            			<value>locale</value>
+            			<value>photoCount</value>
+            		</util:set>
+            	</constructor-arg>
+            </bean>
+			<bean class="com.eharmony.services.mymatchesservice.service.transform.FieldNullifierTransformer">
+					<constructor-arg index="0" ref="matchSectionName" />
+					<constructor-arg index="1" ref="matchFieldsNullList" />
+			</bean>
+		  </util:list>
+		</constructor-arg>
+	</bean> 
 </beans>

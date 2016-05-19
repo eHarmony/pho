@@ -14,10 +14,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jersey.eh.version>2.18</jersey.eh.version>
+		<jersey.eh.version>2.22.1</jersey.eh.version>
 		<jersey.version>2.22.1</jersey.version>
 		<jetty.version>9.2.10.v20150310</jetty.version>
-		<spring.version>4.1.5.RELEASE</spring.version>
+		<spring.version>4.2.1.RELEASE</spring.version>
 		<spring.security.version>4.0.0.RC2</spring.security.version>
 		<slf4j.version>1.7.12</slf4j.version>
 		<log4j.version>1.2.15</log4j.version>
@@ -53,7 +53,7 @@
 		<stop.port>7911</stop.port>
 		<oracle.jdbc.version>11.2.0.3.0</oracle.jdbc.version>
 		<hibernate.commons.annotations.version>3.5.6-Final</hibernate.commons.annotations.version>
-		<hibernate.version>4.3.10.Final</hibernate.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
 		<c3p0.version>0.9.1.2</c3p0.version>
 		<hibernate.redis.version>1.6.2-eh-2</hibernate.redis.version>
 		<java-version>1.8</java-version>

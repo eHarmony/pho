@@ -9,13 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eharmony.services.mymatchesservice.rest.MatchFeedRequestContext;
+import com.eharmony.services.mymatchesservice.rest.SingleMatchRequestContext;
 import com.eharmony.services.mymatchesservice.service.CommunicationStage;
 import com.eharmony.services.mymatchesservice.service.CommunicationStageResolver;
 import com.eharmony.services.mymatchesservice.service.transform.AbstractMatchFeedTransformer;
+import com.eharmony.services.mymatchesservice.service.transform.IMatchTransformer;
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
 import com.eharmony.singles.common.status.MatchStatusUtilities;
 
-public class CommStageEnricher extends AbstractMatchFeedTransformer {
+public class CommStageEnricher extends AbstractMatchFeedTransformer  implements IMatchTransformer{
 
 	private static final Integer DEFAULT_MATCH_STAGE = 0;
 	
@@ -26,9 +28,14 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer {
 	@Override
 	protected boolean processMatch(Map<String, Map<String, Object>> match, MatchFeedRequestContext context) {
 
+		long userId = context.getUserId();
+		return processMatch(match, userId);
+	}
+	
+	private boolean processMatch(Map<String, Map<String, Object>> match, long userId) {
+
 		Map<String, Object> commSection = match.get(MatchFeedModel.SECTIONS.COMMUNICATION);
 		Map<String, Object> matchSection = match.get(MatchFeedModel.SECTIONS.MATCH);
-		long userId = context.getUserId();
 		Object matchStage = matchSection.get(MatchFeedModel.MATCH.STAGE);
 		if(matchStage == null){
 			
@@ -42,12 +49,27 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer {
 		CommunicationStage commStage = commStageResolver.resolveCommStage(Integer.parseInt(matchStage.toString()));
 		commSection.put(MatchFeedModel.COMMUNICATION.SECTION, commStage.getSectionId());
 		commSection.put(MatchFeedModel.COMMUNICATION.SUB_SECTION, commStage.getSubSectionId());
-		commSection.put(MatchFeedModel.COMMUNICATION.STATUS, getTurnOwner(match, commStage));
+		
+		String turnOwner = getTurnOwner(match, commStage);
+		commSection.put(MatchFeedModel.COMMUNICATION.STATUS, turnOwner);
+		matchSection.put(MatchFeedModel.MATCH.STATUS, turnOwner);
+		
 		logger.debug("Enriched comm section={} , subSection={} , status={} for userId={}", commStage.getSectionId(),
 				commStage.getSubSectionId(), commSection.get(MatchFeedModel.COMMUNICATION.STATUS), userId);
 
 
-		return true;
+		return true;	
+	}
+
+	@Override
+	public SingleMatchRequestContext processSingleMatch(
+			SingleMatchRequestContext context) {
+
+		if(context.matchIsAvailable()){
+			long userId = context.getQueryContext().getUserId();
+			processMatch(context.getSingleMatch(), userId);
+		}
+		return context;
 	}
 
 	private String getTurnOwner(Map<String, Map<String, Object>> match, CommunicationStage commStage) {
@@ -66,6 +88,7 @@ public class CommStageEnricher extends AbstractMatchFeedTransformer {
 		matchStatusCallParams.put("stage", commStage.getWorkflowId());
 		matchStatusCallParams.put("matchId", matchSection.get(MatchFeedModel.MATCH.ID));
 		String turnOwner = MatchStatusUtilities.getStatus(matchStatusCallParams);
+		
 		return turnOwner;
 	}
 }

@@ -69,7 +69,27 @@ public class MatchFeedAsyncResource {
     
     @Resource(name="userSortedMatchObjectsListAsyncRequestHandler")
     private MatchesFeedAsyncRequestHandler userSortedMatchObjectsListAsyncRequestHandler;
+
+    @Resource(name="userSingleMatchAsyncRequestHandler")
+    private UserSingleMatchAsyncRequestHandler userSingleMatchAsyncRequestHandler;
+
     
+    @GET
+    @Path("/users/{userId}/matches/{matchId}")
+    @Produces(MediaType.APPLICATION_JSON) 
+    @Timed(name="getMatch")
+    public void getMatch(   @PathParam("userId") long userId, 
+    						@PathParam("matchId") long matchId,
+                            @MatrixParam("disabledSources") String sources,
+    						@Suspended final AsyncResponse asyncResponse){
+    	
+    	SingleMatchQueryContext queryContext = new SingleMatchQueryContext();
+    	queryContext.setMatchId(matchId)
+    				.setUserId(userId);
+        log.info("fetching single match for userId {} matchId {}", userId, matchId);
+        userSingleMatchAsyncRequestHandler.getSingleMatch(queryContext, asyncResponse);  	 
+    }
+
     
     
     @GET
@@ -112,6 +132,8 @@ public class MatchFeedAsyncResource {
      * @param statuses  set of match status values. Valid values none or one or both of [ 'new' , 'comm'].
      * @param resultSize  number of matches to be returned
      * @param asyncResponse Asynchronous response stream
+     * @param userAgent user-agent header data
+     * @param platform OS platform request originates from
      */
     @GET
     @Path("/users/{userId}/teasermatches")
