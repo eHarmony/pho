@@ -22,6 +22,7 @@ public enum PhoenixHBaseOperator implements Symbolic {
         this.symbol = symbol;
     }
 
+    @Override
     public String symbol() {
         return symbol;
     }

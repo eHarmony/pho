@@ -88,7 +88,23 @@ public class QueryBuilder<T, R> {
         return this;
     }
 
+    /**
+     * Add an ordering to the list of orderings
+     * @param orders the list of orderings to add
+     * @return the builder
+     */
     public QueryBuilder<T, R> addOrder(Ordering... orders) {
+
+        return addOrder(Arrays.asList(orders));
+        
+    }
+    
+    /**
+     * Add an ordering to the list of orderings
+     * @param orders the list of orderings to add
+     * @return the builder
+     */
+    public QueryBuilder<T, R> addOrder(Iterable<Ordering> orders) {
         for (Ordering order : orders) {
             orderings.add(order);
         }

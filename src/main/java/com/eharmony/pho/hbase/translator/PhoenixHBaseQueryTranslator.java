@@ -24,7 +24,9 @@ import com.eharmony.pho.mapper.EntityPropertyValueBinding;
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.QueryUpdate;
 import com.eharmony.pho.query.criterion.Criterion;
+import com.eharmony.pho.query.criterion.Ordering;
 import com.eharmony.pho.query.criterion.Orderings;
+import com.eharmony.pho.query.criterion.Ordering.NullOrdering;
 import com.eharmony.pho.query.criterion.Ordering.Order;
 import com.eharmony.pho.query.criterion.expression.NativeExpression;
 import com.eharmony.pho.translator.AbstractQueryTranslator;
@@ -34,23 +36,25 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 /**
- * Translates the entity to phoenix query to execute on HBase.
+ * Translates the entity to Phoenix query to execute on HBase.
  * 
- * 1. Entity classes must be registered through consutructor. 2. SELECT, DELETE and UPSERT queries supported. 3.
+ * 1. Entity classes must be registered through constructor. 2. SELECT, DELETE and UPSERT queries supported. 3.
  * provided support to escape the special characters while querying and inserting the data ("'", "/" etc..) 4. No
- * support for joins and subqueries are not tested
+ * support for joins and sub-queries are not tested
  * 
  * @author vvangapandu
  *
  */
 public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String, String, String> implements
         QueryTranslator<String, String, String> {
-
+    
     private final MorphiaEntityResolver entityResolver = new MorphiaEntityResolver();
     private EntityPropertiesResolver entityPropertiesResolver;
     private static final String PROJECTION_ALL = "*";
     private static final String SELECT = "SELECT";
     private static final Logger logger = LoggerFactory.getLogger(PhoenixHBaseQueryTranslator.class);
+    
+    private static final int ORDER_EXPRESSION_SUFFIX_MAX_LENGTH = "DESC NULLS FIRST".length();
 
     public PhoenixHBaseQueryTranslator(Class<String> queryClass, Class<String> orderClass,
             EntityPropertiesResolver propertyResolver) {
@@ -68,6 +72,7 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
      *  @param query QuerySelect
      *  @return String
      */
+    @Override
     public <T, R> String translate(QuerySelect<T, R> query) {
         return translateSelectQuery(query);
     }
@@ -188,8 +193,26 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     }
 
     @Override
-    public String order(String fieldName, Order o) {
-        return fieldName + " " + (Order.ASCENDING.equals(o) ? "asc" : "desc");
+    public String order(String fieldName, Ordering ordering) {
+        if(ordering == null || StringUtils.isBlank(ordering.getPropertyName())){
+            return StringUtils.EMPTY;
+        }
+        StringBuilder orderExpressionBuilder = new StringBuilder(fieldName.length() + ORDER_EXPRESSION_SUFFIX_MAX_LENGTH);
+        orderExpressionBuilder.append(fieldName);
+        Order order = ordering.getOrder();
+        if (order != null) {
+            orderExpressionBuilder.append(' ');
+            orderExpressionBuilder
+                    .append(Order.ASCENDING.equals(order) ? "ASC"
+                            : "DESC");
+            NullOrdering nullOrdering = ordering.getNullOrdering();
+            if (nullOrdering != null) {
+                orderExpressionBuilder.append(" NULLS ");
+                orderExpressionBuilder.append(nullOrdering.name());
+            }
+        }
+        return orderExpressionBuilder.toString();
+        
     }
 
     @Override
@@ -201,7 +224,8 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
         return fieldName + " " + Joiner.on(" ").join(Lists.transform(Arrays.asList(parts), toString));
     }
 
-    private final Function<Object, String> toString = new Function<Object, String>() {
+    private final Function<Object, String> toString = new Function<Object, String>(){
+        @Override
         public String apply(Object o) {
             return string(o);
         }

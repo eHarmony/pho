@@ -10,7 +10,7 @@ public class SimpleEntityResolver implements EntityResolver {
      * 
      * @see com.eharmony.matching.seeking.translator.EntityResolver#resolve(java.lang.Class)
      */
-    // @Override
+    @Override
     public String resolve(Class<?> entityClass) {
         return entityClass.getSimpleName();
     }

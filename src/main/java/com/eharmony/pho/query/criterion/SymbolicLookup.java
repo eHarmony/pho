@@ -1,16 +1,16 @@
 package com.eharmony.pho.query.criterion;
 
-/**
- * A tool for resolving a Symbolic object from its String symbol 
- */
 import java.util.Arrays;
-
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+/**
+ * A tool for resolving a Symbolic object from its String symbol 
+ */
 public class SymbolicLookup implements Function<Symbolic, String> {
 
+    @Override
     public String apply(Symbolic symbolic) {
         return symbolic.symbol();
     }

@@ -1,6 +1,7 @@
 package com.eharmony.pho.mapper;
 
 import java.lang.reflect.Type;
+
 /**
  * Contains the information about entity property to store property mapping
  * 

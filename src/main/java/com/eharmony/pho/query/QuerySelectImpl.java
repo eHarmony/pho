@@ -34,6 +34,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
         this.queryOperationType = queryOperationType;
     }
 
+    @Override
     public QueryOperationType getQueryOperationType() {
         return queryOperationType;
     }
@@ -43,6 +44,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
      * 
      * @see com.eharmony.matching.seeking.query.Query#getEntityClass()
      */
+    @Override
     public Class<T> getEntityClass() {
         return entityClass;
     }
@@ -52,6 +54,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
      * 
      * @see com.eharmony.matching.seeking.query.Query#getReturnType()
      */
+    @Override
     public Class<R> getReturnType() {
         return returnType;
     }
@@ -61,6 +64,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
      * 
      * @see com.eharmony.matching.seeking.query.Query#getReturnFields()
      */
+    @Override
     public List<String> getReturnFields() {
         return returnFields;
     }
@@ -70,6 +74,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
      * 
      * @see com.eharmony.matching.seeking.query.Query#getCriteria()
      */
+    @Override
     public Criterion getCriteria() {
         return criteria;
     }

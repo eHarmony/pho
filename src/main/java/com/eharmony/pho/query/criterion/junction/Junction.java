@@ -34,6 +34,7 @@ public abstract class Junction implements Criterion, WithOperator {
         return this;
     }
 
+    @Override
     public Operator getOperator() {
         return operator;
     }

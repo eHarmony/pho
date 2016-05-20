@@ -8,7 +8,6 @@ import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.criterion.Criterion;
 import com.eharmony.pho.query.criterion.Operator;
 import com.eharmony.pho.query.criterion.Ordering;
-import com.eharmony.pho.query.criterion.Ordering.Order;
 import com.eharmony.pho.query.criterion.expression.EqualityExpression;
 import com.eharmony.pho.query.criterion.expression.Expression;
 import com.eharmony.pho.query.criterion.expression.NativeExpression;
@@ -60,6 +59,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      * @see
      * com.eharmony.matching.seeking.translator.QueryTranslator#translate(com.eharmony.matching.seeking.query.Query)
      */
+    @Override
     public <T, R> Q translate(QuerySelect<T, R> query) {
         Criterion rootCriterion = query.getCriteria();
         Class<T> entityClass = query.getEntityClass();
@@ -211,6 +211,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         }
     }
 
+    @Override
     public <T, R> O translateOrder(QuerySelect<T, R> query) {
         List<Ordering> orderingList = query.getOrder().get();
         @SuppressWarnings("unchecked")
@@ -218,7 +219,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         for (int i = 0; i < orders.length; i++) {
             Ordering ordering = orderingList.get(i);
             orders[i] = order(propertyResolver.resolve(ordering.getPropertyName(), query.getEntityClass()),
-                    ordering.getOrder());
+                    ordering);
         }
         return order(orders);
     }
@@ -391,11 +392,11 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      * 
      * @param fieldName
      *            the resolved field name
-     * @param o
-     *            the order (ascending or descending)
+     * @param ordering
+     *            the ordering
      * @return O
      */
-    public abstract O order(String fieldName, Order o);
+    public abstract O order(String fieldName, Ordering ordering);
 
     /**
      * Join multiple orderings
@@ -404,7 +405,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      *            O
      * @return O
      */
-    public abstract O order(O... orders);
+    public abstract O order(@SuppressWarnings("unchecked") O... orders);
 
     /**
      * Translate an "and" expression
@@ -413,7 +414,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      *            Q
      * @return Q
      */
-    public abstract Q and(Q... subqueries);
+    public abstract Q and(@SuppressWarnings("unchecked") Q... subqueries);
 
     /**
      * Translate an "or" expression
@@ -422,7 +423,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      *            Q
      * @return Q
      */
-    public abstract Q or(Q... subqueries);
+    public abstract Q or(@SuppressWarnings("unchecked") Q... subqueries);
     
     /**
      * Translate a "limit expression" expression
