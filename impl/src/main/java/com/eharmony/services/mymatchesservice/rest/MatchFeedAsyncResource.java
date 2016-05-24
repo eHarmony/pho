@@ -61,6 +61,11 @@ public class MatchFeedAsyncResource {
     private static final int TEASER_MATCH_DEFAULT_RESULT_SIZE = 5;
     private static final String COMM_MATCH_STATUS = "COMM";
     
+    private static final int MIN_MATCH_AGE 		= 0;
+    private static final int MAX_MATCH_AGE 		= 120;
+    private static final int MIN_MATCH_DISTANCE = 0;
+    private static final int MAX_MATCH_DISTANCE = 12500;
+    
     @Resource(name="userMyMatchesFeedAsyncRequestHandler")
     private MatchesFeedAsyncRequestHandler userMyMatchesFeedAsyncRequestHandler;
     
@@ -98,9 +103,16 @@ public class MatchFeedAsyncResource {
     public void getMatches(@PathParam("userId") long userId, @MatrixParam("locale") String locale,
             @MatrixParam("status") Set<String> statuses, @QueryParam("viewHidden") boolean viewHidden,
             @QueryParam("allowedSeePhotos") boolean allowedSeePhotos, @QueryParam("pageNum") Integer pageNum,
-            @QueryParam("pageSize") Integer pageSize, @Suspended final AsyncResponse asyncResponse){
+            @QueryParam("pageSize") Integer pageSize, 
+            @QueryParam("anyText") String anyText,
+            @QueryParam("city") String matchCity, @QueryParam("name") String matchName,
+            @QueryParam("age") int matchAge, @QueryParam("photos") boolean matchHasPhotos, 
+            @QueryParam("distance") int matchDistance,
+            @Suspended final AsyncResponse asyncResponse){
 
         validateMatchFeedRequest(statuses, locale);
+        
+        validateMatchFilterParams(anyText, matchCity, matchName, matchAge, matchDistance);
         
         Set<String> normalizedStatuses = toLowerCase(statuses);
         
@@ -111,10 +123,15 @@ public class MatchFeedAsyncResource {
         
         int pn = (pageNum == null ? 0 : pageNum.intValue());
         int ps = (pageSize == null ? 0 : pageSize.intValue());
+        
+        MatchFeedSearchAndFilterCriteria searchFilterCriteria = MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+        		.setAge(matchAge).setAnyTextField(anyText).setCity(matchCity).setDistance(matchDistance).setName(matchName)
+        		.setHasPhotos(matchHasPhotos).build();
 
         MatchFeedQueryContext requestContext = MatchFeedQueryContextBuilder.newInstance()
                 .setAllowedSeePhotos(allowedSeePhotos).setLocale(locale).setPageSize(ps).setStartPage(pn)
                 .setStatuses(normalizedStatuses).setUserId(userId).setViewHidden(viewHidden)
+                .setSearchAndFilterCriteria(searchFilterCriteria)
                 .build();
 
         log.info("fetching match feed for user ={}", userId);
@@ -122,7 +139,30 @@ public class MatchFeedAsyncResource {
     }
 
 
-    /**
+    private void validateMatchFilterParams(String anyText, String matchCity, String matchFirstName, int matchAge, int matchDistance) {
+
+    	if(!StringUtils.isEmpty(anyText) && (!StringUtils.isEmpty(matchCity) || !StringUtils.isEmpty(matchFirstName))){
+    		throw new WebApplicationException(
+    				"Ambiguous query, populate either \"anyText\" OR (\"city\",\"name\") but not both.",
+    				Status.BAD_REQUEST);
+    	}
+    	
+    	if(matchAge < MIN_MATCH_AGE || matchAge > MAX_MATCH_AGE){
+    		throw new WebApplicationException(
+    				String.format("Invalid age, try value between %d and %d.", MIN_MATCH_AGE, MAX_MATCH_AGE),
+    				Status.BAD_REQUEST);
+    	}
+    	
+    	if(matchDistance < MIN_MATCH_DISTANCE || matchDistance > MAX_MATCH_DISTANCE){
+    		throw new WebApplicationException(
+    				String.format("Invalid match distance, try value between %d and %d", MIN_MATCH_DISTANCE, MAX_MATCH_DISTANCE),
+    				Status.BAD_REQUEST);   		
+    	}
+	}
+
+
+
+	/**
      * Returns matches with photos and with match status not in (archived or closed) or passed via 'status' param. The matches are sorted in the order of their 
      * score returned from the scorer service. 
      * 

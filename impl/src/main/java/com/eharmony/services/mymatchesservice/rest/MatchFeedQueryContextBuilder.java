@@ -22,6 +22,7 @@ public class MatchFeedQueryContextBuilder {
     private Map<String, String> requestMetadata;
     private List<Ordering> orderings;
     private boolean excludeClosedMatches;
+    private MatchFeedSearchAndFilterCriteria searchFilterCriteria;
 
     private MatchFeedQueryContextBuilder() {
     }
@@ -29,7 +30,7 @@ public class MatchFeedQueryContextBuilder {
     public MatchFeedQueryContext build() {
 
         return new MatchFeedQueryContextImpl(userId, locale, startPage, pageSize, statuses, viewHidden,
-                allowedSeePhotos, teaserResultSize, requestMetadata, orderings, excludeClosedMatches);
+                allowedSeePhotos, teaserResultSize, requestMetadata, orderings, excludeClosedMatches, searchFilterCriteria);
     }
 
     private class MatchFeedQueryContextImpl implements MatchFeedQueryContext {
@@ -45,7 +46,8 @@ public class MatchFeedQueryContextBuilder {
         private final Map<String, String> requestMetadata;
         private final List<Ordering> orderings;
         private final boolean excludeClosedMatches;
-        
+        private final MatchFeedSearchAndFilterCriteria searchFilterCriteria;
+       
         @Override
         public long getUserId() {
             return userId;
@@ -89,7 +91,8 @@ public class MatchFeedQueryContextBuilder {
         private MatchFeedQueryContextImpl(final long userId, final String locale, final int startPage,
                 final int pageSize, final Set<String> statuses, final boolean viewHidden,
                 final boolean allowedSeePhotos, int teaserResultSize,
-                final Map<String, String> requestMetadata, final List<Ordering> orderings, final boolean excludeClosedMatches) {
+                final Map<String, String> requestMetadata, final List<Ordering> orderings, final boolean excludeClosedMatches,
+                final MatchFeedSearchAndFilterCriteria searchFilterCriteria) {
 
             this.userId = userId;
             this.locale = locale;
@@ -102,10 +105,14 @@ public class MatchFeedQueryContextBuilder {
             this.requestMetadata = requestMetadata;
             this.orderings = orderings;
             this.excludeClosedMatches = excludeClosedMatches;
-
+            this.searchFilterCriteria = searchFilterCriteria;
         }
 
-        @Override
+        public MatchFeedSearchAndFilterCriteria getSearchFilterCriteria() {
+			return searchFilterCriteria;
+		}
+
+		@Override
         public Map<String, String> getRequestMetadata() {
             return requestMetadata;
         }
@@ -172,6 +179,11 @@ public class MatchFeedQueryContextBuilder {
 
     public MatchFeedQueryContextBuilder setOrderings(List<Ordering> orderings) {
         this.orderings = orderings;
+        return this;
+    }
+ 
+    public MatchFeedQueryContextBuilder setSearchAndFilterCriteria(MatchFeedSearchAndFilterCriteria criteria) {
+        this.searchFilterCriteria = criteria;
         return this;
     }
     

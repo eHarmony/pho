@@ -16,6 +16,8 @@ public interface MatchFeedQueryContext {
     public boolean isViewHidden();
     public boolean isAllowedSeePhotos();
     public int getTeaserResultSize();
+    public MatchFeedSearchAndFilterCriteria getSearchFilterCriteria();
+
 
     //platform and api request correlation info
     public Map<String, String> getRequestMetadata();
