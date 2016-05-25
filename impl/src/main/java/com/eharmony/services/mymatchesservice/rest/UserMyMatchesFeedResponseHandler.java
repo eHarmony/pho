@@ -1,5 +1,7 @@
 package com.eharmony.services.mymatchesservice.rest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -41,8 +43,17 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
     public void applySearchAndFilterCriteria(LegacyMatchDataFeedDto matchFeed, 
     											MatchFeedSearchAndFilterCriteria searchFilterCriteria){
 
-      	matchFeed.getMatches().values().stream().filter(match -> 
-      								isFiltered(match, searchFilterCriteria));
+    	List<String> toRemove = new ArrayList<String>();
+      	Map<String, Map<String, Map<String, Object>>> allMatches = matchFeed.getMatches();
+      	allMatches.forEach((k, v) -> {
+      			
+      		if(isFiltered(v, searchFilterCriteria)){
+      			toRemove.add(k);
+      		}
+      	});
+      		
+      	toRemove.forEach(k ->
+      			allMatches.remove(k));
     }
     
     /**
@@ -54,7 +65,7 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
      */
     private boolean isFiltered(Map<String, Map<String, Object>> match, 
     								MatchFeedSearchAndFilterCriteria criteria) {
-    	
+   	
     	Map<String, Object> matchSection = match.get(MatchFeedModel.SECTIONS.MATCH);
     	Map<String, Object> profileSection = match.get(MatchFeedModel.SECTIONS.PROFILE);
     	
