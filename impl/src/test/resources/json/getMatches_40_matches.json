@@ -14,7 +14,7 @@
 				}
 			},
 			"matchedUser":{
-				"age":34,
+				"age":25,
 				"city":"Los Angeles",
 				"country":1,
 				"firstName":"Matcheduser23",
@@ -72,7 +72,7 @@
 				}
 			},
 			"matchedUser":{
-				"age":34,
+				"age":25,
 				"city":"Los Angeles",
 				"country":1,
 				"firstName":"Matcheduser5",
@@ -92,7 +92,7 @@
 				"commStartedDate":1447282086246,
 				"deliveredDate":1447279716580,
 				"displayTab":4,
-				"distance":0,
+				"distance":1000,
 				"fastTrackAvailable":0,
 				"fastTrackStage":0.0,
 				"fastTrackStatus":0,

@@ -12,6 +12,8 @@ import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDto;
 import com.eharmony.services.mymatchesservice.store.LegacyMatchDataFeedDtoWrapper;
 
 public class UserMyMatchesFeedResponseHandlerTest {
+	
+	private static final long USER_ID_GETMATCHES_40 = 62599283;
 
 	private LegacyMatchDataFeedDto testFilter(long userId, 
 											String jsonFile, 
@@ -29,13 +31,11 @@ public class UserMyMatchesFeedResponseHandlerTest {
 	@Test
 	public void testFilter_EmptyCriteria() throws Exception{
 				
-		long userId = 62837673;
-
 		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
 				MatchFeedSearchAndFilterCriteriaBuilder.newInstance().build();
 		
 		LegacyMatchDataFeedDto matchFeed = 
-				testFilter(userId, "json/getMatches_40_matches.json", searchFilterCriteria);
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
 			
 		assertEquals(40, matchFeed.getMatches().size());
 	}
@@ -43,15 +43,13 @@ public class UserMyMatchesFeedResponseHandlerTest {
 	@Test
 	public void testFilter_City() throws Exception{
 
-		long userId = 62837673;
-
 		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
 				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
 				.setCity("San Diego")
 				.build();
 		
 		LegacyMatchDataFeedDto matchFeed = 
-				testFilter(userId, "json/getMatches_40_matches.json", searchFilterCriteria);
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
 			
 		assertEquals(1, matchFeed.getMatches().size());
 		Map<String, Map<String, Object>> oneMatch = matchFeed.getMatches().values().iterator().next();
@@ -62,16 +60,117 @@ public class UserMyMatchesFeedResponseHandlerTest {
 	@Test
 	public void testFilter_FirstName() throws Exception{
 
-		long userId = 62837673;
-
+		// full name match...
 		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
 				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
 				.setName("Matcheduser23")
 				.build();
 		
 		LegacyMatchDataFeedDto matchFeed = 
-				testFilter(userId, "json/getMatches_40_matches.json", searchFilterCriteria);
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
 			
+		assertEquals(1, matchFeed.getMatches().size());
+		
+		// partial match...
+		searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setName("user")
+				.build();
+		matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
+			
+		assertEquals(40, matchFeed.getMatches().size());
+	}
+
+	@Test
+	public void testFilter_Age() throws Exception{
+
+		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setAge(25)
+				.build();
+		
+		LegacyMatchDataFeedDto matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
+			
+		assertEquals(2, matchFeed.getMatches().size());
+	}
+
+	@Test
+	public void testFilter_Distance() throws Exception{
+
+		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setDistance(50)
+				.build();
+		
+		LegacyMatchDataFeedDto matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
+			
+		assertEquals(39, matchFeed.getMatches().size());
+	}
+	
+	@Test
+	public void testFilter_AllFieldsExceptWildcard() throws Exception{
+
+		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setCity("Diego")
+				.setHasPhotos(Boolean.FALSE)
+				.setName("Matcheduser1")
+				.setAge(34)
+				.setDistance(50)
+				.build();
+		
+		LegacyMatchDataFeedDto matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);
+			
+		assertEquals(1, matchFeed.getMatches().size());
+	}
+
+	@Test
+	public void testFilter_HasPhotos() throws Exception{
+
+		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setHasPhotos(Boolean.TRUE)
+				.build();
+		
+		LegacyMatchDataFeedDto matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);			
+		assertEquals(0, matchFeed.getMatches().size());
+		
+		// explicitly keep matches with no photos
+		searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setHasPhotos(Boolean.FALSE)
+				.build();
+		
+		matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);			
+		assertEquals(40, matchFeed.getMatches().size());
+	}
+	
+	@Test
+	public void testFilter_AnyText() throws Exception{
+
+		MatchFeedSearchAndFilterCriteria searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setAnyTextField("Matcheduser23")
+				.build();
+		
+		// Test name...
+		LegacyMatchDataFeedDto matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);			
+		assertEquals(1, matchFeed.getMatches().size());
+		
+		// Test city...
+		searchFilterCriteria = 
+				MatchFeedSearchAndFilterCriteriaBuilder.newInstance()
+				.setAnyTextField("Diego")
+				.build();
+		matchFeed = 
+				testFilter(USER_ID_GETMATCHES_40, "json/getMatches_40_matches.json", searchFilterCriteria);			
 		assertEquals(1, matchFeed.getMatches().size());
 	}
 	

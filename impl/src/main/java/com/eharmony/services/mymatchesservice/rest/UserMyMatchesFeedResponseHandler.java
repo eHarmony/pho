@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.eharmony.services.mymatchesservice.service.transform.MatchFeedModel;
@@ -43,7 +44,7 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
     public void applySearchAndFilterCriteria(LegacyMatchDataFeedDto matchFeed, 
     											MatchFeedSearchAndFilterCriteria searchFilterCriteria){
 
-    	List<String> toRemove = new ArrayList<String>();
+    	List<String> toRemove = new ArrayList<>();
       	Map<String, Map<String, Map<String, Object>>> allMatches = matchFeed.getMatches();
       	allMatches.forEach((k, v) -> {
       			
@@ -70,36 +71,44 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
     	Map<String, Object> profileSection = match.get(MatchFeedModel.SECTIONS.PROFILE);
     	
     	if(criteria.isHasPhotos() != null && criteria.isHasPhotos() == true &&
-    			profileSection.get(MatchFeedModel.PROFILE.PHOTO_COUNT) != null &&
-    			((Integer)profileSection.get(MatchFeedModel.PROFILE.PHOTO_COUNT)) == 0){
-    			return true;
+    			(profileSection.get(MatchFeedModel.PROFILE.PHOTO_COUNT) == null ||
+    			((Integer)profileSection.get(MatchFeedModel.PROFILE.PHOTO_COUNT)) == 0)){    		
+    		  
+    		  return true;
     	}
+    	
     	if(criteria.getAnyTextField() != null && 
-    			(!criteria.getAnyTextField().equals(matchSection.get(MatchFeedModel.PROFILE.FIRSTNAME)) &&
-    			 !criteria.getAnyTextField().equals(matchSection.get(MatchFeedModel.PROFILE.CITY)))){
-    			 
-    			return true;
+    			(!StringUtils.containsIgnoreCase(
+    					(String)profileSection.get(MatchFeedModel.PROFILE.FIRSTNAME),
+    					criteria.getAnyTextField()) &&
+    			 !StringUtils.containsIgnoreCase(
+    					 (String)profileSection.get(MatchFeedModel.PROFILE.CITY),
+    					 criteria.getAnyTextField())
+    			)){    
+    		
+    		return true;
     	}
     
     	if(criteria.getAge() != null &&
     			(!criteria.getAge().equals(profileSection.get(MatchFeedModel.PROFILE.AGE)))){
-    		
-    			return true;
+    		return true;
     	}
+    	
     	if(criteria.getName() != null &&
-    			(!criteria.getName().equals(matchSection.get(MatchFeedModel.PROFILE.FIRSTNAME)))){
-    		
-    			return true;
+    			(!StringUtils.containsIgnoreCase((String)profileSection.get(MatchFeedModel.PROFILE.FIRSTNAME), 
+    					criteria.getName()))){
+   			return true;
     	}
+    	
     	if(criteria.getDistance() != null &&
     			(criteria.getDistance() < (Integer) matchSection.get(MatchFeedModel.MATCH.DISTANCE))){
-    		
-    			return true;
+    		return true;
     	}
+    	
     	if(criteria.getCity() != null &&
-    			(!criteria.getCity().equals(profileSection.get(MatchFeedModel.PROFILE.CITY)))){
-    		
-    			return true;
+    			(!StringUtils.containsIgnoreCase((String)profileSection.get(MatchFeedModel.PROFILE.CITY),
+    								criteria.getCity()))){
+    		return true;
     	}
     	
 		return false;
@@ -110,5 +119,4 @@ public class UserMyMatchesFeedResponseHandler extends AbstractFeedResponseHandle
     public void enrichFeedItems(MatchFeedRequestContext context) {
         getMatchesFeedEnricherChain.execute(context);
     }
-
 }

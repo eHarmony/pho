@@ -38,7 +38,7 @@ public class MatchFeedSearchAndFilterCriteriaBuilder {
     }
 
     public MatchFeedSearchAndFilterCriteriaBuilder setHasPhotos(
-        boolean hasPhotos) {
+        Boolean hasPhotos) {
         this.hasPhotos = hasPhotos;
 
         return this;
