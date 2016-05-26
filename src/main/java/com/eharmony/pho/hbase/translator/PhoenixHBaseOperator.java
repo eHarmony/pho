@@ -14,7 +14,10 @@ public enum PhoenixHBaseOperator implements Symbolic {
     LESS_THAN_OR_EQUAL("<="),
     
     OR("OR"),
-    AND("AND");
+    AND("AND"),
+    
+    LIKE("LIKE"),
+    LIKE_CASE_INSENSITIVE("ILIKE");
 
     private final String symbol;
 

@@ -368,6 +368,24 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
     public abstract Q notNull(String fieldName);
 
     /**
+     * Translate a "like" expression
+     * 
+     * @param fieldName
+     *            the resolved field name
+     * @return Q
+     */
+    public abstract Q like(String fieldName, Object value);
+    
+    /**
+     * Translate an "ilike" expression
+     * 
+     * @param fieldName
+     *            the resolved field name
+     * @return Q
+     */
+    public abstract Q insensitiveLike(String fieldName, Object value);
+    
+    /**
      * Translate a "is empty" expression
      * 
      * @param fieldName

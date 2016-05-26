@@ -51,7 +51,9 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     private final MorphiaEntityResolver entityResolver = new MorphiaEntityResolver();
     private EntityPropertiesResolver entityPropertiesResolver;
     private static final String PROJECTION_ALL = "*";
-    private static final String SELECT = "SELECT";
+    private static final String SELECT = "SELECT";    
+    private static final String STRING_OPERAND_WITH_WILDCARD = "%%%s%%";
+    
     private static final Logger logger = LoggerFactory.getLogger(PhoenixHBaseQueryTranslator.class);
     
     private static final int ORDER_EXPRESSION_SUFFIX_MAX_LENGTH = "DESC NULLS FIRST".length();
@@ -141,6 +143,18 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     public String gte(String fieldName, Object value) {
         return join(resolveMappingName(fieldName), PhoenixHBaseOperator.GREATER_THAN_OR_EQUAL, value);
     }
+    
+	public String insensitiveLike(String fieldName, Object value) {
+		return join(resolveMappingName(fieldName), 
+					PhoenixHBaseOperator.LIKE_CASE_INSENSITIVE, 
+					String.format(STRING_OPERAND_WITH_WILDCARD, value));
+	}
+
+	public String like(String fieldName, Object value) {
+		return join(resolveMappingName(fieldName), 
+					PhoenixHBaseOperator.LIKE, 
+					String.format(STRING_OPERAND_WITH_WILDCARD, value));	
+	}
 
     @Override
     public String between(String fieldName, Object from, Object to) {
