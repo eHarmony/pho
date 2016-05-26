@@ -37,7 +37,28 @@ public class PhoenixHBaseQueryTranslatorTest {
         EntityPropertiesMappingContext context = new EntityPropertiesMappingContext(classesList);
         entityPropertiesResolver = new EntityPropertiesResolver(context);
     }
+    
+    @Test
+    public void testStringLike() throws ParseException, ClassNotFoundException {
+    	
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        String city = "Angeles";
+        String result = translator.like("fname", city);
+        String expected = "fname LIKE '%Angeles%'";
+        Assert.assertEquals(expected, result);
+    }
 
+    @Test
+    public void testStringILike() throws ParseException, ClassNotFoundException {
+    	
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        String city = "Angeles";
+        String result = translator.insensitiveLike("fname", city);
+        String expected = "fname ILIKE '%Angeles%'";
+System.err.println(result);
+        Assert.assertEquals(expected, result);
+    }
+    
     @Test
     public void testDateEq() throws ParseException, ClassNotFoundException {
 
@@ -163,7 +184,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         String queryStr = translator.translate(query);
         System.out.println(queryStr);
         Assert.assertTrue(StringUtils.contains(queryStr, "SELECT"));
-        Assert.assertTrue(StringUtils.contains(queryStr, "desc"));
+        Assert.assertTrue(StringUtils.contains(queryStr, "DESC"));
 
     }
     
@@ -178,11 +199,9 @@ public class PhoenixHBaseQueryTranslatorTest {
                 .setMaxResults(10)
                 .build();
         String queryStr = translator.translate(query);
-        System.out.println(queryStr);
         Assert.assertTrue(StringUtils.contains(queryStr, "SELECT"));
-        Assert.assertTrue(StringUtils.contains(queryStr, "desc"));
-        Assert.assertTrue(StringUtils.contains(queryStr, "ORDER BY created_date desc LIMIT 10"));
-
+        Assert.assertTrue(StringUtils.contains(queryStr, "DESC"));
+        Assert.assertTrue(StringUtils.contains(queryStr, "ORDER BY created_date DESC LIMIT 10"));
     }
     
     @Test
@@ -198,7 +217,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         String queryStr = translator.translate(query);
         System.out.println(queryStr);
         Assert.assertTrue(StringUtils.contains(queryStr, "SELECT"));
-        Assert.assertTrue(StringUtils.contains(queryStr, "desc"));
+        Assert.assertTrue(StringUtils.contains(queryStr, "DESC"));
         Assert.assertFalse(StringUtils.contains(queryStr, "LIMIT 10"));
 
     }
