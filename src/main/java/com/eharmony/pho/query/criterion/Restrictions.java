@@ -58,6 +58,32 @@ public class Restrictions {
     }
 
     /**
+     * Apply a "like" constraint to the named property
+     * 
+     * @param propertyName
+     *            String
+     * @param value
+     *            Object
+     * @return Criterion
+     */
+    public static EqualityExpression like(String propertyName, Object value) {
+        return new EqualityExpression(Operator.LIKE, propertyName, value);
+    }
+ 
+    /**
+     * Apply a "ilike" (case insensitive like) constraint to the named property
+     * 
+     * @param propertyName
+     *            String
+     * @param value
+     *            Object
+     * @return Criterion
+     */
+    public static EqualityExpression ilike(String propertyName, Object value) {
+        return new EqualityExpression(Operator.ILIKE, propertyName, value);
+    }
+    
+    /**
      * Apply a "less than or equal" constraint to the named property
      * 
      * @param propertyName

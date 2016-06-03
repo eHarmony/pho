@@ -159,7 +159,11 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         case LESS_THAN:
             return lt(fieldName, value);
         case LESS_THAN_OR_EQUAL:
-            return lte(fieldName, value);
+            return lte(fieldName, value);        
+        case LIKE:
+                return like(fieldName, value);
+        case ILIKE:
+            return insensitiveLike(fieldName, value);
         default:
             throw unsupported(operator, EqualityExpression.class);
         }

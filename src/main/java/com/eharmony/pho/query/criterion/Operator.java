@@ -10,6 +10,8 @@ public enum Operator implements Symbolic {
             "<="),
 
     BETWEEN("between"),
+    
+    LIKE("like"), ILIKE("ilike"),
 
     NULL("null"), NOT_NULL("not null"), EMPTY("empty"), NOT_EMPTY("not empty"),
 

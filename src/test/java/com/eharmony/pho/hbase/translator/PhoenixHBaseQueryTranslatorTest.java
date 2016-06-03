@@ -55,7 +55,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         String city = "Angeles";
         String result = translator.insensitiveLike("fname", city);
         String expected = "fname ILIKE '%Angeles%'";
-System.err.println(result);
+
         Assert.assertEquals(expected, result);
     }
     
@@ -201,7 +201,7 @@ System.err.println(result);
         String queryStr = translator.translate(query);
         Assert.assertTrue(StringUtils.contains(queryStr, "SELECT"));
         Assert.assertTrue(StringUtils.contains(queryStr, "DESC"));
-        Assert.assertTrue(StringUtils.contains(queryStr, "ORDER BY created_date DESC LIMIT 10"));
+        Assert.assertTrue(StringUtils.contains(queryStr, "ORDER BY created_date DESC NULLS FIRST LIMIT 10"));
     }
     
     @Test
