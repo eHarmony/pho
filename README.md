@@ -110,6 +110,9 @@ The following query components are supported:
 
   // greater than or equal
   EqualityExpression gte(String propertyName, Object value);
+  
+  // is one of these values
+  SetExpression in(String propertyName, Object[] values);
 
   // between from and to (inclusive)
   RangeExpression between(String propertyName, Object from, Object to);

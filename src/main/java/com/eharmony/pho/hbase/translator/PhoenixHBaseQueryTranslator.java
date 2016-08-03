@@ -162,8 +162,16 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     }
 
     @Override
-    public String in(String fieldName, Object[] values) {
-        throw new UnsupportedOperationException("IN operator is not supported in phoenix hbase library...");
+    public String in(String fieldName, Object[] values) {	
+		
+		String valueSet = Joiner.on(",").join(values);
+		StringBuffer sb = new StringBuffer();
+		return sb.append(resolveMappingName(fieldName))
+					.append(" ")
+					.append(PhoenixHBaseOperator.IN)
+					.append(" (")
+					.append(valueSet)
+					.append(")").toString();
     }
 
     @Override

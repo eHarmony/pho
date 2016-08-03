@@ -104,6 +104,16 @@ public class PhoenixHBaseQueryTranslatorTest {
         System.out.println(result);
         Assert.assertEquals("isu = true", result);
     }
+    
+    @Test
+    public void testIn() throws ParseException, ClassNotFoundException {
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        Object[] inVals = new Object[]{0,10,11};
+        String result = translator.in("cstat", inVals);
+        Assert.assertNotNull(result);
+        System.out.println(result);
+        Assert.assertEquals("cstat IN (0,10,11)", result);
+    }
 
     @Test
     public void testLongEq() throws ParseException, ClassNotFoundException {
