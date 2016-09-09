@@ -376,6 +376,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      * 
      * @param fieldName
      *            the resolved field name
+     * @param value the value to be like
      * @return Q
      */
     public abstract Q like(String fieldName, Object value);
@@ -385,6 +386,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      * 
      * @param fieldName
      *            the resolved field name
+     * @param value the value to be like
      * @return Q
      */
     public abstract Q insensitiveLike(String fieldName, Object value);

@@ -17,7 +17,10 @@ public enum PhoenixHBaseOperator implements Symbolic {
     AND("AND"),
     
     LIKE("LIKE"),
-    LIKE_CASE_INSENSITIVE("ILIKE");
+    LIKE_CASE_INSENSITIVE("ILIKE"),
+    
+    IS_NULL("IS NULL"),
+    IS_NOT_NULL("IS NOT NULL");
 
     private final String symbol;
 

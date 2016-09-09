@@ -4,7 +4,7 @@
 	<name>Phoenix HBase ORM API</name>
 	<groupId>com.eharmony.pho</groupId>
 	<artifactId>pho</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<description>API for Apache Phoenix - Hbase Object Relationship mapping library</description>
 	<packaging>jar</packaging>
 

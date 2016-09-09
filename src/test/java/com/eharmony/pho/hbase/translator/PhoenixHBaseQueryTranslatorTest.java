@@ -265,6 +265,22 @@ public class PhoenixHBaseQueryTranslatorTest {
 
     }
     
+    @Test
+    public void testIsNull() throws ParseException, ClassNotFoundException {
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        String result = translator.isNull("myField");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("myField IS NULL", result);
+    }
+    
+    @Test
+    public void testIsNotNull() throws ParseException, ClassNotFoundException {
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        String result = translator.notNull("myField");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("myField IS NOT NULL", result);
+    }
+    
     private TranslationTestClass buildTestClassObjectA() {
         TranslationTestClass testClass = new TranslationTestClass();
         testClass.setName("Plain'fiekd'\\\\\\");
