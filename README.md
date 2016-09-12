@@ -4,6 +4,8 @@
 PHO (Phoenix-HBase ORM)
 =======================
 
+[![Build Status](https://travis-ci.org/eHarmony/pho.svg?branch=master)](https://travis-ci.org/eHarmony/pho)
+
 PHO is a library for building and executing queries on HBase using Apache Phoenix.
 It provides ORM-like mappings and DSL-style query building.
 
