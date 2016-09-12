@@ -3,7 +3,7 @@
     <name>Phoenix HBase ORM API</name>
     <groupId>com.eharmony.pho</groupId>
     <artifactId>pho</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2-SNAPSHOT</version>
     <description>API for Apache Phoenix - Hbase Object Relationship mapping library</description>
     <packaging>jar</packaging>
     <url>https://github.com/eHarmony/pho.git</url>
@@ -312,7 +312,7 @@
         <connection>scm:git:git@github.com:eharmony/pho.git</connection>
         <url>git@github.com:eharmony/pho.git</url>
         <developerConnection>scm:git:git@github.com:eharmony/pho.git</developerConnection>
-      <tag>pho-0.2.1</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <distributionManagement>
