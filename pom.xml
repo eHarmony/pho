@@ -24,7 +24,7 @@
         <slf4j.version>1.7.10</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <apache-phoenix-version>4.4.0-HBase-1.1-client-minimal</apache-phoenix-version>
+        <apache-phoenix-version>4.4.0-HBase-1.1</apache-phoenix-version>
         <junit.version>4.7</junit.version>
         <junit.version>4.7</junit.version>
         <protostuff-version>1.0.7-eh-2</protostuff-version>
