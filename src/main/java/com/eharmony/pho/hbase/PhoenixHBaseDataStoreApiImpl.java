@@ -1,6 +1,7 @@
 package com.eharmony.pho.hbase;
 
 import java.sql.Connection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import com.eharmony.pho.hbase.query.PhoenixHBaseQueryExecutor;
 import com.eharmony.pho.hbase.util.PhoenixConnectionManager;
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.builder.QueryBuilder;
+import com.eharmony.pho.query.builder.QueryUpdateBuilder;
 import com.google.common.base.Preconditions;
 
 /**
@@ -139,5 +141,21 @@ public class PhoenixHBaseDataStoreApiImpl implements DataStoreApi {
             closeConnectionSafe(conn);
         }
     }
+
+	@Override
+	public <T> T save(T entity, List<String> selectedFields) {
+		Connection conn = null;
+		try {
+			conn = PhoenixConnectionManager.getConnection(connectionUrl);
+			QueryUpdateBuilder updateBuilder = QueryUpdateBuilder.builderFor(entity).update(selectedFields);
+			T returnEntity = (T) queryExecutor.save(updateBuilder.build(), conn);
+			conn.commit();
+			return returnEntity;
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			closeConnectionSafe(conn);
+		}
+}
 
 }

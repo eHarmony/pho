@@ -1,5 +1,7 @@
 package com.eharmony.pho.api;
 
+import java.util.List;
+
 import com.eharmony.pho.query.QuerySelect;
 /**
  * Provides methods to operate with datastore.
@@ -72,4 +74,13 @@ public interface DataStoreApi {
      */
     <T, R> R findOne(QuerySelect<T, R> query);
 
+    /**
+     * Save selective field for the given entity
+     * 
+     * @param entity
+     * @param selectedFields
+     * @return
+     */
+    <T> T save(T entity, List<String> selectedFields);
+    
 }
