@@ -75,11 +75,11 @@ public interface DataStoreApi {
     <T, R> R findOne(QuerySelect<T, R> query);
 
     /**
-     * Save selective field for the given entity
+     * Updates an existing entity, but only for the selected fields.
      * 
-     * @param entity
-     * @param selectedFields
-     * @return
+     * @param entity			existing entity whose fields need to be updated.
+     * @param selectedFields	list of property names that need to be udpated.
+     * @return					updated entity.
      */
     <T> T save(T entity, List<String> selectedFields);
     
