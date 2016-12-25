@@ -66,4 +66,11 @@ public interface QuerySelect<T, R> {
      */
     public QueryOperationType getQueryOperationType();
 
+    /**
+     * Getter method for Query Hint
+     *
+     * @return <code>String</code>
+     */
+    public String getQueryHint();
+
 }

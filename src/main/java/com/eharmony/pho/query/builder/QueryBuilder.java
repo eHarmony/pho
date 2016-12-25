@@ -30,6 +30,7 @@ public class QueryBuilder<T, R> {
     private Integer maxResults;
     private List<String> returnFields = Collections.emptyList();
     private QueryOperationType queryOperationType;
+    private String queryHint;
 
     public QueryBuilder(Class<T> entityClass, Class<R> returnType) {
         this.entityClass = entityClass;
@@ -126,6 +127,11 @@ public class QueryBuilder<T, R> {
         return this;
     }
 
+    public QueryBuilder<T, R> setQueryHint(String queryHint) {
+        this.queryHint = queryHint;
+        return this;
+    }
+
     public QuerySelect<T, R> build() {
         // if criteria.size == 0, rootCriterion = null
         Criterion rootCriterion = null;
@@ -135,7 +141,7 @@ public class QueryBuilder<T, R> {
             rootCriterion = Restrictions.and(criteria.toArray(new Criterion[criteria.size()]));
         }
         return new QuerySelectImpl<T, R>(entityClass, returnType, rootCriterion, orderings, maxResults, returnFields,
-                queryOperationType);
+                queryOperationType, queryHint);
     }
 
     @Override
