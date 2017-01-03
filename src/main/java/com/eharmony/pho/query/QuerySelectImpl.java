@@ -22,9 +22,10 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
     private final Integer maxResults;
     private final List<String> returnFields;
     private final QueryOperationType queryOperationType;
+    private final String queryHint;
 
     public QuerySelectImpl(Class<T> entityClass, Class<R> returnType, Criterion criteria, Orderings orderings,
-            Integer maxResults, List<String> returnFields, QueryOperationType queryOperationType) {
+            Integer maxResults, List<String> returnFields, QueryOperationType queryOperationType, String queryHint) {
         this.entityClass = entityClass;
         this.returnType = returnType;
         this.criteria = criteria;
@@ -32,11 +33,17 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
         this.orderings = orderings;
         this.maxResults = maxResults;
         this.queryOperationType = queryOperationType;
+        this.queryHint = queryHint;
     }
 
     @Override
     public QueryOperationType getQueryOperationType() {
         return queryOperationType;
+    }
+
+    @Override
+    public String getQueryHint() {
+        return queryHint;
     }
 
     /*
