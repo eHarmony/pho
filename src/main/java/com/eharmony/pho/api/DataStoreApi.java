@@ -76,7 +76,8 @@ public interface DataStoreApi {
 
     /**
      * Updates an existing entity, but only for the selected fields.
-     * 
+     * @param <T>
+     *            class type
      * @param entity			existing entity whose fields need to be updated.
      * @param selectedFields	list of property names that need to be udpated.
      * @return					updated entity.
