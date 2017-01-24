@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +35,20 @@ public class PhoenixHBaseQueryExecutor {
     private final PhoenixHBaseQueryTranslator queryTranslator;
     private final PhoenixProjectedResultMapper resultMapper;
     private boolean showSQL = true;
+    //Holder for statement properties like queryTimeOut.
+    private final Map<String, String> statementProperties;
+    private static final String QUERY_TIMEOUT_SEC = "queryTimeoutSec";
 
     public PhoenixHBaseQueryExecutor(final PhoenixHBaseQueryTranslator queryTranslator,
             final PhoenixProjectedResultMapper resultMapper) {
+        this(queryTranslator, resultMapper, new HashMap<String, String>());
+    }
+    
+    public PhoenixHBaseQueryExecutor(final PhoenixHBaseQueryTranslator queryTranslator,
+            final PhoenixProjectedResultMapper resultMapper, final Map<String, String> statementProperties) {
         this.queryTranslator = Preconditions.checkNotNull(queryTranslator);
         this.resultMapper = Preconditions.checkNotNull(resultMapper);
+        this.statementProperties = Preconditions.checkNotNull(statementProperties);
     }
 
     public <T, R> Iterable<R> find(QuerySelect<T, R> query, Connection conn) throws SQLException {
@@ -48,7 +59,7 @@ public class PhoenixHBaseQueryExecutor {
             if (showSQL) {
                 log.info("Query String: {}", queryStr);
             }
-            statement = conn.createStatement();
+            statement = createStatement(conn);
             resultSet = statement.executeQuery(queryStr);
             return resultMapper.mapResults(resultSet, query.getReturnType());
         } catch (final Exception hx) {
@@ -85,7 +96,6 @@ public class PhoenixHBaseQueryExecutor {
         return null;
     }
 
-    @SuppressWarnings("resource")
     public <T> T save(QueryUpdate<T> query, Connection conn) {
         PreparedStatement ps = null;
         try {
@@ -93,7 +103,8 @@ public class PhoenixHBaseQueryExecutor {
             if (showSQL) {
                 log.info("Query String {}", queryStr);
             }
-            ps = conn.prepareStatement(queryStr);
+            ps = createPreparedStatement(conn, queryStr);
+            
             int result = ps.executeUpdate();
             if (result == 0) {
                 throw new DataStoreException("Save Failed for query...");
@@ -106,7 +117,6 @@ public class PhoenixHBaseQueryExecutor {
         }
     }
 
-    @SuppressWarnings("resource")
     public <T> T save(T entity, Connection conn) {
         PreparedStatement ps = null;
         try {
@@ -115,7 +125,7 @@ public class PhoenixHBaseQueryExecutor {
             if (showSQL) {
                 log.info("Query String {}", queryStr);
             }
-            ps = conn.prepareStatement(queryStr);
+            ps = createPreparedStatement(conn, queryStr);
             int result = ps.executeUpdate();
             if (result == 0) {
                 throw new DataStoreException("Save Failed for query...");
@@ -140,7 +150,6 @@ public class PhoenixHBaseQueryExecutor {
         }
     }
 
-    @SuppressWarnings("resource")
     public <T> int[] saveBatch(Iterable<T> entities, Connection conn) {
         PreparedStatement ps = null;
         try {
@@ -162,13 +171,41 @@ public class PhoenixHBaseQueryExecutor {
                 log.info("Query String {}", queryStr);
             }
             if (preparedStatement == null) {
-                preparedStatement = conn.prepareStatement(queryStr);
+                preparedStatement = createPreparedStatement(conn, queryStr);
             }
             preparedStatement.addBatch(queryStr);
         }
         return preparedStatement;
     }
 
+    private Statement createStatement(final Connection conn) throws SQLException {
+    	Statement statement = conn.createStatement();
+    	if(statementProperties.containsKey(QUERY_TIMEOUT_SEC)) {
+    		String queryTimeOutValue = statementProperties.get(QUERY_TIMEOUT_SEC);
+    		try {
+    			statement.setQueryTimeout(Integer.valueOf(queryTimeOutValue));
+    		} catch(Exception ig) {
+        		log.warn("Ignoring invalid queryTimeout {}", queryTimeOutValue, ig);
+        	}
+    	}
+    	return statement;
+    	
+    }
+    
+    private PreparedStatement createPreparedStatement(final Connection conn, final String queryStr) throws SQLException {
+    	PreparedStatement statement = conn.prepareStatement(queryStr);
+    	if(statementProperties.containsKey(QUERY_TIMEOUT_SEC)) {
+    		String queryTimeOutValue = statementProperties.get(QUERY_TIMEOUT_SEC);
+    		try {
+    			statement.setQueryTimeout(Integer.valueOf(queryTimeOutValue));
+    		} catch(Exception ig) {
+        		log.warn("Ignoring invalid queryTimeout {}", queryTimeOutValue, ig);
+        	}
+    	}
+    	return statement;
+    	
+    }
+    
     protected PhoenixProjectedResultMapper getMapper() {
         return resultMapper;
     }
