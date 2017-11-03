@@ -3,8 +3,10 @@ package com.eharmony.pho.translator;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.eharmony.pho.query.QuerySelect;
+import com.eharmony.pho.query.criterion.Aggregate;
 import com.eharmony.pho.query.criterion.Criterion;
 import com.eharmony.pho.query.criterion.Operator;
 import com.eharmony.pho.query.criterion.Ordering;
@@ -17,17 +19,16 @@ import com.eharmony.pho.query.criterion.expression.UnaryExpression;
 import com.eharmony.pho.query.criterion.junction.Conjunction;
 import com.eharmony.pho.query.criterion.junction.Disjunction;
 import com.eharmony.pho.query.criterion.junction.Junction;
+import com.eharmony.pho.query.criterion.projection.*;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 
 /**
  * Abstract Query Translation. Convert a generic Query with nested criteria to a datastore specific query. Extend to
  * provide datastore specific query component implementations
- * 
- * @param <Q>
- *            the query type
- * @param <O>
- *            the ordering type
- * @param <P>
- *            the projected type
+ *
+ * @param <Q> the query type
+ * @param <O> the ordering type
+ * @param <P> the projected type
  */
 public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslator<Q, O, P> {
 
@@ -87,6 +88,8 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
             return translate((Expression) c, entityClass);
         } else if (c instanceof Junction) {
             return translate((Junction) c, entityClass);
+        } else if (c instanceof GroupProjection) {
+            return translate((GroupProjection) c, entityClass);
         } else if (c instanceof NativeExpression) {
             return translate((NativeExpression) c, entityClass);
         } else {
@@ -106,8 +109,20 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
             return translate((SetExpression) e, fieldName);
         } else if (e instanceof UnaryExpression) {
             return translate((UnaryExpression) e, fieldName);
-        }  else {
+        } else {
             throw unsupported(e.getClass());
+        }
+    }
+
+    protected <T> Q translate(Projection projection, Class<T> entityClass) {
+        if (projection instanceof GroupProjection) {
+            List<String> propertyNames = projection.getPropertyNames();
+            return translate((GroupProjection) projection,
+                    propertyNames.stream()
+                            .map(n -> propertyResolver.resolve(n, entityClass))
+                            .toArray(String[]::new));
+        } else {
+            throw unsupported(projection.getClass());
         }
     }
 
@@ -148,24 +163,24 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         Object value = e.getValue();
 
         switch (operator) {
-        case EQUAL:
-            return eq(fieldName, value);
-        case NOT_EQUAL:
-            return ne(fieldName, value);
-        case GREATER_THAN:
-            return gt(fieldName, value);
-        case GREATER_THAN_OR_EQUAL:
-            return gte(fieldName, value);
-        case LESS_THAN:
-            return lt(fieldName, value);
-        case LESS_THAN_OR_EQUAL:
-            return lte(fieldName, value);        
-        case LIKE:
+            case EQUAL:
+                return eq(fieldName, value);
+            case NOT_EQUAL:
+                return ne(fieldName, value);
+            case GREATER_THAN:
+                return gt(fieldName, value);
+            case GREATER_THAN_OR_EQUAL:
+                return gte(fieldName, value);
+            case LESS_THAN:
+                return lt(fieldName, value);
+            case LESS_THAN_OR_EQUAL:
+                return lte(fieldName, value);
+            case LIKE:
                 return like(fieldName, value);
-        case ILIKE:
-            return insensitiveLike(fieldName, value);
-        default:
-            throw unsupported(operator, EqualityExpression.class);
+            case ILIKE:
+                return insensitiveLike(fieldName, value);
+            default:
+                throw unsupported(operator, EqualityExpression.class);
         }
     }
 
@@ -175,10 +190,10 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         Object to = e.getTo();
 
         switch (operator) {
-        case BETWEEN:
-            return between(fieldName, from, to);
-        default:
-            throw unsupported(operator, RangeExpression.class);
+            case BETWEEN:
+                return between(fieldName, from, to);
+            default:
+                throw unsupported(operator, RangeExpression.class);
         }
     }
 
@@ -187,14 +202,14 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         Object[] values = e.getValues();
 
         switch (operator) {
-        case IN:
-            return in(fieldName, values);
-        case NOT_IN:
-            return notIn(fieldName, values);
-        case CONTAINS:
-            return contains(fieldName, values);
-        default:
-            throw unsupported(operator, SetExpression.class);
+            case IN:
+                return in(fieldName, values);
+            case NOT_IN:
+                return notIn(fieldName, values);
+            case CONTAINS:
+                return contains(fieldName, values);
+            default:
+                throw unsupported(operator, SetExpression.class);
         }
     }
 
@@ -202,18 +217,39 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         Operator operator = e.getOperator();
 
         switch (operator) {
-        case NULL:
-            return isNull(fieldName);
-        case NOT_NULL:
-            return notNull(fieldName);
-        case EMPTY:
-            return isEmpty(fieldName);
-        case NOT_EMPTY:
-            return notEmpty(fieldName);
-        default:
-            throw unsupported(operator, UnaryExpression.class);
+            case NULL:
+                return isNull(fieldName);
+            case NOT_NULL:
+                return notNull(fieldName);
+            case EMPTY:
+                return isEmpty(fieldName);
+            case NOT_EMPTY:
+                return notEmpty(fieldName);
+            default:
+                throw unsupported(operator, UnaryExpression.class);
         }
     }
+
+    protected P translate(AggregateProjection a, String fieldName) {
+        Aggregate aggregate = a.getOperator();
+        switch (aggregate) {
+            case AVG:
+                return avg(fieldName);
+            case MAX:
+                return max(fieldName);
+            case MIN:
+                return min(fieldName);
+            case COUNT:
+                return count(fieldName);
+            default:
+                throw unsupported(aggregate, AggregateProjection.class);
+        }
+    }
+
+    protected Q translate(GroupProjection g, String... fieldNames) {
+        return groupBy(fieldNames);
+    }
+
 
     @Override
     public <T, R> O translateOrder(QuerySelect<T, R> query) {
@@ -236,6 +272,10 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         throw new UnsupportedOperationException(operator + " not supported for " + expressionType.getSimpleName());
     }
 
+    protected UnsupportedOperationException unsupported(Aggregate aggregate, Class<? extends Projection> projectionType) {
+        throw new UnsupportedOperationException(aggregate + " not supported for " + projectionType.getSimpleName());
+    }
+
     protected UnsupportedOperationException unsupported(NativeExpression e) {
         throw new UnsupportedOperationException("Native Expression (" + e.getExpression() + ") of type "
                 + e.getExpressionClass() + " not supported.");
@@ -243,218 +283,198 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
 
     /**
      * Translate an "equal" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q eq(String fieldName, Object value);
 
     /**
      * Translate a "not equal" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q ne(String fieldName, Object value);
 
     /**
      * Translate a "less than" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q lt(String fieldName, Object value);
 
     /**
      * Translate a "less than or equal" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q lte(String fieldName, Object value);
 
     /**
      * Translate a "greater than" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q gt(String fieldName, Object value);
 
     /**
      * Translate a "greater than or equal" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value
-     *            the reference value
+     *
+     * @param fieldName the resolved field name
+     * @param value     the reference value
      * @return Q
      */
     public abstract Q gte(String fieldName, Object value);
 
     /**
      * Translate a "between" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param from
-     *            the lower bound value
-     * @param to
-     *            the upper bound value
+     *
+     * @param fieldName the resolved field name
+     * @param from      the lower bound value
+     * @param to        the upper bound value
      * @return Q
      */
     public abstract Q between(String fieldName, Object from, Object to);
 
     /**
      * Translate an "in" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param values
-     *            the reference values
+     *
+     * @param fieldName the resolved field name
+     * @param values    the reference values
      * @return Q
      */
     public abstract Q in(String fieldName, Object[] values);
 
     /**
      * Translate a "not in" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param values
-     *            the reference values
+     *
+     * @param fieldName the resolved field name
+     * @param values    the reference values
      * @return Q
      */
     public abstract Q notIn(String fieldName, Object[] values);
 
     /**
      * Translate a "contains" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param values
-     *            the reference values
+     *
+     * @param fieldName the resolved field name
+     * @param values    the reference values
      * @return Q
      */
     public abstract Q contains(String fieldName, Object[] values);
 
     /**
      * Translate a "is null" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
+     *
+     * @param fieldName the resolved field name
      * @return Q
      */
     public abstract Q isNull(String fieldName);
 
     /**
      * Translate a "not null" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
+     *
+     * @param fieldName the resolved field name
      * @return Q
      */
     public abstract Q notNull(String fieldName);
 
     /**
      * Translate a "like" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value the value to be like
+     *
+     * @param fieldName the resolved field name
+     * @param value     the value to be like
      * @return Q
      */
     public abstract Q like(String fieldName, Object value);
-    
+
     /**
      * Translate an "ilike" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param value the value to be like
+     *
+     * @param fieldName the resolved field name
+     * @param value     the value to be like
      * @return Q
      */
     public abstract Q insensitiveLike(String fieldName, Object value);
-    
+
     /**
      * Translate a "is empty" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * 
+     *
+     * @param fieldName the resolved field name
      * @return Q
      */
     public abstract Q isEmpty(String fieldName);
 
     /**
      * Translate a "is empty" expression
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * 
+     *
+     * @param fieldName the resolved field name
      * @return Q
      */
     public abstract Q notEmpty(String fieldName);
 
     /**
      * Translate an order statement
-     * 
-     * @param fieldName
-     *            the resolved field name
-     * @param ordering
-     *            the ordering
+     *
+     * @param fieldName the resolved field name
+     * @param ordering  the ordering
      * @return O
      */
     public abstract O order(String fieldName, Ordering ordering);
 
     /**
      * Join multiple orderings
-     * 
-     * @param orders
-     *            O
+     *
+     * @param orders O
      * @return O
      */
     public abstract O order(@SuppressWarnings("unchecked") O... orders);
 
     /**
      * Translate an "and" expression
-     * 
-     * @param subqueries
-     *            Q
+     *
+     * @param subqueries Q
      * @return Q
      */
     public abstract Q and(@SuppressWarnings("unchecked") Q... subqueries);
 
     /**
      * Translate an "or" expression
-     * 
-     * @param subqueries
-     *            Q
+     *
+     * @param subqueries Q
      * @return Q
      */
     public abstract Q or(@SuppressWarnings("unchecked") Q... subqueries);
-    
+
     /**
      * Translate a "limit expression" expression
-     * 
+     *
      * @param value Integer number of results to return
      * @return Q
      */
     public abstract Q limit(Integer value);
+
+    public abstract Q groupBy(String... fieldNames);
+
+    public abstract P count(String fieldName);
+
+    public abstract P avg(String fieldName);
+
+    public abstract String countAll();
+
+    public abstract P sum(String fieldName);
+
+    public abstract P max(String fieldName);
+
+    public abstract P min(String fieldName);
 
 }

@@ -2,20 +2,18 @@ package com.eharmony.pho.hbase.translator;
 
 import com.eharmony.pho.query.criterion.Symbolic;
 
-/**
- * Mappings for Apache Phoenix HBase Clauses  
- */
-public enum PhoenixHBaseClauses implements Symbolic {
-    FROM("FROM"),
-    WHERE("WHERE"),
-    HAVING("HAVING"),
-    ORDER_BY("ORDER BY"),
+public enum PhoenixHBaseFunction implements Symbolic {
     GROUP_BY("GROUP BY"),
-    LIMIT("LIMIT");
+    HAVING("HAVING"),
+    COUNT("COUNT"),
+    AVG("AVG"),
+    SUM("SUM"),
+    MAX("MAX"),
+    MIN("MIN");
 
     private final String symbol;
 
-    private PhoenixHBaseClauses(String symbol) {
+    PhoenixHBaseFunction(String symbol) {
         this.symbol = symbol;
     }
 
@@ -23,10 +21,10 @@ public enum PhoenixHBaseClauses implements Symbolic {
     public String symbol() {
         return symbol;
     }
-    
+
+
     @Override
     public String toString() {
         return symbol();
     }
-
 }

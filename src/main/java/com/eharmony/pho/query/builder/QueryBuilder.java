@@ -8,18 +8,14 @@ import java.util.List;
 import com.eharmony.pho.query.QueryOperationType;
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.QuerySelectImpl;
-import com.eharmony.pho.query.criterion.Criterion;
-import com.eharmony.pho.query.criterion.Ordering;
-import com.eharmony.pho.query.criterion.Orderings;
-import com.eharmony.pho.query.criterion.Restrictions;
+import com.eharmony.pho.query.criterion.*;
+import com.eharmony.pho.query.criterion.projection.Projection;
 
 /**
  * Builder for Query objects
- * 
- * @param <T>
- *            the entity type being queried
- * @param <R>
- *            the desired return type
+ *
+ * @param <T> the entity type being queried
+ * @param <R> the desired return type
  */
 public class QueryBuilder<T, R> {
 
@@ -27,6 +23,7 @@ public class QueryBuilder<T, R> {
     private final Class<R> returnType;
     private List<Criterion> criteria = new ArrayList<Criterion>();
     private Orderings orderings = new Orderings();
+    private List<Projection> projections = new ArrayList<>();
     private Integer maxResults;
     private List<String> returnFields = Collections.emptyList();
     private QueryOperationType queryOperationType;
@@ -38,7 +35,7 @@ public class QueryBuilder<T, R> {
     }
 
     public static <T, R> QueryBuilder<T, R> builderFor(Class<T> entityClass, Class<R> returnType,
-            String... returnFields) {
+                                                       String... returnFields) {
         return new QueryBuilder<T, R>(entityClass, returnType).setReturnFields(returnFields);
     }
 
@@ -91,17 +88,19 @@ public class QueryBuilder<T, R> {
 
     /**
      * Add an ordering to the list of orderings
+     *
      * @param orders the list of orderings to add
      * @return the builder
      */
     public QueryBuilder<T, R> addOrder(Ordering... orders) {
 
         return addOrder(Arrays.asList(orders));
-        
+
     }
-    
+
     /**
      * Add an ordering to the list of orderings
+     *
      * @param orders the list of orderings to add
      * @return the builder
      */
@@ -109,6 +108,11 @@ public class QueryBuilder<T, R> {
         for (Ordering order : orders) {
             orderings.add(order);
         }
+        return this;
+    }
+
+    public QueryBuilder<T, R> addProjection(Projection... projections) {
+        this.projections.addAll(Arrays.asList(projections));
         return this;
     }
 
@@ -141,7 +145,7 @@ public class QueryBuilder<T, R> {
             rootCriterion = Restrictions.and(criteria.toArray(new Criterion[criteria.size()]));
         }
         return new QuerySelectImpl<T, R>(entityClass, returnType, rootCriterion, orderings, maxResults, returnFields,
-                queryOperationType, queryHint);
+                projections, queryOperationType, queryHint);
     }
 
     @Override
