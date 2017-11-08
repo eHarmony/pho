@@ -3,6 +3,7 @@ package com.eharmony.pho.query;
 import java.util.List;
 
 import com.eharmony.pho.query.criterion.Criterion;
+import com.eharmony.pho.query.criterion.GroupCriterion;
 import com.eharmony.pho.query.criterion.Orderings;
 import com.eharmony.pho.query.criterion.projection.Projection;
 
@@ -19,6 +20,7 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
     private final Class<T> entityClass;
     private final Class<R> returnType;
     private final Criterion criteria;
+    private final Criterion groupCriterion;
     private final Orderings orderings;
     private final Integer maxResults;
     private final List<String> returnFields;
@@ -26,11 +28,12 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
     private final QueryOperationType queryOperationType;
     private final String queryHint;
 
-    public QuerySelectImpl(Class<T> entityClass, Class<R> returnType, Criterion criteria, Orderings orderings,
+    public QuerySelectImpl(Class<T> entityClass, Class<R> returnType, Criterion criteria, Criterion groupCriterion, Orderings orderings,
                            Integer maxResults, List<String> returnFields, List<Projection> projections, QueryOperationType queryOperationType, String queryHint) {
         this.entityClass = entityClass;
         this.returnType = returnType;
         this.criteria = criteria;
+        this.groupCriterion = groupCriterion;
         this.returnFields = returnFields;
         this.orderings = orderings;
         this.maxResults = maxResults;
@@ -87,6 +90,11 @@ public class QuerySelectImpl<T, R> implements QuerySelect<T, R> {
     @Override
     public Criterion getCriteria() {
         return criteria;
+    }
+
+    @Override
+    public Criterion getGroupCriteria() {
+        return groupCriterion;
     }
 
     /*

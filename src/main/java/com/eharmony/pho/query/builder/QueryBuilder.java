@@ -9,6 +9,7 @@ import com.eharmony.pho.query.QueryOperationType;
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.QuerySelectImpl;
 import com.eharmony.pho.query.criterion.*;
+import com.eharmony.pho.query.criterion.projection.AggregateProjection;
 import com.eharmony.pho.query.criterion.projection.Projection;
 
 /**
@@ -21,7 +22,8 @@ public class QueryBuilder<T, R> {
 
     private final Class<T> entityClass;
     private final Class<R> returnType;
-    private List<Criterion> criteria = new ArrayList<Criterion>();
+    private List<Criterion> criteria = new ArrayList<>();
+    private List<Criterion> groupCriteria = new ArrayList<>();
     private Orderings orderings = new Orderings();
     private List<Projection> projections = new ArrayList<>();
     private Integer maxResults;
@@ -116,6 +118,12 @@ public class QueryBuilder<T, R> {
         return this;
     }
 
+    public QueryBuilder<T, R> addGroupCriterion(Criterion groupCriterion) {
+//        groupCriteria.addAll(Arrays.asList(groupCriterion));
+        groupCriteria.add(groupCriterion);
+        return this;
+    }
+
     public QueryBuilder<T, R> setReturnFields(String... returnFields) {
         this.returnFields = Arrays.asList(returnFields);
         return this;
@@ -144,7 +152,13 @@ public class QueryBuilder<T, R> {
         } else if (criteria.size() > 1) {
             rootCriterion = Restrictions.and(criteria.toArray(new Criterion[criteria.size()]));
         }
-        return new QuerySelectImpl<T, R>(entityClass, returnType, rootCriterion, orderings, maxResults, returnFields,
+        Criterion groupCriterion = null;
+        if (groupCriteria.size() == 1) {
+            groupCriterion = groupCriteria.get(0);
+        } else if (groupCriteria.size() > 1) {
+            groupCriterion = Restrictions.and(groupCriteria.toArray(new Criterion[groupCriteria.size()]));
+        }
+        return new QuerySelectImpl<T, R>(entityClass, returnType, rootCriterion, groupCriterion, orderings, maxResults, returnFields,
                 projections, queryOperationType, queryHint);
     }
 

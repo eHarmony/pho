@@ -5,6 +5,6 @@ package com.eharmony.pho.query.criterion;
  */
 public interface WithAggregateFunction {
 
-    public Aggregate getOperator();
+    public Aggregate getAggregate();
 
 }

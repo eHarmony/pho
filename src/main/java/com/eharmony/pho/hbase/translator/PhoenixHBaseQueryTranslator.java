@@ -38,7 +38,7 @@ import com.eharmony.pho.translator.QueryTranslator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import static com.eharmony.pho.hbase.translator.PhoenixHBaseFunction.*;
+import static com.eharmony.pho.hbase.translator.PhoenixHBaseAggregate.*;
 
 /**
  * Translates the entity to Phoenix query to execute on HBase.
@@ -87,6 +87,7 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     private <T, R> String translateSelectQuery(QuerySelect<T, R> query) {
         List<String> fields = query.getReturnFields();
         Criterion rootCriterion = query.getCriteria();
+        Criterion groupCriterion = query.getGroupCriteria();
         Orderings orders = query.getOrder();
         Integer maxResults = query.getMaxResults();
         Class<T> entityClass = query.getEntityClass();
@@ -132,9 +133,12 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
         if (projections != null && CollectionUtils.isNotEmpty(projections)) {
             for (Projection p : projections) {
                 if (p instanceof GroupProjection) {
-                    return queryString + " " + translate(p, entityClass) + " ";
+                    queryString = spaceJoiner.join(queryString, translate(p, entityClass));
                 }
             }
+        }
+        if (groupCriterion != null) {
+            queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(), translate(groupCriterion, entityClass));
         }
         return queryString;
     }
@@ -274,7 +278,7 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
         return fieldName + " " + Joiner.on(" ").join(Lists.transform(Arrays.asList(parts), toString));
     }
 
-    protected String joinAggregateFunc(PhoenixHBaseFunction function, String... fieldNames) {
+    protected String joinAggregateFunc(PhoenixHBaseAggregate function, String... fieldNames) {
         return function + "(" + resolveMappingNames(fieldNames) + ")";
     }
 

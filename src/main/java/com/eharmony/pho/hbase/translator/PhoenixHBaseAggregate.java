@@ -2,9 +2,9 @@ package com.eharmony.pho.hbase.translator;
 
 import com.eharmony.pho.query.criterion.Symbolic;
 
-public enum PhoenixHBaseFunction implements Symbolic {
+public enum PhoenixHBaseAggregate implements Symbolic {
+
     GROUP_BY("GROUP BY"),
-    HAVING("HAVING"),
     COUNT("COUNT"),
     AVG("AVG"),
     SUM("SUM"),
@@ -13,7 +13,7 @@ public enum PhoenixHBaseFunction implements Symbolic {
 
     private final String symbol;
 
-    PhoenixHBaseFunction(String symbol) {
+    PhoenixHBaseAggregate(String symbol) {
         this.symbol = symbol;
     }
 

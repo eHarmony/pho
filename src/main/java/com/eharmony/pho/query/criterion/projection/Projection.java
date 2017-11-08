@@ -15,7 +15,7 @@ public class Projection implements Criterion, WithAggregateFunction {
     }
 
     @Override
-    public Aggregate getOperator() {
+    public Aggregate getAggregate() {
         return this.function;
     }
 

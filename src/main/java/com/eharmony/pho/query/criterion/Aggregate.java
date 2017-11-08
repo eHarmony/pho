@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableMap;
 public enum Aggregate implements Symbolic {
 
     GROUP_BY("group by"),
-    HAVING("having"),
     COUNT("count"),
     AVG("avg"),
     SUM("sum"),

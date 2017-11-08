@@ -3,7 +3,6 @@ package com.eharmony.pho.translator;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.criterion.Aggregate;
@@ -20,7 +19,6 @@ import com.eharmony.pho.query.criterion.junction.Conjunction;
 import com.eharmony.pho.query.criterion.junction.Disjunction;
 import com.eharmony.pho.query.criterion.junction.Junction;
 import com.eharmony.pho.query.criterion.projection.*;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 
 /**
  * Abstract Query Translation. Convert a generic Query with nested criteria to a datastore specific query. Extend to
@@ -231,7 +229,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
     }
 
     protected P translate(AggregateProjection a, String fieldName) {
-        Aggregate aggregate = a.getOperator();
+        Aggregate aggregate = a.getAggregate();
         switch (aggregate) {
             case AVG:
                 return avg(fieldName);
@@ -469,7 +467,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
 
     public abstract P avg(String fieldName);
 
-    public abstract String countAll();
+    public abstract P countAll();
 
     public abstract P sum(String fieldName);
 

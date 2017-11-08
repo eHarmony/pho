@@ -3,6 +3,7 @@ package com.eharmony.pho.query;
 import java.util.List;
 
 import com.eharmony.pho.query.criterion.Criterion;
+import com.eharmony.pho.query.criterion.GroupCriterion;
 import com.eharmony.pho.query.criterion.Orderings;
 import com.eharmony.pho.query.criterion.projection.Projection;
 
@@ -44,6 +45,8 @@ public interface QuerySelect<T, R> {
      * @return the root criterion node
      */
     public Criterion getCriteria();
+
+    Criterion getGroupCriteria();
 
     /**
      * Get the Order clauses.

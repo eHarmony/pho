@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.eharmony.pho.query.criterion.GroupRestrictions;
 import com.eharmony.pho.query.criterion.Projections;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -350,7 +351,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         String queryStr = translator.translate(query);
         System.out.println(queryStr);
         String expected =
-                "SELECT user_name FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) ";
+                "SELECT user_name FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name)";
         Assert.assertEquals(expected, queryStr);
     }
 
@@ -367,7 +368,45 @@ public class PhoenixHBaseQueryTranslatorTest {
         String queryStr = translator.translate(query);
         System.out.println(queryStr);
         String expected =
-                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) ";
+                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name)";
+        Assert.assertEquals(expected, queryStr);
+    }
+
+    @Test
+    public void testTranslateSelectWithGroupByAndHavingClause() throws ClassNotFoundException {
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        QuerySelect<TranslationTestClass, TranslationTestClass> query = QueryBuilder
+                .builderFor(TranslationTestClass.class).select()
+                .add(Restrictions.eq("userId", 2))
+                .add(Restrictions.eq("name", "vija'y"))
+                .addProjection(Projections.groupBy("name"))
+                .addProjection(Projections.max("userId"))
+                .addGroupCriterion( GroupRestrictions.eq(Projections.max("userId"), 2))
+                .build();
+        String queryStr = translator.translate(query);
+        System.out.println(queryStr);
+        String expected =
+                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) HAVING uid = 2";
+        Assert.assertEquals(expected, queryStr);
+    }
+
+    @Test
+    public void testTranslateSelectWithGroupByAndHavingClauses() throws ClassNotFoundException {
+        PhoenixHBaseQueryTranslator translator = new PhoenixHBaseQueryTranslator(entityPropertiesResolver);
+        QuerySelect<TranslationTestClass, TranslationTestClass> query = QueryBuilder
+                .builderFor(TranslationTestClass.class).select()
+                .add(Restrictions.eq("userId", 2))
+                .add(Restrictions.eq("name", "vija'y"))
+                .addProjection(Projections.groupBy("name"))
+                .addProjection(Projections.max("userId"))
+                .addGroupCriterion(GroupRestrictions.eq(Projections.max("userId"), 2))
+                .addGroupCriterion(GroupRestrictions.eq(Projections.max("name"), "vija'y"))
+                .build();
+        String queryStr = translator.translate(query);
+        System.out.println(queryStr);
+        String expected =
+                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) " +
+                        "HAVING (uid = 2) AND (user_name = 'vija''y')";
         Assert.assertEquals(expected, queryStr);
     }
 
