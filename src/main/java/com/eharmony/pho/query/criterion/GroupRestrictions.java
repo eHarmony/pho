@@ -16,7 +16,7 @@ public class GroupRestrictions {
     }
 
     public static EqualityExpression eq(AggregateProjection projection, Object value) {
-        return new EqualityExpression(Operator.EQUAL, projection.getPropertyName(), value);
+        return new EqualityExpression(Operator.EQUAL, projection.getPropertyName(), value, projection);
     }
 
     public static EqualityExpression ne(AggregateProjection projection, Object value) {

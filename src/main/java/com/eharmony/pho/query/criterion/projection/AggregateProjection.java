@@ -16,6 +16,11 @@ public class AggregateProjection extends Projection {
         return propertyName;
     }
 
+    public AggregateProjection setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+        return this;
+    }
+
     public String getName() {
         return function.symbol() + "(" + propertyName + ")";
     }

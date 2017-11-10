@@ -119,7 +119,6 @@ public class QueryBuilder<T, R> {
     }
 
     public QueryBuilder<T, R> addGroupCriterion(Criterion groupCriterion) {
-//        groupCriteria.addAll(Arrays.asList(groupCriterion));
         groupCriteria.add(groupCriterion);
         return this;
     }
@@ -146,20 +145,20 @@ public class QueryBuilder<T, R> {
 
     public QuerySelect<T, R> build() {
         // if criteria.size == 0, rootCriterion = null
-        Criterion rootCriterion = null;
-        if (criteria.size() == 1) {
-            rootCriterion = criteria.get(0);
-        } else if (criteria.size() > 1) {
-            rootCriterion = Restrictions.and(criteria.toArray(new Criterion[criteria.size()]));
-        }
-        Criterion groupCriterion = null;
-        if (groupCriteria.size() == 1) {
-            groupCriterion = groupCriteria.get(0);
-        } else if (groupCriteria.size() > 1) {
-            groupCriterion = Restrictions.and(groupCriteria.toArray(new Criterion[groupCriteria.size()]));
-        }
+        Criterion rootCriterion = bindCriterion(this.criteria);
+        Criterion groupCriterion = bindCriterion(this.groupCriteria);
         return new QuerySelectImpl<T, R>(entityClass, returnType, rootCriterion, groupCriterion, orderings, maxResults, returnFields,
                 projections, queryOperationType, queryHint);
+    }
+
+    private Criterion bindCriterion(List<Criterion> criteria) {
+        Criterion criterion = null;
+        if (criteria.size() == 1) {
+            criterion = criteria.get(0);
+        } else if (criteria.size() > 1) {
+            criterion = Restrictions.and(criteria.toArray(new Criterion[criteria.size()]));
+        }
+        return criterion;
     }
 
     @Override

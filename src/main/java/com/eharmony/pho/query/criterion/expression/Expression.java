@@ -4,6 +4,7 @@ import com.eharmony.pho.query.criterion.Criterion;
 import com.eharmony.pho.query.criterion.Operator;
 import com.eharmony.pho.query.criterion.WithOperator;
 import com.eharmony.pho.query.criterion.WithProperty;
+import com.eharmony.pho.query.criterion.projection.AggregateProjection;
 
 /**
  * An abstract expression with an operator that acts on a property name.
@@ -12,10 +13,18 @@ public abstract class Expression implements Criterion, WithOperator, WithPropert
 
     private final Operator operator;
     private final String propertyName;
+    private final AggregateProjection aggregateProjection;
+
+    protected Expression(Operator operator, String propertyName, AggregateProjection aggregateProjection) {
+        this.operator = operator;
+        this.propertyName = propertyName;
+        this.aggregateProjection = aggregateProjection;
+    }
 
     protected Expression(Operator operator, String propertyName) {
         this.operator = operator;
         this.propertyName = propertyName;
+        this.aggregateProjection = null;
     }
 
     @Override
@@ -28,6 +37,10 @@ public abstract class Expression implements Criterion, WithOperator, WithPropert
         return propertyName;
     }
 
+    public AggregateProjection getAggregateProjection() {
+        return aggregateProjection;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -36,6 +49,8 @@ public abstract class Expression implements Criterion, WithOperator, WithPropert
                 + ((operator == null) ? 0 : operator.hashCode());
         result = prime * result
                 + ((propertyName == null) ? 0 : propertyName.hashCode());
+        result = prime * result
+                + ((aggregateProjection == null) ? 0 : aggregateProjection.hashCode());
         return result;
     }
 
@@ -54,6 +69,11 @@ public abstract class Expression implements Criterion, WithOperator, WithPropert
             if (other.propertyName != null)
                 return false;
         } else if (!propertyName.equals(other.propertyName))
+            return false;
+        if (aggregateProjection == null) {
+            if (other.aggregateProjection != null)
+                return false;
+        } else if (!aggregateProjection.equals(other.aggregateProjection))
             return false;
         return true;
     }

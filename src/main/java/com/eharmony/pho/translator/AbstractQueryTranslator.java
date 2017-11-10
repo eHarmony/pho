@@ -3,7 +3,6 @@ package com.eharmony.pho.translator;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.eharmony.pho.query.QuerySelect;
 import com.eharmony.pho.query.criterion.Aggregate;
 import com.eharmony.pho.query.criterion.Criterion;
@@ -80,10 +79,10 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
      * If this becomes a maintainability or performance issue then we should look at replacing the current approach with
      * something like the visitor pattern.
      */
-    protected <T> Q translate(Criterion c, Class<T> entityClass) {
+    protected <T> Q translate(Criterion c, Class<T> entityClass, AggregateProjection projection) {
         // a Criterion can be an Expression or a Junction
         if (c instanceof Expression) {
-            return translate((Expression) c, entityClass);
+            return translate((Expression) c, entityClass, projection);
         } else if (c instanceof Junction) {
             return translate((Junction) c, entityClass);
         } else if (c instanceof GroupProjection) {
@@ -95,18 +94,22 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         }
     }
 
+    protected <T> Q translate(Criterion c, Class<T> entityClass) {
+        return translate(c, entityClass, null);
+    }
+
     protected abstract <T> Q translate(NativeExpression e, Class<T> entityClass);
 
-    protected <T> Q translate(Expression e, Class<T> entityClass) {
+    protected <T> Q translate(Expression e, Class<T> entityClass, AggregateProjection projection) {
         String fieldName = propertyResolver.resolve(e.getPropertyName(), entityClass);
         if (e instanceof EqualityExpression) {
-            return translate((EqualityExpression) e, fieldName);
+            return translate((EqualityExpression) e, fieldName, projection);
         } else if (e instanceof RangeExpression) {
-            return translate((RangeExpression) e, fieldName);
+            return translate((RangeExpression) e, fieldName, projection);
         } else if (e instanceof SetExpression) {
-            return translate((SetExpression) e, fieldName);
+            return translate((SetExpression) e, fieldName, projection);
         } else if (e instanceof UnaryExpression) {
-            return translate((UnaryExpression) e, fieldName);
+            return translate((UnaryExpression) e, fieldName, projection);
         } else {
             throw unsupported(e.getClass());
         }
@@ -148,7 +151,7 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         List<Criterion> criteria = j.getCriteria();
         List<Q> translated = new ArrayList<Q>(criteria.size());
         for (Criterion c : criteria) {
-            Q q = translate(c, entityClass);
+            Q q = translate(c, entityClass, ((Expression) c).getAggregateProjection());
             if (q != null) {
                 translated.add(q);
             }
@@ -156,10 +159,12 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         return translated.toArray((Q[]) Array.newInstance(queryClass, translated.size()));
     }
 
-    protected Q translate(EqualityExpression e, String fieldName) {
+    protected Q translate(EqualityExpression e, String fieldName, AggregateProjection projection) {
         Operator operator = e.getOperator();
         Object value = e.getValue();
-
+        if (projection != null) {
+            fieldName = (String) translate(projection, fieldName);
+        }
         switch (operator) {
             case EQUAL:
                 return eq(fieldName, value);
@@ -182,11 +187,13 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         }
     }
 
-    protected Q translate(RangeExpression e, String fieldName) {
+    protected Q translate(RangeExpression e, String fieldName, AggregateProjection projection) {
         Operator operator = e.getOperator();
         Object from = e.getFrom();
         Object to = e.getTo();
-
+        if (projection != null) {
+            fieldName = (String) translate(projection, fieldName);
+        }
         switch (operator) {
             case BETWEEN:
                 return between(fieldName, from, to);
@@ -195,10 +202,12 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         }
     }
 
-    protected Q translate(SetExpression e, String fieldName) {
+    protected Q translate(SetExpression e, String fieldName, AggregateProjection projection) {
         Operator operator = e.getOperator();
         Object[] values = e.getValues();
-
+        if (projection != null) {
+            fieldName = (String) translate(projection, fieldName);
+        }
         switch (operator) {
             case IN:
                 return in(fieldName, values);
@@ -211,9 +220,11 @@ public abstract class AbstractQueryTranslator<Q, O, P> implements QueryTranslato
         }
     }
 
-    protected Q translate(UnaryExpression e, String fieldName) {
+    protected Q translate(UnaryExpression e, String fieldName, AggregateProjection projection) {
         Operator operator = e.getOperator();
-
+        if (projection != null) {
+            fieldName = (String) translate(projection, fieldName);
+        }
         switch (operator) {
             case NULL:
                 return isNull(fieldName);

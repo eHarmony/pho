@@ -1,6 +1,8 @@
 package com.eharmony.pho.query.criterion.expression;
 
+import com.eharmony.pho.query.criterion.Aggregate;
 import com.eharmony.pho.query.criterion.Operator;
+import com.eharmony.pho.query.criterion.projection.AggregateProjection;
 
 /**
  * An equality expression comparing the property against the value with the
@@ -15,10 +17,15 @@ public class EqualityExpression extends Expression {
         this.value = value;
     }
 
+    public EqualityExpression(Operator operator, String propertyName, Object value, AggregateProjection aggregateProjection) {
+        super(operator, propertyName, aggregateProjection);
+        this.value = value;
+    }
+
     public Object getValue() {
         return value;
     }
-    
+
     @Override
     public String toString() {
         return getPropertyName() + " " + getOperator() + " " + value;
@@ -48,5 +55,5 @@ public class EqualityExpression extends Expression {
             return false;
         return true;
     }
-    
+
 }

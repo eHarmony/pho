@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.eharmony.pho.query.criterion.expression.Expression;
 import com.eharmony.pho.query.criterion.projection.AggregateProjection;
 import com.eharmony.pho.query.criterion.projection.GroupProjection;
 import com.eharmony.pho.query.criterion.projection.Projection;
@@ -38,6 +39,7 @@ import com.eharmony.pho.translator.QueryTranslator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+
 import static com.eharmony.pho.hbase.translator.PhoenixHBaseAggregate.*;
 
 /**
@@ -138,7 +140,13 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
             }
         }
         if (groupCriterion != null) {
-            queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(), translate(groupCriterion, entityClass));
+            if (groupCriterion instanceof Expression) {
+                queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(),
+                        translate(groupCriterion, entityClass, ((Expression) groupCriterion).getAggregateProjection()));
+            } else {
+                queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(),
+                        translate(groupCriterion, entityClass));
+            }
         }
         return queryString;
     }

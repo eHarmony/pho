@@ -386,7 +386,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         String queryStr = translator.translate(query);
         System.out.println(queryStr);
         String expected =
-                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) HAVING uid = 2";
+                "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) HAVING MAX(uid) = 2";
         Assert.assertEquals(expected, queryStr);
     }
 
@@ -406,7 +406,7 @@ public class PhoenixHBaseQueryTranslatorTest {
         System.out.println(queryStr);
         String expected =
                 "SELECT user_name, MAX(uid) FROM user WHERE (uid = 2) AND (user_name = 'vija''y') GROUP BY(user_name) " +
-                        "HAVING (uid = 2) AND (user_name = 'vija''y')";
+                        "HAVING (MAX(uid) = 2) AND (MAX(user_name) = 'vija''y')";
         Assert.assertEquals(expected, queryStr);
     }
 
