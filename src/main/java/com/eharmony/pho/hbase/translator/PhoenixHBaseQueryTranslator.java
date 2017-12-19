@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.eharmony.pho.query.criterion.expression.Expression;
+import com.eharmony.pho.query.criterion.projection.AggregateProjection;
+import com.eharmony.pho.query.criterion.projection.GroupProjection;
+import com.eharmony.pho.query.criterion.projection.Projection;
 import com.google.common.base.Strings;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,31 +40,32 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
+import static com.eharmony.pho.hbase.translator.PhoenixHBaseAggregate.*;
+
 /**
  * Translates the entity to Phoenix query to execute on HBase.
- * 
+ * <p>
  * 1. Entity classes must be registered through constructor. 2. SELECT, DELETE and UPSERT queries supported. 3.
  * provided support to escape the special characters while querying and inserting the data ("'", "/" etc..) 4. No
  * support for joins and sub-queries are not tested
- * 
- * @author vvangapandu
  *
+ * @author vvangapandu
  */
 public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String, String, String> implements
         QueryTranslator<String, String, String> {
-    
+
     private final MorphiaEntityResolver entityResolver = new MorphiaEntityResolver();
     private EntityPropertiesResolver entityPropertiesResolver;
     private static final String PROJECTION_ALL = "*";
-    private static final String SELECT = "SELECT";    
+    private static final String SELECT = "SELECT";
     private static final String STRING_OPERAND_WITH_WILDCARD = "%%%s%%";
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PhoenixHBaseQueryTranslator.class);
-    
+
     private static final int ORDER_EXPRESSION_SUFFIX_MAX_LENGTH = "DESC NULLS FIRST".length();
 
     public PhoenixHBaseQueryTranslator(Class<String> queryClass, Class<String> orderClass,
-            EntityPropertiesResolver propertyResolver) {
+                                       EntityPropertiesResolver propertyResolver) {
         super(queryClass, orderClass, propertyResolver);
         this.entityPropertiesResolver = propertyResolver;
     }
@@ -71,9 +76,10 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     }
 
     /**
-     *  translates given QuerySelect object to select query string
-     *  @param query QuerySelect
-     *  @return String
+     * translates given QuerySelect object to select query string
+     *
+     * @param query QuerySelect
+     * @return String
      */
     @Override
     public <T, R> String translate(QuerySelect<T, R> query) {
@@ -83,19 +89,37 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     private <T, R> String translateSelectQuery(QuerySelect<T, R> query) {
         List<String> fields = query.getReturnFields();
         Criterion rootCriterion = query.getCriteria();
+        Criterion groupCriterion = query.getGroupCriteria();
         Orderings orders = query.getOrder();
         Integer maxResults = query.getMaxResults();
         Class<T> entityClass = query.getEntityClass();
         Joiner spaceJoiner = Joiner.on(" ");
+
+        List<Projection> projections = query.getProjection();
+
         String projection = PROJECTION_ALL;
         if (CollectionUtils.isNotEmpty(fields)) {
             projection = Joiner.on(", ").join(
                     entityPropertiesResolver.resolveEntityMappingPropertyNames(fields, entityClass));
         }
+
+        if (projections != null && CollectionUtils.isNotEmpty(projections)) {
+            List<String> properties = new ArrayList<>();
+            for (Projection p : projections) {
+                if (p instanceof AggregateProjection) {
+                    properties.add(translate((AggregateProjection) p,
+                            entityPropertiesResolver.resolve(p.getPropertyNames().get(0), entityClass)));
+                } else {
+                    properties.addAll(p.getPropertyNames());
+                }
+                projection = Joiner.on(", ").join(
+                        entityPropertiesResolver.resolveEntityMappingPropertyNames(properties, entityClass));
+            }
+        }
         //Add query hint if available
         projection = Strings.isNullOrEmpty(query.getQueryHint()) ? projection : spaceJoiner.join(query.getQueryHint(), PROJECTION_ALL);
-        String queryString = spaceJoiner.join(new String[] { SELECT, projection, PhoenixHBaseClauses.FROM.symbol(),
-                entityResolver.resolve(entityClass) });
+        String queryString = spaceJoiner.join(new String[]{SELECT, projection, PhoenixHBaseClauses.FROM.symbol(),
+                entityResolver.resolve(entityClass)});
 
         if (rootCriterion != null) {
             queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.WHERE.symbol(), translate(rootCriterion, entityClass));
@@ -104,15 +128,35 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
         if (orders != null && CollectionUtils.isNotEmpty(orders.get())) {
             queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.ORDER_BY.symbol(), translateOrder(query));
         }
-        
-        if(maxResults != null && maxResults > 0) {
+
+        if (maxResults != null && maxResults > 0) {
             queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.LIMIT.symbol(), maxResults);
+        }
+        if (projections != null && CollectionUtils.isNotEmpty(projections)) {
+            for (Projection p : projections) {
+                if (p instanceof GroupProjection) {
+                    queryString = spaceJoiner.join(queryString, translate(p, entityClass));
+                }
+            }
+        }
+        if (groupCriterion != null) {
+            if (groupCriterion instanceof Expression) {
+                queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(),
+                        translate(groupCriterion, entityClass, ((Expression) groupCriterion).getAggregateProjection()));
+            } else {
+                queryString = spaceJoiner.join(queryString, PhoenixHBaseClauses.HAVING.symbol(),
+                        translate(groupCriterion, entityClass));
+            }
         }
         return queryString;
     }
 
     private String resolveMappingName(String fieldName) {
         return fieldName;
+    }
+
+    private String resolveMappingNames(String... fieldNames) {
+        return Joiner.on(", ").join(Arrays.asList(fieldNames));
     }
 
     @Override
@@ -145,20 +189,20 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
     public String gte(String fieldName, Object value) {
         return join(resolveMappingName(fieldName), PhoenixHBaseOperator.GREATER_THAN_OR_EQUAL, value);
     }
-    
-	@Override
-    public String insensitiveLike(String fieldName, Object value) {
-		return join(resolveMappingName(fieldName), 
-					PhoenixHBaseOperator.LIKE_CASE_INSENSITIVE, 
-					String.format(STRING_OPERAND_WITH_WILDCARD, value));
-	}
 
-	@Override
+    @Override
+    public String insensitiveLike(String fieldName, Object value) {
+        return join(resolveMappingName(fieldName),
+                PhoenixHBaseOperator.LIKE_CASE_INSENSITIVE,
+                String.format(STRING_OPERAND_WITH_WILDCARD, value));
+    }
+
+    @Override
     public String like(String fieldName, Object value) {
-		return join(resolveMappingName(fieldName), 
-					PhoenixHBaseOperator.LIKE, 
-					String.format(STRING_OPERAND_WITH_WILDCARD, value));	
-	}
+        return join(resolveMappingName(fieldName),
+                PhoenixHBaseOperator.LIKE,
+                String.format(STRING_OPERAND_WITH_WILDCARD, value));
+    }
 
     @Override
     public String between(String fieldName, Object from, Object to) {
@@ -212,7 +256,7 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
 
     @Override
     public String order(String fieldName, Ordering ordering) {
-        if(ordering == null || StringUtils.isBlank(ordering.getPropertyName())){
+        if (ordering == null || StringUtils.isBlank(ordering.getPropertyName())) {
             return StringUtils.EMPTY;
         }
         StringBuilder orderExpressionBuilder = new StringBuilder(fieldName.length() + ORDER_EXPRESSION_SUFFIX_MAX_LENGTH);
@@ -230,7 +274,7 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
             }
         }
         return orderExpressionBuilder.toString();
-        
+
     }
 
     @Override
@@ -242,7 +286,11 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
         return fieldName + " " + Joiner.on(" ").join(Lists.transform(Arrays.asList(parts), toString));
     }
 
-    private final Function<Object, String> toString = new Function<Object, String>(){
+    protected String joinAggregateFunc(PhoenixHBaseAggregate function, String... fieldNames) {
+        return function + "(" + resolveMappingNames(fieldNames) + ")";
+    }
+
+    private final Function<Object, String> toString = new Function<Object, String>() {
         @Override
         public String apply(Object o) {
             return string(o);
@@ -389,12 +437,47 @@ public class PhoenixHBaseQueryTranslator extends AbstractQueryTranslator<String,
 
     @Override
     public String limit(Integer value) {
-       
-        if(value != null && value > 0) {
+
+        if (value != null && value > 0) {
             return "LIMIT " + value;
         }
         return "";
-        
+
+    }
+
+    @Override
+    public String groupBy(String... fieldNames) {
+        return joinAggregateFunc(GROUP_BY, fieldNames);
+    }
+
+    @Override
+    public String count(String fieldName) {
+        return joinAggregateFunc(COUNT, fieldName);
+    }
+
+    @Override
+    public String countAll() {
+        return joinAggregateFunc(COUNT, "*");
+    }
+
+    @Override
+    public String sum(String fieldName) {
+        return joinAggregateFunc(SUM, fieldName);
+    }
+
+    @Override
+    public String avg(String fieldName) {
+        return joinAggregateFunc(AVG, fieldName);
+    }
+
+    @Override
+    public String max(String fieldName) {
+        return joinAggregateFunc(MAX, resolveMappingName(fieldName));
+    }
+
+    @Override
+    public String min(String fieldName) {
+        return joinAggregateFunc(MIN, fieldName);
     }
 
 }

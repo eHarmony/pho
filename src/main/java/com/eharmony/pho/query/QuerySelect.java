@@ -3,7 +3,9 @@ package com.eharmony.pho.query;
 import java.util.List;
 
 import com.eharmony.pho.query.criterion.Criterion;
+import com.eharmony.pho.query.criterion.GroupCriterion;
 import com.eharmony.pho.query.criterion.Orderings;
+import com.eharmony.pho.query.criterion.projection.Projection;
 
 /**
  * A generic, object oriented representation of a query
@@ -44,12 +46,16 @@ public interface QuerySelect<T, R> {
      */
     public Criterion getCriteria();
 
+    Criterion getGroupCriteria();
+
     /**
      * Get the Order clauses.
      * 
      * @return the ordering clauses
      */
     public Orderings getOrder();
+
+    public List<Projection> getProjection();
 
     /**
      * Get the max desired results. Null signifies no maximum.
